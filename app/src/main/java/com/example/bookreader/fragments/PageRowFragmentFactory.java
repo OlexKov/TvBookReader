@@ -1,4 +1,4 @@
-package com.example.bookreader;
+package com.example.bookreader.fragments;
 
 import android.os.Bundle;
 

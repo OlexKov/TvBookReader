@@ -1,14 +1,11 @@
-package com.example.bookreader;
+package com.example.bookreader.activities;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.fragment.app.FragmentActivity;
 
-import com.example.bookreader.data.database.entity.Category;
-import com.example.bookreader.data.database.repository.CategoryRepository;
-
-import java.util.List;
+import com.example.bookreader.fragments.MainFragment;
+import com.example.bookreader.R;
 
 /*
  * Main Activity class that loads {@link MainFragment}.

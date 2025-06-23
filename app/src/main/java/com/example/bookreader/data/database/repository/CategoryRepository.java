@@ -1,15 +1,11 @@
 package com.example.bookreader.data.database.repository;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
-
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.core.util.Consumer;
 
 import com.example.bookreader.BookReaderApp;
-import com.example.bookreader.data.database.DatabaseClient;
 import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.entity.Category;
 
@@ -25,13 +21,18 @@ public class CategoryRepository {
         this.categoryDao = BookReaderApp.getInstance().getAppDatabase().categoryDao();
     }
 
-    public void insert(Category category) {
+    public void insert(Category category, Consumer<Long> callback) {
         executorService.execute(() -> {
-            categoryDao.insert(category);
+            long id = categoryDao.insert(category);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(id);
+            });
         });
     }
 
-    public void getCategoryByIdAsync(int categoryId, Consumer<Category> callback) {
+
+
+    public void getCategoryByIdAsync(long categoryId, Consumer<Category> callback) {
         executorService.execute(() -> {
             Category category = categoryDao.getById(categoryId);
             new Handler(Looper.getMainLooper()).post(() -> {

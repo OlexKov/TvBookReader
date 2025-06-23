@@ -1,4 +1,4 @@
-package com.example.bookreader;
+package com.example.bookreader.presenters;
 
 import android.graphics.Color;
 import android.view.Gravity;
@@ -7,6 +7,8 @@ import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.Presenter;
+
+import com.example.bookreader.R;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;

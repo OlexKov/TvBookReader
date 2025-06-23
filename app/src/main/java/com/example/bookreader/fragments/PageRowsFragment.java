@@ -1,7 +1,6 @@
-package com.example.bookreader;
+package com.example.bookreader.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.leanback.app.RowsSupportFragment;
@@ -9,6 +8,8 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
+
+import com.example.bookreader.presenters.BookPreviewPresenter;
 
 public class PageRowsFragment extends RowsSupportFragment {
 
@@ -31,7 +32,7 @@ public class PageRowsFragment extends RowsSupportFragment {
 
         BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
 
-        if ("Категорія 1".equals(category)) {
+        if ("Всі".equals(category)) {
             // Перший рядок
             ArrayObjectAdapter adapter1 = new ArrayObjectAdapter(itemPresenter);
             for (int i = 0; i < 15; i++) {

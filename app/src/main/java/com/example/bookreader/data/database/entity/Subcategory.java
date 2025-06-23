@@ -15,13 +15,13 @@ import androidx.room.ForeignKey;
 )
 public class Subcategory {
     @PrimaryKey(autoGenerate = true)
-    public int id;
+    public long id;
 
     public String name;
 
-    public int parentCategoryId;
+    public long parentCategoryId;
 
-    public Subcategory(String name, int parentCategoryId) {
+    public Subcategory(String name, long parentCategoryId) {
         this.name = name;
         this.parentCategoryId = parentCategoryId;
     }
