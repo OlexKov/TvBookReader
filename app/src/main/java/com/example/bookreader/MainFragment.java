@@ -1,26 +1,15 @@
 package com.example.bookreader;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.DividerRow;
 import androidx.leanback.widget.HeaderItem;
-import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 import androidx.core.content.ContextCompat;
-import androidx.leanback.widget.OnChildSelectedListener;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
-import androidx.leanback.widget.OnItemViewSelectedListener;
 import androidx.leanback.widget.PageRow;
-import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowHeaderPresenter;
-import androidx.leanback.widget.RowPresenter;
 
 public class MainFragment extends BrowseSupportFragment {
 
