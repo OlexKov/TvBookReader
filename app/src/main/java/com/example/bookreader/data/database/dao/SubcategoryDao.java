@@ -11,8 +11,8 @@ import java.util.List;
 @Dao
 public interface SubcategoryDao {
     @Insert
-    void insert(Subcategory subcategory);
+    long insert(Subcategory subcategory);
 
     @Query("SELECT * FROM subcategories WHERE parentCategoryId = :categoryId")
-    List<Subcategory> getByCategoryId(int categoryId);
+    List<Subcategory> getByCategoryId(long categoryId);
 }

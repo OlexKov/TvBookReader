@@ -1,6 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.leanback.app.RowsSupportFragment;
@@ -9,9 +10,24 @@ import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 
+import com.example.bookreader.data.database.entity.Book;
+import com.example.bookreader.data.database.entity.Category;
+import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.data.database.repository.SubcategoryRepository;
 import com.example.bookreader.presenters.BookPreviewPresenter;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 public class PageRowsFragment extends RowsSupportFragment {
+
+
+    CategoryRepository categoryRepo = new CategoryRepository();
+    BookRepository bookRepo = new BookRepository();
+    SubcategoryRepository subcatRepo = new SubcategoryRepository();
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -32,50 +48,35 @@ public class PageRowsFragment extends RowsSupportFragment {
 
         BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
 
-        if ("Всі".equals(category)) {
-            // Перший рядок
-            ArrayObjectAdapter adapter1 = new ArrayObjectAdapter(itemPresenter);
-            for (int i = 0; i < 15; i++) {
-                adapter1.add("Категорія 1 - Елемент " + i);
+        categoryRepo.getAllCategoriesAsync(categories->{
+            if ("Всі".equals(category)) {
+                categories.forEach(cat->{
+                    if(!cat.name.equals("Всі")) {
+                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                        HeaderItem header = new HeaderItem(cat.id, cat.name);
+                        bookRepo.geBooksByCategoryIdAsync(cat.id, books -> books.forEach(adapter::add));
+                        rowsAdapter.add(new ListRow(header, adapter));
+                    }
+                });
             }
-            HeaderItem header1 = new HeaderItem(0, "Перший рядок Категорії 1");
-            rowsAdapter.add(new ListRow(header1, adapter1));
-
-            // Другий рядок
-            ArrayObjectAdapter adapter2 = new ArrayObjectAdapter(itemPresenter);
-            for (int i = 0; i < 15; i++) {
-                adapter2.add("Категорія 2 - Елемент " + i);
+            else  {
+                Optional<Category> cat = categories.stream().filter(x->x.name.equals(category)).findFirst();
+                cat.ifPresent(value -> subcatRepo.getSubcategoriesForCategory(value.id,subcategories -> {
+                    subcategories.forEach(subcategory -> {
+                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                        HeaderItem header = new HeaderItem(subcategory.id, subcategory.name);
+                        if(subcategory.name.equals("Всі")){
+                            bookRepo.geBooksByCategoryIdAsync(cat.get().id, books -> books.forEach(adapter::add));
+                        }
+                        else{
+                            bookRepo.geBooksBySubcategoryIdAsync(subcategory.id, books -> books.forEach(adapter::add));
+                        }
+                        rowsAdapter.add(new ListRow(header, adapter));
+                    });
+                }));
             }
-            HeaderItem header2 = new HeaderItem(1, "Другий рядок Категорії 1");
-            rowsAdapter.add(new ListRow(header2, adapter2));
-        }
-        else if ("Категорія 2".equals(category)) {
-            // Аналогічно для Категорії 2
-            ArrayObjectAdapter adapter1 = new ArrayObjectAdapter(itemPresenter);
-            adapter1.add("Категорія 2 - Елемент 1");
-            adapter1.add("Категорія 2 - Елемент 2");
-            HeaderItem header1 = new HeaderItem(0, "Перший рядок Категорії 2");
-            rowsAdapter.add(new ListRow(header1, adapter1));
+        });
 
-            ArrayObjectAdapter adapter2 = new ArrayObjectAdapter(itemPresenter);
-            adapter2.add("Категорія 2 - Елемент 3");
-            adapter2.add("Категорія 2 - Елемент 4");
-            HeaderItem header2 = new HeaderItem(1, "Другий рядок Категорії 2");
-            rowsAdapter.add(new ListRow(header2, adapter2));
-        }else if ("Категорія 3".equals(category)) {
-            // Аналогічно для Категорії 3
-            ArrayObjectAdapter adapter1 = new ArrayObjectAdapter(itemPresenter);
-            adapter1.add("Категорія 3 - Елемент 1");
-            adapter1.add("Категорія 3 - Елемент 2");
-            HeaderItem header1 = new HeaderItem(0, "Перший рядок Категорії 3");
-            rowsAdapter.add(new ListRow(header1, adapter1));
-
-            ArrayObjectAdapter adapter2 = new ArrayObjectAdapter(itemPresenter);
-            adapter2.add("Категорія 3 - Елемент 3");
-            adapter2.add("Категорія 3 - Елемент 4");
-            HeaderItem header2 = new HeaderItem(1, "Другий рядок Категорії 3");
-            rowsAdapter.add(new ListRow(header2, adapter2));
-        }
         // Можеш додати інші категорії так само...
 
         setAdapter(rowsAdapter);
