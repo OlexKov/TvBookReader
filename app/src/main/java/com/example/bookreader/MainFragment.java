@@ -2,18 +2,24 @@ package com.example.bookreader;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.leanback.app.BrowseSupportFragment;
+import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DividerRow;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 import androidx.core.content.ContextCompat;
+import androidx.leanback.widget.OnChildSelectedListener;
+import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.leanback.widget.OnItemViewSelectedListener;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
+import androidx.leanback.widget.RowHeaderPresenter;
 import androidx.leanback.widget.RowPresenter;
 
 public class MainFragment extends BrowseSupportFragment {
@@ -23,25 +29,32 @@ public class MainFragment extends BrowseSupportFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        setTitle("Категорії");
+        setTitle("Категорія 1");
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
         setBrandColor(ContextCompat.getColor(requireContext(), R.color.default_background));
 
         setupRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
-        setOnItemViewSelectedListener(new OnItemViewSelectedListener() {
-            @Override
-            public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item,
-                                       RowPresenter.ViewHolder rowViewHolder, Row row) {
-
-                if (item instanceof PageRow) {
-                    String title = ((PageRow) item).getHeaderItem().getName();
-                    setTitle(title); // ← має оновити заголовок
-                    Log.d("TAG", "Встановлюємо заголовок: " + title);
+        HeadersSupportFragment supportFragment = getHeadersSupportFragment();
+        if(supportFragment != null)
+        {
+            supportFragment.setOnHeaderViewSelectedListener(new HeadersSupportFragment.OnHeaderViewSelectedListener() {
+                @Override
+                public void onHeaderSelected(RowHeaderPresenter.ViewHolder viewHolder, Row row) {
+                    if (row != null && row.getHeaderItem() != null) {
+                        String title = row.getHeaderItem().getName();
+                        setTitle(title);
+                        ArrayObjectAdapter adapter = (ArrayObjectAdapter) getAdapter();
+                        int position = adapter.indexOf(row);
+                        if (position >= 0) {
+                            setSelectedPosition(position, true);
+                        }
+                    }
                 }
-            }
-        });
+            });
+        }
+
     }
 
     private void setupRows() {
@@ -54,9 +67,4 @@ public class MainFragment extends BrowseSupportFragment {
 
         setAdapter(adapter);
     }
-
-
-
-
-
 }
