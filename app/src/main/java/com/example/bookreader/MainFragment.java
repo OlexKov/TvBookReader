@@ -1,6 +1,7 @@
 package com.example.bookreader;
 
 import android.os.Bundle;
+
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -11,14 +12,16 @@ import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowHeaderPresenter;
 
+import com.example.bookreader.data.database.repository.CategoryRepository;
+
 public class MainFragment extends BrowseSupportFragment {
 
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        setTitle("Категорія 1");
+        CategoryRepository repo = new CategoryRepository();
+        repo.getCategoryByIdAsync(1,category ->setTitle(category.name));
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
         setBrandColor(ContextCompat.getColor(requireContext(), R.color.default_background));
@@ -48,12 +51,12 @@ public class MainFragment extends BrowseSupportFragment {
 
     private void setupRows() {
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new ListRowPresenter());
-
-        // Використовуємо PageRow замість ListRow
-        adapter.add(new PageRow(new HeaderItem(0, "Категорія 1")));
-        adapter.add(new PageRow(new HeaderItem(1, "Категорія 2")));
-        adapter.add(new PageRow(new HeaderItem(2, "Категорія 3")));
-
+        CategoryRepository repo = new CategoryRepository();
+        repo.getAllCategoriesAsync(categories -> {
+            categories.forEach(category -> {
+                adapter.add(new PageRow(new HeaderItem(category.id, category.name)));
+            });
+        });
         setAdapter(adapter);
     }
 }

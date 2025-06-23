@@ -34,4 +34,8 @@ dependencies {
 
     implementation(libs.androidx.leanback)
     implementation(libs.glide)
+
+    // Room
+    implementation ("androidx.room:room-runtime:2.6.1")
+    annotationProcessor ("androidx.room:room-compiler:2.6.1")
 }
