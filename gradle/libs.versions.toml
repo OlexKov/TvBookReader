@@ -2,10 +2,22 @@
 agp = "8.6.0"
 leanback = "1.2.0"
 glide = "4.11.0"
+lombok = "1.18.30"
+lombokVersion = "1.18.38"
+roomCompiler = "2.7.2"
+roomCompilerVersion = "2.6.1"
+roomRuntime = "2.6.1"
 
 [libraries]
 androidx-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-compiler-v261 = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
+androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+lombok-v11838 = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }
+projectlombok-lombok = { module = "org.projectlombok:lombok" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

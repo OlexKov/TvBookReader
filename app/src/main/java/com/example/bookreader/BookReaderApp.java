@@ -56,28 +56,62 @@ public class BookReaderApp  extends Application {
                 CategoryDao dao = appDatabase.categoryDao();
                 SubcategoryDao sdao = appDatabase.subcategoryDao();
                 BookDao bdao = appDatabase.bookDao();
-                dao.insert(new Category( "Всі"));
+                dao.insert(Category.builder().name( "Всі").build());
 
-                long categoryId =  dao.insert(new Category( "Категорія 1"));
-                sdao.insert(new Subcategory("Всі",categoryId));
-                long subcategoryId  = sdao.insert(new Subcategory("Субкатегорія 1",categoryId));
+                long categoryId =  dao.insert(Category.builder()
+                        .name( "Категорія 1")
+                        .build());
+                sdao.insert(Subcategory.builder()
+                        .name("Всі")
+                        .parentCategoryId(categoryId)
+                        .build());
+                long subcategoryId  = sdao.insert(Subcategory.builder()
+                        .name("Субкатегорія 1")
+                        .parentCategoryId(categoryId)
+                        .build());
                 for (int i = 0; i < 10;i++){
-                    bdao.insert(new Book("Категорія 1 - Субкатегорія 1 - книга - "+1,subcategoryId));
+                    bdao.insert( Book.builder()
+                            .name("Категорія 1 - Субкатегорія 1 - книга - " + i)
+                            .subCategoryId(subcategoryId)
+                            .build());
                 }
-                subcategoryId  = sdao.insert(new Subcategory("Субкатегорія 2",categoryId));
+                subcategoryId  = sdao.insert(Subcategory.builder()
+                        .name("Субкатегорія 2")
+                        .parentCategoryId(categoryId)
+                        .build());
                 for (int i = 0; i < 10;i++){
-                    bdao.insert(new Book("Категорія 1 - Субкатегорія 2 - книга - "+1,subcategoryId));
+                    bdao.insert(Book.builder()
+                            .name("Категорія 1 - Субкатегорія 2 - книга - " + i)
+                            .subCategoryId(subcategoryId)
+                            .build());
                 }
 
-                categoryId =  dao.insert(new Category( "Категорія 2"));
-                sdao.insert(new Subcategory("Всі",categoryId));
-                subcategoryId  = sdao.insert(new Subcategory("Субкатегорія 1",categoryId));
+                categoryId =  dao.insert(Category.builder()
+                        .name( "Категорія 2")
+                        .build());
+                sdao.insert(Subcategory.builder()
+                        .name("Всі")
+                        .parentCategoryId(categoryId)
+                        .build());
+                subcategoryId  = sdao.insert( Subcategory.builder()
+                        .name("Субкатегорія 1")
+                        .parentCategoryId(categoryId)
+                        .build());
                 for (int i = 0; i < 10;i++){
-                    bdao.insert(new Book("Категорія 2 - Субкатегорія 1 - книга - "+1,subcategoryId));
+                    bdao.insert(Book.builder()
+                            .name("Категорія 2 - Субкатегорія 1 - книга - " + i)
+                            .subCategoryId(subcategoryId)
+                            .build());
                 }
-                subcategoryId  = sdao.insert(new Subcategory("Субкатегорія 2",categoryId));
+                subcategoryId  = sdao.insert(Subcategory.builder()
+                        .name("Субкатегорія 2")
+                        .parentCategoryId(categoryId)
+                        .build());
                 for (int i = 0; i < 10;i++){
-                    bdao.insert(new Book("Категорія 2 - Субкатегорія 2 - книга - "+1,subcategoryId));
+                    bdao.insert(Book.builder()
+                            .name("Категорія 2 - Субкатегорія 2 - книга - " + i)
+                            .subCategoryId(subcategoryId)
+                            .build());
                 }
             });
         }

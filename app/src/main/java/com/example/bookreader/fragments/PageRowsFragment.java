@@ -1,7 +1,14 @@
 package com.example.bookreader.fragments;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.leanback.app.RowsSupportFragment;
@@ -32,7 +39,10 @@ public class PageRowsFragment extends RowsSupportFragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-         loadCategoryRows();
+
+        setupEventListeners();
+        loadCategoryRows();
+
     }
 
     @Override
@@ -81,4 +91,20 @@ public class PageRowsFragment extends RowsSupportFragment {
 
         setAdapter(rowsAdapter);
     }
+
+    private void setupEventListeners(){
+        setOnItemViewClickedListener((itemViewHolder, item, rowViewHolder, row) -> {
+            if (item instanceof Book) {
+                Book book = (Book) item;
+                Toast.makeText(getContext(), "Натиснуто: " + book.name, Toast.LENGTH_SHORT).show();
+
+                // Наприклад: відкриття нової Activity
+                //Intent intent = new Intent(getActivity(), BookDetailsActivity.class);
+                // intent.putExtra("BOOK_ID", book.id);
+                // startActivity(intent);
+            }
+        });
+    }
+
+
 }

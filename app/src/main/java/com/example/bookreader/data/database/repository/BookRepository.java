@@ -22,7 +22,7 @@ public class BookRepository {
         this.bookDao = BookReaderApp.getInstance().getAppDatabase().bookDao();
     }
 
-    public void insert(Book book, Consumer<Long> callback) {
+    public void insertAsync(Book book, Consumer<Long> callback) {
         executorService.execute(() -> {
             long id = bookDao.insert(book);
             new Handler(Looper.getMainLooper()).post(() -> {

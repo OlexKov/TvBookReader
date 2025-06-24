@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+
 }
 
 android {
@@ -36,6 +37,11 @@ dependencies {
     implementation(libs.glide)
 
     // Room
-    implementation ("androidx.room:room-runtime:2.6.1")
-    annotationProcessor ("androidx.room:room-compiler:2.6.1")
+    implementation (libs.androidx.room.runtime.v261)
+    annotationProcessor (libs.androidx.room.compiler.v261)
+
+    //Lombok
+    compileOnly (libs.lombok.v11838)
+    annotationProcessor (libs.lombok.v11838)
+
 }
