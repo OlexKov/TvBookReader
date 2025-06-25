@@ -22,6 +22,7 @@ import androidx.leanback.widget.RowHeaderPresenter;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
 import java.util.Objects;
@@ -75,20 +76,7 @@ public class MainFragment extends BrowseSupportFragment {
         HeadersSupportFragment supportFragment = getHeadersSupportFragment();
         if(supportFragment != null)
         {
-            supportFragment.setOnHeaderViewSelectedListener(new HeadersSupportFragment.OnHeaderViewSelectedListener() {
-                @Override
-                public void onHeaderSelected(RowHeaderPresenter.ViewHolder viewHolder, Row row) {
-                    if (row != null && row.getHeaderItem() != null) {
-                        String title = row.getHeaderItem().getName();
-                        setTitle(title);
-                        ArrayObjectAdapter adapter = (ArrayObjectAdapter) getAdapter();
-                        int position = adapter.indexOf(row);
-                        if (position >= 0) {
-                            setSelectedPosition(position, true);
-                        }
-                    }
-                }
-            });
+            supportFragment.setOnHeaderViewSelectedListener(new HeaderViewSelectedListener(this));
         }
 
     }

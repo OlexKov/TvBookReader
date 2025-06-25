@@ -15,7 +15,8 @@ public class StringPresenter extends Presenter {
         textView.setFocusableInTouchMode(true);
         textView.setBackgroundColor(Color.DKGRAY);
         textView.setTextColor(Color.WHITE);
-        textView.setPadding(20, 20, 20, 20);
+        textView.setPadding(40, 10, 40, 10);
+        
         return new ViewHolder(textView);
     }
 

@@ -24,6 +24,7 @@ import com.example.bookreader.data.database.entity.Category;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.data.database.repository.SubcategoryRepository;
+import com.example.bookreader.listeners.BookViewClickedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
 
 import java.util.ArrayList;
@@ -95,17 +96,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     private void setupEventListeners(){
-        setOnItemViewClickedListener((itemViewHolder, item, rowViewHolder, row) -> {
-            if (item instanceof Book) {
-                Book book = (Book) item;
-                Toast.makeText(getContext(), "Натиснуто: " + book.name, Toast.LENGTH_SHORT).show();
-
-                // Наприклад: відкриття нової Activity
-                 Intent intent = new Intent(getActivity(), BookDetailsActivity.class);
-                 intent.putExtra("BOOK", book);
-                 startActivity(intent);
-            }
-        });
+        setOnItemViewClickedListener(new BookViewClickedListener(this));
     }
 
 }
