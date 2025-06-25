@@ -3,6 +3,8 @@ import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -19,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor                // Потрібен Room для створення через рефлексію
 @AllArgsConstructor              // Повний конструктор, якщо треба вручну створювати
 @Builder                         // Додає патерн Builder
-public class Book {
+public class Book implements Serializable {
     @PrimaryKey(autoGenerate = true)
     public long id;
 
