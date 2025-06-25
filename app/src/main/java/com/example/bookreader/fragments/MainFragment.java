@@ -1,31 +1,23 @@
 package com.example.bookreader.fragments;
 
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.widget.Toast;
 
-import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.HeaderItem;
+import androidx.leanback.widget.DividerPresenter;
+import androidx.leanback.widget.DividerRow;
 import androidx.leanback.widget.ListRowPresenter;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
-import androidx.leanback.widget.Row;
-import androidx.leanback.widget.RowHeaderPresenter;
 
 import com.example.bookreader.R;
-import com.example.bookreader.data.database.entity.Book;
+import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
-
-import java.util.Objects;
 
 public class MainFragment extends BrowseSupportFragment {
    // private BackgroundManager mBackgroundManager;
@@ -38,7 +30,7 @@ public class MainFragment extends BrowseSupportFragment {
 
       //  prepareBackgroundManager();
         setupUIElements();
-        setupRows();
+        setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
         setupEventListeners();
     }
@@ -56,7 +48,12 @@ public class MainFragment extends BrowseSupportFragment {
         setHeaderPresenterSelector(new PresenterSelector() {
             @Override
             public Presenter getPresenter(Object o) {
-                return new IconCategoryItemPresenter();
+                if (o instanceof PageRow) {
+                    return new IconCategoryItemPresenter();
+                }
+                else  {
+                    return new DividerPresenter();
+                }
             }
         });
     }
@@ -81,14 +78,17 @@ public class MainFragment extends BrowseSupportFragment {
 
     }
 
-    private void setupRows() {
+    private void setupCategoryRows() {
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new ListRowPresenter());
         CategoryRepository repo = new CategoryRepository();
         repo.getAllCategoriesAsync(categories -> {
             categories.forEach(category -> {
-                adapter.add(new PageRow(new HeaderItem(category.id, category.name)));
+                IconHeader header = new IconHeader(category.id, category.name,R.drawable.books_stack);
+                adapter.add(new PageRow(header));
             });
+            adapter.add(new DividerRow());
+            adapter.add(new PageRow(new IconHeader(100000, "Налаштування",R.drawable.settings)));
+            setAdapter(adapter);
         });
-        setAdapter(adapter);
     }
 }

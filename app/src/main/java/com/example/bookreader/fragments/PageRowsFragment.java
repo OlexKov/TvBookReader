@@ -18,7 +18,9 @@ import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 
+import com.example.bookreader.R;
 import com.example.bookreader.activities.BookDetailsActivity;
+import com.example.bookreader.customclassses.TextIcon;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 import com.example.bookreader.data.database.repository.BookRepository;
@@ -26,6 +28,7 @@ import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.data.database.repository.SubcategoryRepository;
 import com.example.bookreader.listeners.BookViewClickedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
+import com.example.bookreader.presenters.TextIconPresenter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +74,14 @@ public class PageRowsFragment extends RowsSupportFragment {
                         rowsAdapter.add(new ListRow(header, adapter));
                     }
                 });
+            }
+            else if("Налаштування".equals(category)){
+                ArrayObjectAdapter adapter = new ArrayObjectAdapter(new TextIconPresenter());
+                adapter.add(new TextIcon(R.drawable.settings,"Налаштування категорій"));
+                adapter.add(new TextIcon(R.drawable.settings,"Додати книгу"));
+                adapter.add(new TextIcon(R.drawable.settings,"Додати папку"));
+                HeaderItem header = new HeaderItem(10101, "Налаштування");
+                rowsAdapter.add(new ListRow(header, adapter));
             }
             else  {
                 Optional<Category> cat = categories.stream().filter(x->x.name.equals(category)).findFirst();

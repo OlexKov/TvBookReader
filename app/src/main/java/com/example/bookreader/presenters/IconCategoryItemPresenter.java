@@ -1,5 +1,4 @@
 package com.example.bookreader.presenters;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +11,7 @@ import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowHeaderPresenter;
 
 import com.example.bookreader.R;
+import com.example.bookreader.extentions.IconHeader;
 
 public class IconCategoryItemPresenter extends RowHeaderPresenter {
 
@@ -24,19 +24,17 @@ public class IconCategoryItemPresenter extends RowHeaderPresenter {
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object o) {
-            HeaderItem headerItem = ((PageRow) o).getHeaderItem();
-            View rootView = viewHolder.view;
-            rootView.setFocusable(View.FOCUSABLE);
-
-            ImageView iconView = (ImageView) rootView.findViewById(R.id.header_icon);
-            Drawable icon = rootView.getResources().getDrawable(R.drawable.books_stack, null);
-            iconView.setImageDrawable(icon);
-
-            TextView label = (TextView) rootView.findViewById(R.id.header_label);
-            label.setText(headerItem.getName());
-
-
-    }
-
-
+            if(o instanceof PageRow){
+                HeaderItem headerItem = ((PageRow) o).getHeaderItem();
+                View rootView = viewHolder.view;
+                rootView.setFocusable(View.FOCUSABLE);
+                ImageView iconView = rootView.findViewById(R.id.header_icon);
+                if (headerItem instanceof IconHeader) {
+                    int iconResId = ((IconHeader) headerItem).iconResId;
+                    iconView.setImageResource(iconResId);
+                }
+                TextView label = rootView.findViewById(R.id.header_label);
+                label.setText(headerItem.getName());
+            }
+     }
 }

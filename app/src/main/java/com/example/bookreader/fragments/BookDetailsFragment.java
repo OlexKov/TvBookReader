@@ -22,6 +22,8 @@ import androidx.leanback.widget.SparseArrayObjectAdapter;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.bookreader.constants.BookActionType;
+
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.listeners.BookActionClickListener;
 import com.example.bookreader.presenters.BookDetailsPresenter;
@@ -33,13 +35,12 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
 
     private static final String TAG = "MediaItemDetailsFragment";
-    private ArrayObjectAdapter rowsAdapter;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-
         buildDetails();
     }
 
@@ -47,35 +48,34 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     public void onResume() {
         super.onResume();
         //Переміщення фокусу на опис якщо зверху є рядок
-         getView().post(() -> setSelectedPosition(1, true));
+        // getView().post(() -> setSelectedPosition(1, true));
     }
 
     private void buildDetails() {
         Book book = (Book) getActivity().getIntent().getSerializableExtra("BOOK");
         if(book == null) return;
-        ClassPresenterSelector selector = new ClassPresenterSelector();
         // Attach your media item details presenter to the row presenter:
-        FullWidthDetailsOverviewRowPresenter rowPresenter =
-                new FullWidthDetailsOverviewRowPresenter(
-                        new BookDetailsPresenter());
-        rowPresenter.setOnActionClickedListener(new BookActionClickListener(getContext(),book));
-        selector.addClassPresenter(DetailsOverviewRow.class, rowPresenter);
-        selector.addClassPresenter(ListRow.class,  new ListRowPresenter());
-        rowsAdapter = new ArrayObjectAdapter(selector);
+        ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(book);
 
-       // Resources res = getActivity().getResources();
+        setDetailsOverview(rowsAdapter,book);
+        setAdititionalMediaRow(rowsAdapter);
+        setAdapter(rowsAdapter);
+    }
 
+    private int convertDpToPixel(Context context, int dp) {
+        float density = context.getResources().getDisplayMetrics().density;
+        return Math.round((float) dp * density);
+    }
 
-        // Add images and action buttons to the details view
+    private void setActions(DetailsOverviewRow detailsOverview){
         SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
-
-        // додаємо дії
-        actionAdapter.set(0, new Action(0, "Читати"));
-        actionAdapter.set(1, new Action(1, "Редагувати"));
-        actionAdapter.set(2, new Action(2, "Видалити"));
-
-        DetailsOverviewRow detailsOverview = new DetailsOverviewRow(book);
+        actionAdapter.set(0, new Action(BookActionType.READ.getId(), "Читати"));
+        actionAdapter.set(1, new Action(BookActionType.EDIT.getId(), "Редагувати"));
+        actionAdapter.set(2, new Action(BookActionType.DELETE.getId(), "Видалити"));
         detailsOverview.setActionsAdapter(actionAdapter);
+    }
+
+    private void setOverviewImage(DetailsOverviewRow detailsOverview,ArrayObjectAdapter rowsAdapter){
         int width = convertDpToPixel(getActivity().getApplicationContext(), DETAIL_THUMB_WIDTH);
         int height = convertDpToPixel(getActivity().getApplicationContext(), DETAIL_THUMB_HEIGHT);
         Glide.with(this)
@@ -94,29 +94,34 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                         // Плейсхолдер або очищення
                     }
                 });
-        //Додаткові дії
+    }
 
-        ArrayObjectAdapter actionAdapter2 = new ArrayObjectAdapter(new StringPresenter());
-        actionAdapter2.add("Дія 1");
-        actionAdapter2.add("Дія 2");
-        actionAdapter2.add("Дія 3");
-        HeaderItem header = new HeaderItem(0, "Додаткові дії");
-        rowsAdapter.add(new ListRow(header, actionAdapter2));
+    private ArrayObjectAdapter  AttachBookDetailsPresenter(Book book){
+        ClassPresenterSelector selector = new ClassPresenterSelector();
 
+        // Attach your media item details presenter to the row presenter:
+        FullWidthDetailsOverviewRowPresenter rowPresenter =
+                new FullWidthDetailsOverviewRowPresenter(
+                        new BookDetailsPresenter());
+        rowPresenter.setOnActionClickedListener(new BookActionClickListener(getContext(),book));
+        selector.addClassPresenter(DetailsOverviewRow.class, rowPresenter);
+        selector.addClassPresenter(ListRow.class,  new ListRowPresenter());
+        return new ArrayObjectAdapter(selector);
+    }
 
+    private void setDetailsOverview( ArrayObjectAdapter rowsAdapter,Book book){
+        DetailsOverviewRow detailsOverview = new DetailsOverviewRow(book);
+        setActions(detailsOverview);
+        setOverviewImage(detailsOverview,rowsAdapter);
         rowsAdapter.add(detailsOverview);
+    }
 
+    private void setAdititionalMediaRow( ArrayObjectAdapter rowsAdapter){
         ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(new StringPresenter());
         listRowAdapter.add("Media Item 3");
         listRowAdapter.add("Media Item 4");
         listRowAdapter.add("Media Item 5");
-        header = new HeaderItem(0, "Подібні книги");
+        HeaderItem header = new HeaderItem(0, "Подібні книги");
         rowsAdapter.add(new ListRow(header, listRowAdapter));
-        setAdapter(rowsAdapter);
-    }
-
-    private int convertDpToPixel(Context context, int dp) {
-        float density = context.getResources().getDisplayMetrics().density;
-        return Math.round((float) dp * density);
     }
 }

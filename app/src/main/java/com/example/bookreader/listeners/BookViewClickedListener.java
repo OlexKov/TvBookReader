@@ -24,8 +24,6 @@ public class BookViewClickedListener implements OnItemViewClickedListener {
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if (item instanceof Book) {
             Book book = (Book) item;
-            Toast.makeText(activity, "Натиснуто: " + book.name, Toast.LENGTH_SHORT).show();
-
             // Наприклад: відкриття нової Activity
             Intent intent = new Intent(activity, BookDetailsActivity.class);
             intent.putExtra("BOOK", book);
