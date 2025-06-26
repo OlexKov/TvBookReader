@@ -44,7 +44,6 @@ public class BookPreviewPresenter extends Presenter {
         cardView.setLayoutParams(new ViewGroup.LayoutParams((int)(width*0.2), (int)(height*0.5)));
         cardView.setFocusable(true);
         cardView.setFocusableInTouchMode(true);
-
         cardView.setBackgroundColor(ContextCompat.getColor(parent.getContext(), R.color.default_background));
 
         return new ViewHolder(cardView);

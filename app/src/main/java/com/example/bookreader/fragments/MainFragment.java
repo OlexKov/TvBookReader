@@ -81,7 +81,9 @@ public class MainFragment extends BrowseSupportFragment {
     private void setupCategoryRows() {
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new ListRowPresenter());
         CategoryRepository repo = new CategoryRepository();
-        repo.getAllCategoriesAsync(categories -> {
+
+        adapter.add(new PageRow( new IconHeader(123123123, "Всі",R.drawable.books_stack)));
+        repo.getAllParentCategoriesAsync(categories -> {
             categories.forEach(category -> {
                 IconHeader header = new IconHeader(category.id, category.name,R.drawable.books_stack);
                 adapter.add(new PageRow(header));

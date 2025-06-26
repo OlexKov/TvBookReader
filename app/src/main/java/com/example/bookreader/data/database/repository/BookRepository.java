@@ -31,7 +31,7 @@ public class BookRepository {
         });
     }
 
-    public void geBookByIdAsync(long bookId, Consumer<Book> callback) {
+    public void getBookByIdAsync(long bookId, Consumer<Book> callback) {
         executorService.execute(() -> {
             Book book = bookDao.getById(bookId);
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -40,16 +40,34 @@ public class BookRepository {
         });
     }
 
-    public void geBooksBySubcategoryIdAsync(long subcategoryId, Consumer<List<Book>> callback) {
+    public void getAllBookAsync(Consumer<List<Book>> callback) {
         executorService.execute(() -> {
-            List<Book> books = bookDao.getBySubcategoryId(subcategoryId);
+            List<Book> books = bookDao.getAll();
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(books);
             });
         });
     }
 
-    public void geBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
+    public void geAllBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
+        executorService.execute(() -> {
+            List<Book> books = bookDao.getAllByCategoryId(categoryId);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(books);
+            });
+        });
+    }
+
+    public void geAllUnsortedBooksAsync( Consumer<List<Book>> callback) {
+        executorService.execute(() -> {
+            List<Book> books = bookDao.getUnsorted();
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(books);
+            });
+        });
+    }
+
+    public void getBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
         executorService.execute(() -> {
             List<Book> books = bookDao.getByCategoryId(categoryId);
             new Handler(Looper.getMainLooper()).post(() -> {

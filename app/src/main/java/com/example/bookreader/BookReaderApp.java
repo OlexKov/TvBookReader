@@ -11,10 +11,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import com.example.bookreader.data.database.BookDb;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dao.CategoryDao;
-import com.example.bookreader.data.database.dao.SubcategoryDao;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
-import com.example.bookreader.data.database.entity.Subcategory;
 
 import java.util.concurrent.Executors;
 
@@ -31,7 +29,7 @@ public class BookReaderApp  extends Application {
 
         // Ініціалізуємо базу даних один раз
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
-              //  .fallbackToDestructiveMigration() // видалить базу при несумісності схем
+                .fallbackToDestructiveMigration() // видалить базу при несумісності схем
                 .addCallback(seedData)  // додали callback
                 .build();
         //getApplicationContext().deleteDatabase("book-database");
@@ -53,64 +51,78 @@ public class BookReaderApp  extends Application {
             super.onCreate(db);
             Log.d("Info","Data init");
             Executors.newSingleThreadExecutor().execute(() -> {
-                CategoryDao dao = appDatabase.categoryDao();
-                SubcategoryDao sdao = appDatabase.subcategoryDao();
+                CategoryDao сdao = appDatabase.categoryDao();
                 BookDao bdao = appDatabase.bookDao();
-                dao.insert(Category.builder().name( "Всі").build());
-
-                long categoryId =  dao.insert(Category.builder()
+                for (int i = 0; i < 10;i++){
+                    bdao.insert( Book.builder()
+                            .name("книга - " + i)
+                            .categoryId(null)
+                            .build());
+                }
+                long categoryId =  сdao.insert(Category.builder()
                         .name( "Категорія 1")
                         .build());
-                sdao.insert(Subcategory.builder()
-                        .name("Всі")
-                        .parentCategoryId(categoryId)
-                        .build());
-                long subcategoryId  = sdao.insert(Subcategory.builder()
+
+                long subcategoryId  = сdao.insert(Category.builder()
                         .name("Субкатегорія 1")
-                        .parentCategoryId(categoryId)
+                        .parentId(categoryId)
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
                             .name("Категорія 1 - Субкатегорія 1 - книга - " + i)
-                            .subCategoryId(subcategoryId)
-                            .build());
-                }
-                subcategoryId  = sdao.insert(Subcategory.builder()
-                        .name("Субкатегорія 2")
-                        .parentCategoryId(categoryId)
-                        .build());
-                for (int i = 0; i < 10;i++){
-                    bdao.insert(Book.builder()
-                            .name("Категорія 1 - Субкатегорія 2 - книга - " + i)
-                            .subCategoryId(subcategoryId)
+                            .categoryId(subcategoryId)
                             .build());
                 }
 
-                categoryId =  dao.insert(Category.builder()
-                        .name( "Категорія 2")
-                        .build());
-                sdao.insert(Subcategory.builder()
-                        .name("Всі")
-                        .parentCategoryId(categoryId)
-                        .build());
-                subcategoryId  = sdao.insert( Subcategory.builder()
-                        .name("Субкатегорія 1")
-                        .parentCategoryId(categoryId)
+                subcategoryId  = сdao.insert(Category.builder()
+                        .name("Субкатегорія 2")
+                        .parentId(categoryId)
                         .build());
                 for (int i = 0; i < 10;i++){
-                    bdao.insert(Book.builder()
-                            .name("Категорія 2 - Субкатегорія 1 - книга - " + i)
-                            .subCategoryId(subcategoryId)
+                    bdao.insert( Book.builder()
+                            .name("Категорія 1 - Субкатегорія 2 - книга - " + i)
+                            .categoryId(subcategoryId)
                             .build());
                 }
-                subcategoryId  = sdao.insert(Subcategory.builder()
-                        .name("Субкатегорія 2")
-                        .parentCategoryId(categoryId)
+
+                for (int i = 0; i < 5;i++){
+                    bdao.insert( Book.builder()
+                            .name("Категорія 1 - книга - " + i)
+                            .categoryId(categoryId)
+                            .build());
+                }
+
+
+
+
+                categoryId =  сdao.insert(Category.builder()
+                        .name( "Категорія 2")
+                        .build());
+
+                subcategoryId  = сdao.insert(Category.builder()
+                        .name("Субкатегорія 1")
+                        .parentId(categoryId)
                         .build());
                 for (int i = 0; i < 10;i++){
-                    bdao.insert(Book.builder()
+                    bdao.insert( Book.builder()
+                            .name("Категорія 2 - Субкатегорія 1 - книга - " + i)
+                            .categoryId(subcategoryId)
+                            .build());
+                }
+                subcategoryId  = сdao.insert(Category.builder()
+                        .name("Субкатегорія 2")
+                        .parentId(categoryId)
+                        .build());
+                for (int i = 0; i < 10;i++){
+                    bdao.insert( Book.builder()
                             .name("Категорія 2 - Субкатегорія 2 - книга - " + i)
-                            .subCategoryId(subcategoryId)
+                            .categoryId(subcategoryId)
+                            .build());
+                }
+                for (int i = 0; i < 5;i++){
+                    bdao.insert( Book.builder()
+                            .name("Категорія 2 - книга - " + i)
+                            .categoryId(categoryId)
                             .build());
                 }
             });

@@ -13,8 +13,15 @@ public interface CategoryDao {
     @Insert
     long insert(Category category);
 
-    @Query("SELECT * FROM categories")
-    List<Category> getAll();
+    @Query("SELECT * " +
+            "FROM categories " +
+            "WHERE parentId IS NULL")
+    List<Category> getAllParent();
+
+    @Query("SELECT * " +
+            "FROM categories " +
+            "WHERE parentId = :categoryId")
+    List<Category> getAllSubcategoryByCategoryId(long categoryId);
 
     @Query("SELECT * FROM categories WHERE id = :categoryId")
     Category getById(long categoryId);

@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 
 @Entity(tableName = "books",
         foreignKeys = @ForeignKey(
-        entity = Subcategory.class,
+        entity = Category.class,
         parentColumns = "id",
-        childColumns = "subCategoryId",
-        onDelete = ForeignKey.CASCADE
+        childColumns = "categoryId",
+        onDelete = ForeignKey.SET_NULL
 ))
 
 
@@ -27,5 +27,5 @@ public class Book implements Serializable {
 
     public String name;
 
-    public long subCategoryId;
+    public Long categoryId = null;
 }

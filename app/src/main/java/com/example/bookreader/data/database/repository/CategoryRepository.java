@@ -40,9 +40,19 @@ public class CategoryRepository {
             });
         });
     }
-    public void getAllCategoriesAsync(Consumer<List<Category>> callback) {
+
+    public void getAllSubcategoriesByParentIdAsync(long parentId,Consumer<List<Category>> callback) {
         executorService.execute(() -> {
-            List<Category> list = categoryDao.getAll();
+            List<Category> list = categoryDao.getAllSubcategoryByCategoryId(parentId);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(list);
+            });
+        });
+    }
+
+    public void getAllParentCategoriesAsync(Consumer<List<Category>> callback) {
+        executorService.execute(() -> {
+            List<Category> list = categoryDao.getAllParent();
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(list);
             });
