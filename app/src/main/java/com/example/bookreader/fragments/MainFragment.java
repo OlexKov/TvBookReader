@@ -1,6 +1,8 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
 
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
@@ -17,6 +19,7 @@ import com.example.bookreader.R;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
+import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
 public class MainFragment extends BrowseSupportFragment {
@@ -56,6 +59,7 @@ public class MainFragment extends BrowseSupportFragment {
                 }
             }
         });
+        setSearchAffordanceColor(ContextCompat.getColor(getContext(), R.color.selected_background));
     }
 
 //    private void prepareBackgroundManager() {
@@ -80,6 +84,15 @@ public class MainFragment extends BrowseSupportFragment {
         {
             supportFragment.setOnHeaderViewSelectedListener(new HeaderViewSelectedListener(this));
         }
+
+        setOnSearchClickedListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getActivity(), "Implement your own in-app search", Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
 
     }
 

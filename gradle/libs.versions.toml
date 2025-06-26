@@ -1,13 +1,20 @@
 [versions]
 activity = "1.10.1"
 agp = "8.6.0"
+djvulibre = "0.1.4"
+githubPdfboxAndroid = "master-SNAPSHOT"
 leanback = "1.2.0"
 glide = "4.11.0"
 lombok = "1.18.30"
 lombokVersion = "1.18.38"
+pdfboxAndroid = "2.0.27.0"
+pdfboxAndroidVersion = "2.0.27.0"
 roomCompiler = "2.7.2"
 roomCompilerVersion = "2.6.1"
 roomRuntime = "2.6.1"
+slf4jAndroid = "1.7.25"
+tomRoushPdfboxAndroid = "2.0.27.0"
+tomRoushPdfboxAndroidVersion = "2.0.27.0"
 
 [libraries]
 androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
@@ -16,10 +23,15 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-compiler-v261 = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
 androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+djvulibre = { module = "com.github.axet:djvulibre", version.ref = "djvulibre" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-v11838 = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }
+pdfbox-android = { module = "org.apache.pdfbox:pdfbox-android", version.ref = "pdfboxAndroid" }
 projectlombok-lombok = { module = "org.projectlombok:lombok" }
+slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
+tom-roush-pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "tomRoushPdfboxAndroidVersion" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

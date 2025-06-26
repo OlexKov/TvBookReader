@@ -2,14 +2,19 @@ package com.example.bookreader.listeners;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
 
+import com.example.bookreader.BookReaderApp;
+import com.example.bookreader.R;
 import com.example.bookreader.activities.BookDetailsActivity;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.customclassses.TextIcon;
@@ -20,12 +25,14 @@ public class ItemViewClickedListener implements OnItemViewClickedListener {
     Activity activity;
     public ItemViewClickedListener(RowsSupportFragment fragment){
         this.fragment = fragment;
-        activity = fragment.getActivity();
+        activity = fragment.requireActivity();
+
     }
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if (item instanceof Book) {
             Book book = (Book) item;
+
             // Наприклад: відкриття нової Activity
             Intent intent = new Intent(activity, BookDetailsActivity.class);
             intent.putExtra("BOOK", book);

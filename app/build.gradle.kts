@@ -16,6 +16,18 @@ android {
 
     }
 
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt"
+            )
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -31,6 +43,7 @@ android {
     }
 }
 
+
 dependencies {
     implementation (libs.androidx.activity)
     implementation(libs.androidx.leanback)
@@ -43,5 +56,15 @@ dependencies {
     //Lombok
     compileOnly (libs.lombok.v11838)
     annotationProcessor (libs.lombok.v11838)
+
+    //PdfBox
+    implementation(libs.tom.roush.pdfbox.android)
+
+    //epublib
+    implementation("nl.siegmann.epublib:epublib-core:3.1") {
+        exclude(group = "org.slf4j")
+        exclude(group = "xmlpull")
+    }
+    implementation (libs.slf4j.android)
 
 }
