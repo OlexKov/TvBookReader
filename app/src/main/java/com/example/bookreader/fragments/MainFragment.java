@@ -68,6 +68,11 @@ public class MainFragment extends BrowseSupportFragment {
 //        getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
 //    }
 
+    public boolean isHeaderFocused() {
+        HeadersSupportFragment headers = getHeadersSupportFragment();
+        return headers != null && headers.getView() != null && headers.getView().hasFocus();
+    }
+
     private void setupEventListeners(){
         //Зміна заголовку відповідно до обраної категорії
         HeadersSupportFragment supportFragment = getHeadersSupportFragment();

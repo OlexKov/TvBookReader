@@ -10,11 +10,12 @@ import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 
 import com.example.bookreader.R;
+import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.customclassses.TextIcon;
 import com.example.bookreader.data.database.entity.Category;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
-import com.example.bookreader.listeners.BookViewClickedListener;
+import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
 import com.example.bookreader.presenters.TextIconPresenter;
 
@@ -70,9 +71,9 @@ public class PageRowsFragment extends RowsSupportFragment {
 
             else if("Налаштування".equals(category)){
                 ArrayObjectAdapter adapter = new ArrayObjectAdapter(new TextIconPresenter());
-                adapter.add(new TextIcon(R.drawable.settings,"Налаштування категорій"));
-                adapter.add(new TextIcon(R.drawable.settings,"Додати книгу"));
-                adapter.add(new TextIcon(R.drawable.settings,"Додати папку"));
+                adapter.add(new TextIcon(ActionType.SETTING_1.getId(),R.drawable.settings,"Налаштування категорій"));
+                adapter.add(new TextIcon(ActionType.SETTING_2.getId(),R.drawable.settings,"Додати книгу"));
+                adapter.add(new TextIcon(ActionType.SETTING_3.getId(), R.drawable.settings,"Додати папку"));
                 HeaderItem header = new HeaderItem(10101, "Налаштування");
                 rowsAdapter.add(new ListRow(header, adapter));
             }
@@ -109,7 +110,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     private void setupEventListeners(){
-        setOnItemViewClickedListener(new BookViewClickedListener(this));
+        setOnItemViewClickedListener(new ItemViewClickedListener(this));
     }
 
 }

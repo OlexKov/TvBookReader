@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-
+    implementation (libs.androidx.activity)
     implementation(libs.androidx.leanback)
     implementation(libs.glide)
 
