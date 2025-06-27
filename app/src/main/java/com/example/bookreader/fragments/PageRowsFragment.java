@@ -5,15 +5,19 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
+import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
+import androidx.leanback.widget.VerticalGridView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -26,28 +30,36 @@ import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
 import com.example.bookreader.presenters.TextIconPresenter;
 
+import org.jspecify.annotations.NonNull;
+
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PageRowsFragment extends RowsSupportFragment {
 
-
+    ProgressBarManager progressBarManager;
     CategoryRepository categoryRepo = new CategoryRepository();
     BookRepository bookRepo = new BookRepository();
-    ProgressBar progressBar;
+
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        progressBar = new ProgressBar(this.getContext(), null, android.R.attr.progressBarStyleLarge);
 
-        int size = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics());
-
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size,size,Gravity.CENTER);
-        requireActivity().addContentView(progressBar, params);
-        progressBar.setVisibility(View.GONE);
         setupEventListeners();
         loadCategoryRows();
+    }
+
+
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        progressBarManager = new ProgressBarManager();
+        ViewGroup root = (ViewGroup) getView();
+        if(root != null){
+            progressBarManager.setRootView((ViewGroup) root.getRootView());
+            progressBarManager.setInitialDelay(60);
+        }
 
     }
 
@@ -67,22 +79,25 @@ public class PageRowsFragment extends RowsSupportFragment {
 
     public void loadCategoryRows() {
         AtomicInteger pendingCallbacks = new AtomicInteger(0);
+        ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         Runnable tryHideProgress = () -> {
             if (pendingCallbacks.decrementAndGet() == 0) {
-                requireActivity().runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                requireActivity().runOnUiThread(() -> {
+                   // setAdapter(rowsAdapter);
+                    progressBarManager.hide();
+                });
             }
         };
         Bundle arguments =  getArguments();
         String category = arguments != null ? arguments.getString("category") : "";
         if(category != null && category.isEmpty()) return;
-        ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
 
         categoryRepo.getAllParentCategoriesAsync(categories->{
 
             if ("Всі".equals(category)) {
-                progressBar.setVisibility(View.VISIBLE);
-                pendingCallbacks.incrementAndGet();
+                progressBarManager.show();
+                pendingCallbacks.set(2 + categories.size());
                 bookRepo.getAllBookAsync(books->{
                     if (books != null && !books.isEmpty()) {
                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
@@ -93,7 +108,6 @@ public class PageRowsFragment extends RowsSupportFragment {
                     tryHideProgress.run();
                 });
 
-                pendingCallbacks.incrementAndGet();
                 bookRepo.geAllUnsortedBooksAsync(books -> {
                     if (books != null && !books.isEmpty()) {
                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
@@ -104,8 +118,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                     tryHideProgress.run();
                 });
 
-                categories.forEach(cat->{
-                    pendingCallbacks.incrementAndGet();
+                for (Category cat : categories){
                     bookRepo.geAllBooksByCategoryIdAsync(cat.id, books ->{
                         if (books != null && !books.isEmpty()) {
                             ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
@@ -115,18 +128,21 @@ public class PageRowsFragment extends RowsSupportFragment {
                         }
                         tryHideProgress.run();
                     });
-                });
+                };
             }
 
             else if("Налаштування".equals(category)){
                 setSettingsElements(rowsAdapter);
+//               requireActivity().runOnUiThread(() -> {
+//                     setAdapter(rowsAdapter);
+//                });
             }
             else {
-                progressBar.setVisibility(View.VISIBLE);
+                progressBarManager.show();
                 Optional<Category> cat = categories.stream().filter(x -> x.name.equals(category)).findFirst();
                 cat.ifPresent(selectedCategory -> {
 
-                    pendingCallbacks.incrementAndGet();
+                    pendingCallbacks.set(3);
                     bookRepo.geAllBooksByCategoryIdAsync(selectedCategory.id, books ->{
                         if (books != null && !books.isEmpty()) {
                             ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
@@ -137,7 +153,6 @@ public class PageRowsFragment extends RowsSupportFragment {
                         }
                     });
 
-                    pendingCallbacks.incrementAndGet();
                     bookRepo.getBooksByCategoryIdAsync(selectedCategory.id,books ->{
                         if (books != null && !books.isEmpty()) {
                             ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
@@ -148,10 +163,15 @@ public class PageRowsFragment extends RowsSupportFragment {
                         tryHideProgress.run();
                     });
 
-                    pendingCallbacks.incrementAndGet();
                     categoryRepo.getAllSubcategoriesByParentIdAsync(selectedCategory.id,subcategories->{
-                        subcategories.forEach(subcategory -> {
-                            pendingCallbacks.incrementAndGet();
+                        if (subcategories.isEmpty()) {
+                            tryHideProgress.run();  // Якщо підкатегорій нема — зменшуємо лічильник
+                            return;
+                        }
+                        // Збільшуємо лічильник на кількість підкатегорій
+                        pendingCallbacks.addAndGet(subcategories.size() - 1);
+                        for (Category subcategory : subcategories) {
+
                             bookRepo.getBooksByCategoryIdAsync(subcategory.id, books ->{
                                 if (books != null && !books.isEmpty()) {
                                     ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
@@ -162,7 +182,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 tryHideProgress.run();
                             });
 
-                        });
+                        };
                         tryHideProgress.run();
                     });
 
