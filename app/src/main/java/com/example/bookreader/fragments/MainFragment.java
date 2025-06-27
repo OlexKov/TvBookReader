@@ -1,6 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -15,9 +16,11 @@ import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.listeners.BrowserTransitionListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
@@ -72,10 +75,6 @@ public class MainFragment extends BrowseSupportFragment {
 //        getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
 //    }
 
-    public boolean isHeaderFocused() {
-        HeadersSupportFragment headers = getHeadersSupportFragment();
-        return headers != null && headers.getView() != null && headers.getView().hasFocus();
-    }
 
     private void setupEventListeners(){
         //Зміна заголовку відповідно до обраної категорії
@@ -84,6 +83,7 @@ public class MainFragment extends BrowseSupportFragment {
         {
             supportFragment.setOnHeaderViewSelectedListener(new HeaderViewSelectedListener(this));
         }
+        setBrowseTransitionListener(new BrowserTransitionListener());
 
         setOnSearchClickedListener(new View.OnClickListener() {
 

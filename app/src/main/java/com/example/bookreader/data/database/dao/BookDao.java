@@ -1,6 +1,7 @@
 package com.example.bookreader.data.database.dao;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
@@ -12,6 +13,9 @@ import java.util.List;
 public interface BookDao {
     @Insert
     long insert(Book book);
+
+    @Delete
+    int delete(Book book);
 
     @Query("SELECT * FROM books")
     List<Book> getAll();

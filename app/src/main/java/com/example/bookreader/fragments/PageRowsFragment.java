@@ -1,6 +1,8 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.leanback.app.RowsSupportFragment;
@@ -9,6 +11,7 @@ import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.customclassses.TextIcon;
@@ -37,35 +40,55 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+        if(BookReaderApp.getInstance().getIsRowsChanget()){
+            loadCategoryRows();
+        }
+    }
+
+    @Override
     public void setExpand(boolean expand) {
         // Завжди передаємо true, щоб розгорнути заголовки
         super.setExpand(true);
     }
 
-    private void loadCategoryRows() {
+    public void loadCategoryRows() {
         String category = getArguments() != null ? getArguments().getString("category") : "";
         ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
 
         categoryRepo.getAllParentCategoriesAsync(categories->{
             if ("Всі".equals(category)) {
+                bookRepo.getAllBookAsync(books->{
+                    if (books != null && !books.isEmpty()) {
+                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                        HeaderItem header = new HeaderItem(1234456, "Всі");
+                        adapter.addAll(0,books);
+                        rowsAdapter.add(new ListRow(header, adapter));
+                    }
+                });
 
-                ArrayObjectAdapter alladapter = new ArrayObjectAdapter(itemPresenter);
-                HeaderItem allheader = new HeaderItem(1234456, "Всі");
-                bookRepo.getAllBookAsync(books->books.forEach(alladapter::add));
-                rowsAdapter.add(new ListRow(allheader,alladapter));
 
-                ArrayObjectAdapter unsortedAdapter = new ArrayObjectAdapter(itemPresenter);
-                HeaderItem unsorteheader = new HeaderItem(12334456, "Не сортовані");
-                bookRepo.geAllUnsortedBooksAsync(books->books.forEach( unsortedAdapter::add));
-                rowsAdapter.add(new ListRow(unsorteheader,unsortedAdapter));
-
+                bookRepo.geAllUnsortedBooksAsync(books -> {
+                    if (books != null && !books.isEmpty()) {
+                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                        adapter.addAll(0,books);
+                        HeaderItem header = new HeaderItem(12334456, "Не сортовані");
+                        rowsAdapter.add(new ListRow(header, adapter));
+                    }
+                });
 
                 categories.forEach(cat->{
-                    ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                    HeaderItem header = new HeaderItem(cat.id, cat.name);
-                    bookRepo.geAllBooksByCategoryIdAsync(cat.id, books -> books.forEach(adapter::add));
-                    rowsAdapter.add(new ListRow(header, adapter));
+                    bookRepo.geAllBooksByCategoryIdAsync(cat.id, books ->{
+                        if (books != null && !books.isEmpty()) {
+                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                            HeaderItem header = new HeaderItem(cat.id, cat.name);
+                            adapter.addAll(0,books);
+                            rowsAdapter.add(new ListRow(header, adapter));
+                        }
+                    });
+
                 });
             }
 
@@ -80,22 +103,36 @@ public class PageRowsFragment extends RowsSupportFragment {
             else {
                 Optional<Category> cat = categories.stream().filter(x -> x.name.equals(category)).findFirst();
                 cat.ifPresent(selectedCategory -> {
-                    ArrayObjectAdapter alladapter = new ArrayObjectAdapter(itemPresenter);
-                    HeaderItem allheader = new HeaderItem(1234456, "Всі");
-                    bookRepo.geAllBooksByCategoryIdAsync(selectedCategory.id, books -> books.forEach(alladapter::add));
-                    rowsAdapter.add(new ListRow(allheader, alladapter));
+                    bookRepo.geAllBooksByCategoryIdAsync(selectedCategory.id, books ->{
+                        if (books != null && !books.isEmpty()) {
+                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                            HeaderItem header = new HeaderItem(1234456, "Всі");
+                            adapter.addAll(0,books);
+                            rowsAdapter.add(new ListRow(header, adapter));
+                        }
+                    });
 
-                    ArrayObjectAdapter unsortedAdapter = new ArrayObjectAdapter(itemPresenter);
-                    HeaderItem unsorteheader = new HeaderItem(12334456, "Не сортовані");
-                    bookRepo.getBooksByCategoryIdAsync(selectedCategory.id,books -> books.forEach(unsortedAdapter::add));
-                    rowsAdapter.add(new ListRow(unsorteheader, unsortedAdapter));
+                    bookRepo.getBooksByCategoryIdAsync(selectedCategory.id,books ->{
+                        if (books != null && !books.isEmpty()) {
+                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                            HeaderItem header = new HeaderItem(12334456, "Не сортовані");
+                            adapter.addAll(0,books);
+                            rowsAdapter.add(new ListRow(header, adapter));
+                        }
+                    });
+
 
                     categoryRepo.getAllSubcategoriesByParentIdAsync(selectedCategory.id,subcategories->{
                         subcategories.forEach(subcategory -> {
-                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                            HeaderItem header = new HeaderItem(subcategory.id, subcategory.name);
-                            bookRepo.getBooksByCategoryIdAsync(subcategory.id, books -> books.forEach(adapter::add));
-                            rowsAdapter.add(new ListRow(header, adapter));
+                            bookRepo.getBooksByCategoryIdAsync(subcategory.id, books ->{
+                                if (books != null && !books.isEmpty()) {
+                                    ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                                    HeaderItem header = new HeaderItem(subcategory.id, subcategory.name);
+                                    adapter.addAll(0,books);
+                                    rowsAdapter.add(new ListRow(header, adapter));
+                                }
+                            });
+
                         });
                     });
 

@@ -67,6 +67,15 @@ public class BookRepository {
         });
     }
 
+    public void deleteBook(Book book, Consumer<Integer> callback){
+        executorService.execute(() -> {
+         int rows = bookDao.delete(book);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(rows);
+            });
+        });
+    }
+
     public void getBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
         executorService.execute(() -> {
             List<Book> books = bookDao.getByCategoryId(categoryId);

@@ -19,7 +19,6 @@ public class PdfProcessor implements BookProcessor {
         String title;
         String author;
         int pageCount;
-
         // 1. Метадані PDF
         try (PDDocument document = PDDocument.load(pdfFile)) {
             PDDocumentInformation info = document.getDocumentInformation();

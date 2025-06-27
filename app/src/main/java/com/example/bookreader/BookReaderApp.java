@@ -16,9 +16,33 @@ import com.example.bookreader.data.database.entity.Category;
 
 import java.util.concurrent.Executors;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class BookReaderApp  extends Application {
+    // Глобальний доступ до інстансу MyApp
+    @Getter
     private static BookReaderApp instance;
+
+    // Глобальний доступ до бази даних
+    @Getter
     private BookDb appDatabase;
+
+    @Getter
+    @Setter
+    private boolean isMenuOpen = true;
+
+    @Setter
+    private boolean isRowsChanget = false;
+
+    public boolean getIsRowsChanget(){
+        if(isRowsChanget){
+            isRowsChanget = false;
+            return true;
+        }
+        return false;
+    }
+
 
     @Override
     public void onCreate() {
@@ -35,15 +59,6 @@ public class BookReaderApp  extends Application {
         //getApplicationContext().deleteDatabase("book-database");
     }
 
-    // Глобальний доступ до інстансу MyApp
-    public static BookReaderApp getInstance() {
-        return instance;
-    }
-
-    // Глобальний доступ до бази даних
-    public BookDb getAppDatabase() {
-        return appDatabase;
-    }
 
     private final RoomDatabase.Callback seedData = new RoomDatabase.Callback() {
         @Override
