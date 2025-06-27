@@ -50,13 +50,13 @@ public class BookReaderApp  extends Application {
 
         // Зберігаємо інстанс класу для глобального доступу
         instance = this;
-
+        //getApplicationContext().deleteDatabase("book-database");
         // Ініціалізуємо базу даних один раз
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
                 .fallbackToDestructiveMigration() // видалить базу при несумісності схем
                 .addCallback(seedData)  // додали callback
                 .build();
-        //getApplicationContext().deleteDatabase("book-database");
+
     }
 
 
