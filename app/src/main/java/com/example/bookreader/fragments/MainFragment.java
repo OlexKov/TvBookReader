@@ -16,13 +16,11 @@ import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 
-import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.listeners.BrowserTransitionListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
-import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
 public class MainFragment extends BrowseSupportFragment {
@@ -42,12 +40,8 @@ public class MainFragment extends BrowseSupportFragment {
     }
 
     private void setupUIElements(){
-        CategoryRepository repo = new CategoryRepository();
-        repo.getCategoryByIdAsync(1,category ->{
-            if(category != null){
-                setTitle(category.name);
-            }
-        });
+
+        setTitle("Всі");
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
         setBrandColor(ContextCompat.getColor(requireContext(), R.color.default_background));
