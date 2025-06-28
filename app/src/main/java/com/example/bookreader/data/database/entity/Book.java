@@ -28,4 +28,17 @@ public class Book implements Serializable {
     public String name;
 
     public Long categoryId = null;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Book book = (Book) o;
+        return id == book.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
 }

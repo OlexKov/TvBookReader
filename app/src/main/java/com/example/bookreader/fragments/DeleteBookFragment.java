@@ -52,6 +52,7 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
             new BookRepository().deleteBook(book,rows->{
                 if(rows != 0){
                     BookReaderApp.getInstance().setRowsChanget(true);
+                    BookReaderApp.getInstance().setBookToDelete(book);
                     Toast.makeText(requireContext(), "Книгу \"" + book.name + "\" видалено", Toast.LENGTH_SHORT).show();
                     requireActivity().finish();
                 }

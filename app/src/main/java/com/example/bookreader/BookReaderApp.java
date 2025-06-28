@@ -44,6 +44,18 @@ public class BookReaderApp  extends Application {
     }
 
 
+    @Setter
+    private Book bookToDelete = null;
+
+    public Book getBookToDelete(){
+        if(bookToDelete != null){
+            Book temp = bookToDelete;
+            bookToDelete = null;
+            return temp;
+        }
+        return null;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();

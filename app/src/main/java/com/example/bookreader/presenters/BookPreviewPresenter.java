@@ -41,7 +41,7 @@ public class BookPreviewPresenter extends Presenter {
         int width = displayMetrics.widthPixels;
         int height = displayMetrics.heightPixels;
 
-        cardView.setLayoutParams(new ViewGroup.LayoutParams((int)(width*0.2), (int)(height*0.5)));
+        cardView.setLayoutParams(new ViewGroup.LayoutParams((int)(width*0.17), (int)(height*0.47)));
         cardView.setFocusable(true);
         cardView.setFocusableInTouchMode(true);
         cardView.setBackgroundColor(ContextCompat.getColor(parent.getContext(), R.color.default_background));
@@ -53,7 +53,6 @@ public class BookPreviewPresenter extends Presenter {
     public void onBindViewHolder(ViewHolder viewHolder, @Nullable Object item) {
         Book book  = (Book)item;
         ImageCardView cardView = (ImageCardView) viewHolder.view;
-
         if(book != null && cardView != null){
             cardView.setTitleText(book.name);
             cardView.setContentText("author");

@@ -10,18 +10,15 @@
 
     <ImageView
         android:id="@+id/header_icon"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:alpha="0.6"/>
     <TextView
         android:id="@+id/header_label"
         android:layout_marginStart="9dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="19sp"
-        android:shadowColor="#80000000"
-        android:shadowDx="4"
-        android:shadowDy="4"
-        android:shadowRadius="6"/>
+        android:textSize="16sp"
+        android:textAllCaps="false"/>
 
 </LinearLayout>

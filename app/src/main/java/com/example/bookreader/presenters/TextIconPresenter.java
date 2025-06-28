@@ -1,5 +1,6 @@
 package com.example.bookreader.presenters;
 
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.KeyEvent;
@@ -10,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowHeaderPresenter;
@@ -25,8 +27,9 @@ public class TextIconPresenter extends Presenter {
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.text_icon, null);
+        View view = inflater.inflate(R.layout.text_icon, parent, false);
         view.setBackground(null);
+        view.setBackgroundColor(Color.TRANSPARENT);
         return new ViewHolder(view);
     }
 

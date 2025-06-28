@@ -11,8 +11,10 @@ import com.example.bookreader.data.database.entity.Book;
 
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 public class BookRepository {
     private final BookDao bookDao;
@@ -40,6 +42,15 @@ public class BookRepository {
         });
     }
 
+    //getAllBooks
+    public CompletableFuture<List<Book>> getAllBookAsyncCF() {
+        return CompletableFuture.supplyAsync(bookDao::getAll);
+    }
+
+    public  List<Book> getAllBook(){
+        return bookDao.getAll();
+    }
+
     public void getAllBookAsync(Consumer<List<Book>> callback) {
         executorService.execute(() -> {
             List<Book> books = bookDao.getAll();
@@ -49,7 +60,13 @@ public class BookRepository {
         });
     }
 
-    public void geAllBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
+
+    //getAllBooksByCategoryId
+    public List<Book> getAllBooksByCategoryId(long categoryId){
+        return bookDao.getAllByCategoryId(categoryId);
+    }
+
+    public void getAllBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
         executorService.execute(() -> {
             List<Book> books = bookDao.getAllByCategoryId(categoryId);
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -58,7 +75,17 @@ public class BookRepository {
         });
     }
 
-    public void geAllUnsortedBooksAsync( Consumer<List<Book>> callback) {
+    public CompletableFuture<List<Book>> getAllBooksByCategoryIdAsyncCF(long categoryId) {
+        return CompletableFuture.supplyAsync(()-> bookDao.getAllByCategoryId(categoryId));
+    }
+
+
+    //geAllUnsortedBooks
+    public List<Book>  getAllUnsortedBooks( ){
+        return bookDao.getUnsorted();
+    }
+
+    public void getAllUnsortedBooksAsync( Consumer<List<Book>> callback) {
         executorService.execute(() -> {
             List<Book> books = bookDao.getUnsorted();
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -67,6 +94,11 @@ public class BookRepository {
         });
     }
 
+    public CompletableFuture<List<Book>> getAllUnsortedBooksAsyncCF() {
+        return CompletableFuture.supplyAsync(bookDao::getUnsorted);
+    }
+
+    //deleteBook
     public void deleteBook(Book book, Consumer<Integer> callback){
         executorService.execute(() -> {
          int rows = bookDao.delete(book);
@@ -76,6 +108,12 @@ public class BookRepository {
         });
     }
 
+
+    //getBooksByCategoryId
+    public List<Book> getBooksByCategoryId(long categoryId){
+        return bookDao.getByCategoryId(categoryId);
+    }
+
     public void getBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
         executorService.execute(() -> {
             List<Book> books = bookDao.getByCategoryId(categoryId);
@@ -83,6 +121,10 @@ public class BookRepository {
                 callback.accept(books);
             });
         });
+    }
+
+    public CompletableFuture<List<Book>> getBooksByCategoryIdAsyncCF(long categoryId) {
+        return CompletableFuture.supplyAsync(()->bookDao.getByCategoryId(categoryId));
     }
 
 }
