@@ -8,13 +8,19 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.customclassses.GlobalEventListener;
 import com.example.bookreader.data.database.BookDb;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -32,34 +38,38 @@ public class BookReaderApp  extends Application {
     @Setter
     private boolean isMenuOpen = true;
 
-    @Setter
-    private boolean isRowsChanget = false;
-
-    public boolean getIsRowsChanget(){
-        if(isRowsChanget){
-            isRowsChanget = false;
-            return true;
-        }
-        return false;
-    }
+    @Getter
+    private GlobalEventListener globalEventListener;
 
 
-    @Setter
-    private Book bookToDelete = null;
-
-    public Book getBookToDelete(){
-        if(bookToDelete != null){
-            Book temp = bookToDelete;
-            bookToDelete = null;
-            return temp;
-        }
-        return null;
-    }
+//    @Setter
+//    private boolean isRowsChanget = false;
+//
+//    public boolean getIsRowsChanget(){
+//        if(isRowsChanget){
+//            isRowsChanget = false;
+//            return true;
+//        }
+//        return false;
+//    }
+//
+//
+//    @Setter
+//    private Book bookToDelete = null;
+//
+//    public Book getBookToDelete(){
+//        if(bookToDelete != null){
+//            Book temp = bookToDelete;
+//            bookToDelete = null;
+//            return temp;
+//        }
+//        return null;
+//    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-
+        globalEventListener = new GlobalEventListener();
         // Зберігаємо інстанс класу для глобального доступу
         instance = this;
         //getApplicationContext().deleteDatabase("book-database");

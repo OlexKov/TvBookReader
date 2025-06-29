@@ -15,6 +15,7 @@ import androidx.leanback.widget.ListRowPresenter;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
+import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.customclassses.TextIcon;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
@@ -58,18 +59,6 @@ public class PageRowsFragment extends RowsSupportFragment {
             progressBarManager.setInitialDelay(0);
         }
 
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        if(BookReaderApp.getInstance().getIsRowsChanget()){
-            Book bookToDelete = BookReaderApp.getInstance().getBookToDelete();
-            if(bookToDelete != null)
-            {
-                removeBookFromCurrentCategory(rowsAdapter,bookToDelete);
-            }
-        }
     }
 
     @Override
@@ -214,6 +203,11 @@ public class PageRowsFragment extends RowsSupportFragment {
 
     private void setupEventListeners(){
         setOnItemViewClickedListener(new ItemViewClickedListener(this));
+        BookReaderApp.getInstance().getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,(Object book)->{
+            if(book instanceof Book){
+                removeBookFromCurrentCategory(rowsAdapter,(Book)book);
+            }
+        });
     }
 
     private  String getCurrentCategoryName(){
