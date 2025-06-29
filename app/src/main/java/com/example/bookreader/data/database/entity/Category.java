@@ -29,4 +29,16 @@ public class Category {
     public long id;
     public String name;
     public Long parentId = null; // NULL для основних категорій
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Category book = (Category) o;
+        return id == book.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
 }

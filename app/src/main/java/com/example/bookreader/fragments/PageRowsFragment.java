@@ -1,7 +1,6 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -10,10 +9,8 @@ import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
-import androidx.leanback.widget.HorizontalGridView;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
-import androidx.leanback.widget.VerticalGridView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -23,6 +20,8 @@ import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.extentions.RowPresenterSelector;
+import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
 import com.example.bookreader.presenters.TextIconPresenter;
@@ -30,13 +29,10 @@ import com.example.bookreader.presenters.TextIconPresenter;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class PageRowsFragment extends RowsSupportFragment {
@@ -46,9 +42,8 @@ public class PageRowsFragment extends RowsSupportFragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        ListRowPresenter rowPresenter = new ListRowPresenter();
-        rowsAdapter = new ArrayObjectAdapter(rowPresenter);
-       // rowsAdapter.setHasStableIds(true);
+        rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
+        rowsAdapter.setHasStableIds(true);
         setupEventListeners();
         loadCategoryRows();
     }
@@ -90,11 +85,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                 ListRow row = (ListRow) item;
                 ArrayObjectAdapter rowAdapter = (ArrayObjectAdapter) row.getAdapter();
                 if (rowAdapter != null) {
-
-                   boolean result =  rowAdapter.remove(bookToRemove);
-                   if(result){
-                       Log.d("Delete",rowAdapter +" " + bookToRemove);
-                   }
+                   rowAdapter.remove(bookToRemove);
                 }
             }
         }
@@ -113,12 +104,13 @@ public class PageRowsFragment extends RowsSupportFragment {
                     List<CompletableFuture<ListRow>> futures = new ArrayList<>();
 
                     if ("Всі".equals(category)) {
+
                         futures.add(bookRepo.getAllBookAsyncCF()
-                                .thenApply(allBooks -> {
-                                    if(allBooks != null && !allBooks.isEmpty()){
+                                .thenApply(books -> {
+                                    if(books != null && !books.isEmpty()){
                                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                        adapter.addAll(0, allBooks);
-                                        return new ListRow(new HeaderItem(1234456, "Всі"), adapter);
+                                        adapter.addAll(0, books);
+                                        return new ListRow(new HeaderItem(111111111111111L, "Всі"), adapter);
                                     }
                                     else {
                                         return null;
@@ -126,11 +118,11 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 }));
 
                         futures.add(bookRepo.getAllUnsortedBooksAsyncCF()
-                                .thenApply(unsortedBooks -> {
-                                    if(unsortedBooks != null && !unsortedBooks.isEmpty()){
+                                .thenApply(books -> {
+                                    if(books != null && !books.isEmpty()){
                                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                        adapter.addAll(0, unsortedBooks);
-                                        return new ListRow(new HeaderItem(12334456, "Не сортовані"), adapter);
+                                        adapter.addAll(0, books);
+                                        return new ListRow(new HeaderItem(111111111111111L + 1, "Не сортовані"), adapter);
                                     }
                                     else{
                                         return null;
@@ -143,7 +135,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                         if(books != null && !books.isEmpty()){
                                             ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
                                             adapter.addAll(0, books);
-                                            return new ListRow(new HeaderItem(cat.id, cat.name), adapter);
+                                            return new ListRow(new HeaderItem(cat.id + 222222222222222L, cat.name), adapter);
                                         }
                                         else{
                                             return null;
@@ -204,7 +196,6 @@ public class PageRowsFragment extends RowsSupportFragment {
                             return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                                     .thenApply(v -> futures.stream()
                                             .map(CompletableFuture::join)
-                                            .filter(Objects::nonNull)
                                             .collect(Collectors.toList()));
 
 
@@ -213,8 +204,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         }
                     }
                 }).thenAccept(listRows -> {
-                    requireActivity().runOnUiThread(() -> {
-                        rowsAdapter.clear();
+                        requireActivity().runOnUiThread(() -> {
                         rowsAdapter.addAll(0, listRows);
                         if (isAdded()) setAdapter(rowsAdapter);
                         progressBarManager.hide();
