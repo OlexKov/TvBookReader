@@ -1,12 +1,16 @@
 package com.example.bookreader.activities;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.bookreader.BookReaderApp;
+import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.fragments.MainFragment;
 import com.example.bookreader.R;
 
@@ -16,12 +20,14 @@ import com.example.bookreader.R;
 public class MainActivity extends FragmentActivity {
     private boolean doubleBackToExitPressedOnce = false;
     private final Handler handler = new Handler();
-    private final Runnable resetBackPressFlag = () -> doubleBackToExitPressedOnce = false;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main_browse_fragment, new MainFragment())

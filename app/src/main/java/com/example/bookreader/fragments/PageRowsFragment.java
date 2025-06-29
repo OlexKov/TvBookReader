@@ -1,6 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -44,10 +45,10 @@ public class PageRowsFragment extends RowsSupportFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
-        rowsAdapter.setHasStableIds(true);
         setupEventListeners();
         loadCategoryRows();
     }
+
 
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {

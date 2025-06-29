@@ -8,7 +8,7 @@ import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.PageRow;
 
-public class PageRowFragmentFactory extends BrowseSupportFragment.FragmentFactory {
+public class PageRowFragmentFactory extends BrowseSupportFragment.FragmentFactory<Fragment> {
 
     @NonNull
     @Override

@@ -16,9 +16,13 @@ import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.extentions.RowPresenterSelector;
+import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.BrowserTransitionListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
@@ -27,16 +31,18 @@ public class MainFragment extends BrowseSupportFragment {
    // private BackgroundManager mBackgroundManager;
   //  private Drawable mDefaultBackground;
   //  private DisplayMetrics mMetrics;
+   private  ArrayObjectAdapter rowsAdapter;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
+        rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
+        setupEventListeners();
       //  prepareBackgroundManager();
         setupUIElements();
         setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
-        setupEventListeners();
+
     }
 
     private void setupUIElements(){
@@ -80,7 +86,6 @@ public class MainFragment extends BrowseSupportFragment {
         setBrowseTransitionListener(new BrowserTransitionListener());
 
         setOnSearchClickedListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View view) {
                 Toast.makeText(getActivity(), "Implement your own in-app search", Toast.LENGTH_LONG)
@@ -88,21 +93,21 @@ public class MainFragment extends BrowseSupportFragment {
             }
         });
 
+
     }
 
     private void setupCategoryRows() {
-        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new ListRowPresenter());
         CategoryRepository repo = new CategoryRepository();
 
-        adapter.add(new PageRow( new IconHeader(123123123, "Всі",R.drawable.books_stack)));
-        repo.getAllParentCategoriesAsync(categories -> {
+        rowsAdapter.add(new PageRow( new IconHeader(123123123, "Всі",R.drawable.books_stack)));
+        repo.getAllParentCategoriesAsyncCF().thenAccept(categories -> {
             categories.forEach(category -> {
                 IconHeader header = new IconHeader(category.id, category.name,R.drawable.books_stack);
-                adapter.add(new PageRow(header));
+                rowsAdapter.add(new PageRow(header));
             });
-            adapter.add(new DividerRow());
-            adapter.add(new PageRow(new IconHeader(100000, "Налаштування",R.drawable.settings)));
-            setAdapter(adapter);
+            rowsAdapter.add(new DividerRow());
+            rowsAdapter.add(new PageRow(new IconHeader(100000, "Налаштування",R.drawable.settings)));
+            requireActivity().runOnUiThread(() -> { setAdapter(rowsAdapter);});
         });
     }
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212">  <!-- темний фон, можна свій колір -->
+
+    <!-- Логотип або картинка сплешу -->
+    <ImageView
+        android:id="@+id/splash_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/app_icon_your_company"
+        android:layout_gravity="center" />
+
+    <!-- Якщо хочеш — додай текст -->
+    <!--
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Book Reader"
+        android:textColor="#ffffff"
+        android:textSize="24sp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="32dp" />
+    -->
+
+</FrameLayout>

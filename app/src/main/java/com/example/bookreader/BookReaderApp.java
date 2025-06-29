@@ -1,6 +1,8 @@
 package com.example.bookreader;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -34,6 +36,10 @@ public class BookReaderApp  extends Application {
     @Getter
     private BookDb appDatabase;
 
+    public boolean isDataBaseInit(){
+        return prefs.getBoolean("db_seeded", false);
+    }
+
     @Getter
     @Setter
     private boolean isMenuOpen = true;
@@ -41,30 +47,7 @@ public class BookReaderApp  extends Application {
     @Getter
     private GlobalEventListener globalEventListener;
 
-
-//    @Setter
-//    private boolean isRowsChanget = false;
-//
-//    public boolean getIsRowsChanget(){
-//        if(isRowsChanget){
-//            isRowsChanget = false;
-//            return true;
-//        }
-//        return false;
-//    }
-//
-//
-//    @Setter
-//    private Book bookToDelete = null;
-//
-//    public Book getBookToDelete(){
-//        if(bookToDelete != null){
-//            Book temp = bookToDelete;
-//            bookToDelete = null;
-//            return temp;
-//        }
-//        return null;
-//    }
+    private SharedPreferences prefs;
 
     @Override
     public void onCreate() {
@@ -72,20 +55,15 @@ public class BookReaderApp  extends Application {
         globalEventListener = new GlobalEventListener();
         // Зберігаємо інстанс класу для глобального доступу
         instance = this;
-        //getApplicationContext().deleteDatabase("book-database");
-        // Ініціалізуємо базу даних один раз
+        prefs = getApplicationContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+       // prefs.edit().putBoolean("db_seeded", false).apply();
+       // getApplicationContext().deleteDatabase("book-database");
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
                 .fallbackToDestructiveMigration() // видалить базу при несумісності схем
-                .addCallback(seedData)  // додали callback
                 .build();
-
     }
 
-
-    private final RoomDatabase.Callback seedData = new RoomDatabase.Callback() {
-        @Override
-        public void onCreate(@NonNull SupportSQLiteDatabase db) {
-            super.onCreate(db);
+    public void DataBaseInit(){
             Log.d("Info","Data init");
             Executors.newSingleThreadExecutor().execute(() -> {
                 CategoryDao сdao = appDatabase.categoryDao();
@@ -162,7 +140,10 @@ public class BookReaderApp  extends Application {
                             .categoryId(categoryId)
                             .build());
                 }
+                prefs.edit().putBoolean("db_seeded", true).apply();
+                Log.d("Seeded",String.valueOf(prefs.getBoolean("db_seeded",false)));
+                globalEventListener.sendEvent(GlobalEventType.DATABASE_DONE,null);
             });
         }
-    };
 }
+

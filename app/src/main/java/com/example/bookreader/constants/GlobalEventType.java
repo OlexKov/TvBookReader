@@ -4,7 +4,8 @@ public enum GlobalEventType {
     ROW_CHANGED(0),
     BOOK_EDITED(1),
     BOOK_DELETED(2),
-    BOOK_ADDED(3);
+    BOOK_ADDED(3),
+    DATABASE_DONE(4);
 
     private final int id;
 
