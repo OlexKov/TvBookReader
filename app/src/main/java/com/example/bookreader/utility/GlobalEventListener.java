@@ -1,4 +1,4 @@
-package com.example.bookreader.customclassses;
+package com.example.bookreader.utility;
 import android.util.Log;
 
 import androidx.core.util.Consumer;
@@ -19,7 +19,7 @@ public class GlobalEventListener {
 
     public void subscribe(GlobalEventType eventType,Consumer<Object> handler){
         Log.d("GlobalEventLog","Subscribe " + eventType.name());
-        List<Consumer<Object>> list = events.get(eventType);
+        CopyOnWriteArrayList<Consumer<Object>> list = events.get(eventType);
         if(list != null && !list.contains(handler)){
             list.add(handler);
         }
@@ -32,7 +32,7 @@ public class GlobalEventListener {
 
     public void unSubscribe(GlobalEventType eventType,Consumer<Object> handler){
         Log.d("GlobalEventLog","UnsubscribeEvent "+eventType.name());
-        List<Consumer<Object>> list =   events.get(eventType);
+        CopyOnWriteArrayList<Consumer<Object>> list =   events.get(eventType);
         if(list != null){
             list.remove(handler);
         }

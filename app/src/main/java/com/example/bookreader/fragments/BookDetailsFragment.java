@@ -27,6 +27,7 @@ import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.listeners.BookActionClickListener;
 import com.example.bookreader.presenters.BookDetailsPresenter;
+import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.presenters.StringPresenter;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
@@ -101,7 +102,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
         // Attach your media item details presenter to the row presenter:
         FullWidthDetailsOverviewRowPresenter rowPresenter =
-                new FullWidthDetailsOverviewRowPresenter(
+                new CustomBookDetailsPresenter(
                         new BookDetailsPresenter());
         rowPresenter.setOnActionClickedListener(new BookActionClickListener(getContext(),book));
         selector.addClassPresenter(DetailsOverviewRow.class, rowPresenter);

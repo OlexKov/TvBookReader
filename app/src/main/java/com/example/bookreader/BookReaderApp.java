@@ -5,24 +5,17 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.room.Room;
-import androidx.room.RoomDatabase;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.example.bookreader.constants.GlobalEventType;
-import com.example.bookreader.customclassses.GlobalEventListener;
+import com.example.bookreader.utility.GlobalEventListener;
 import com.example.bookreader.data.database.BookDb;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import lombok.Getter;
 import lombok.Setter;
