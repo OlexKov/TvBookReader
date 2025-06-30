@@ -48,6 +48,7 @@ dependencies {
     implementation (libs.androidx.activity)
     implementation(libs.androidx.leanback)
     implementation(libs.glide)
+    implementation (libs.androidx.appcompat)
 
     // Room
     implementation (libs.androidx.room.runtime.v261)

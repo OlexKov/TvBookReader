@@ -4,8 +4,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -19,7 +22,8 @@ import com.example.bookreader.R;
  */
 public class MainActivity extends FragmentActivity {
     private boolean doubleBackToExitPressedOnce = false;
-    private final Handler handler = new Handler();
+    private boolean backToMain = false;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
 
     @Override
@@ -33,22 +37,32 @@ public class MainActivity extends FragmentActivity {
                     .replace(R.id.main_browse_fragment, new MainFragment())
                     .commitNow();
         }
-    }
 
-    @Override
-    public void onBackPressed() {
-
-        if (BookReaderApp.getInstance().isMenuOpen()) {
-            // Якщо вже в меню
-            if (doubleBackToExitPressedOnce) {
-                super.onBackPressed();
-                return;
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Log.d("Exit log", String.valueOf(backToMain));
+                if (BookReaderApp.getInstance().isMenuOpen()) {
+                    if (doubleBackToExitPressedOnce) {
+                        Log.d("Exit log","App exit");
+                        finish();
+                    } else {
+                        doubleBackToExitPressedOnce = true;
+                        Toast.makeText(MainActivity.this, "Натисніть ще раз, щоб вийти", Toast.LENGTH_SHORT).show();
+                        handler.postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+                    }
+                }
+                else if(!backToMain){
+                    Log.d("Exit log","App back");
+                    setEnabled(false);  // Вимикаємо цей callback
+                    MainActivity.super.getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
+                    backToMain = true;
+                }
             }
-            doubleBackToExitPressedOnce = true;
-            Toast.makeText(this, "Натисніть ще раз, щоб вийти", Toast.LENGTH_SHORT).show();
-            handler.postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
-        } else {
-            super.onBackPressed();
-        }
+        });
+        BookReaderApp.getInstance().getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE,( menuOpen)->{
+            backToMain = (boolean)menuOpen;
+        });
     }
 }

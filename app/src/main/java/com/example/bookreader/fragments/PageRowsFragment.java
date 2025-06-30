@@ -41,25 +41,19 @@ public class PageRowsFragment extends RowsSupportFragment {
 
     ProgressBarManager progressBarManager;
     ArrayObjectAdapter rowsAdapter;
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
-        setupEventListeners();
-        loadCategoryRows();
-    }
-
 
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
         progressBarManager = new ProgressBarManager();
         ViewGroup root = (ViewGroup) getView();
         if(root != null){
             progressBarManager.setRootView((ViewGroup) root.getRootView());
             progressBarManager.setInitialDelay(0);
         }
-
+        setupEventListeners();
+        loadCategoryRows();
     }
 
     @Override

@@ -21,28 +21,25 @@
         <activity
             android:name=".activities.StartSplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.Leanback">
+            android:theme="@style/Theme.BookReader"
+            android:banner="@drawable/app_icon_your_company"
+            android:icon="@drawable/app_icon_your_company"
+            android:logo="@drawable/app_icon_your_company">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity android:name=".activities.BookDetailsActivity"
             android:exported="true"
-            android:theme="@style/Theme.Leanback"/>
+            android:theme="@style/Theme.BookReader"/>
 
         <activity
             android:name=".activities.MainActivity"
-            android:banner="@drawable/app_icon_your_company"
             android:exported="true"
-            android:icon="@drawable/app_icon_your_company"
-            android:logo="@drawable/app_icon_your_company"
-            android:theme="@style/Theme.BookReader">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
+            android:theme="@style/Leanback.CustomTitle">
         </activity>
 
     </application>

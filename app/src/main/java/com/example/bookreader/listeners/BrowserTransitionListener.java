@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.leanback.app.BrowseSupportFragment;
 
 import com.example.bookreader.BookReaderApp;
+import com.example.bookreader.constants.GlobalEventType;
 
 public class BrowserTransitionListener extends BrowseSupportFragment.BrowseTransitionListener {
 //    @Override
@@ -15,5 +16,6 @@ public class BrowserTransitionListener extends BrowseSupportFragment.BrowseTrans
     @Override
     public void onHeadersTransitionStop(boolean withHeaders) {
          BookReaderApp.getInstance().setMenuOpen(withHeaders);
+         BookReaderApp.getInstance().getGlobalEventListener().sendEvent(GlobalEventType.MENU_STATE_CHANGE,withHeaders);
     }
 }

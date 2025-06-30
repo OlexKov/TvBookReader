@@ -3,6 +3,10 @@
     <style name="Theme.BookReader" parent="Theme.Leanback">
 
 
+    </style>
+
+    <style name="Leanback.CustomTitle" parent="@style/Theme.Leanback.Browse">
+<!--        <item name="browseTitleViewLayout">@layout/custom_button_header</item>-->
 
     </style>
 </resources>
