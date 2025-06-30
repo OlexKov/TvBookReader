@@ -1,4 +1,6 @@
 package com.example.bookreader.listeners;
+import android.animation.ObjectAnimator;
+import android.graphics.drawable.Drawable;
 import android.view.KeyEvent;
 import android.view.View;
 
@@ -34,14 +36,18 @@ public class HeaderButtonOnKeyListener implements View.OnKeyListener {
                         buttons.get(currentButtonIndex).requestFocus();
                         return true;
                     }
-                    return false;
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                     if (currentButtonIndex > 0) {
                         currentButtonIndex--;
                         buttons.get(currentButtonIndex).requestFocus();
-                        return true;
                     }
-                    return false;
+                }
+                else if(keyCode == KeyEvent.KEYCODE_ENTER){
+                    if(event.getAction() == KeyEvent.ACTION_UP){
+                        // ---- Key enter up
+                        return false;
+                    }
+                    // ---- Key enter down
                 }
             }
         }

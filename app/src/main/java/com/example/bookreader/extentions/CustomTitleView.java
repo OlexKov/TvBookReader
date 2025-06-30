@@ -1,6 +1,7 @@
 package com.example.bookreader.extentions;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -29,7 +30,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     private final HeaderButtonOnKeyListener keyListener = new HeaderButtonOnKeyListener();
     private final View.OnFocusChangeListener focusListener = new HeaderButtonOnFocusListener();
 
-    private TitleViewAdapter titleViewAdapter = new TitleViewAdapter() {
+    private final TitleViewAdapter titleViewAdapter = new TitleViewAdapter() {
         @Override
         public View getSearchAffordanceView() {
             // Повертаємо null, бо у нас немає кнопки пошуку
@@ -56,6 +57,14 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         init(context);
     }
 
+    public void setTitleSize(float size){
+        vTitle.setTextSize(size);
+    }
+
+    public void setTitleColor(int color){
+        vTitle.setTextColor(color);
+    }
+
     public void setOnButton1ClickListener(OnClickListener listener){
         keyListener.addButton(btn1);
         btn1.setOnKeyListener(keyListener);
@@ -74,20 +83,32 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
 
     public void setOnButton3ClickListener(OnClickListener listener){
         keyListener.addButton(btn3);
-        btn2.setOnKeyListener(keyListener);
+        btn3.setOnKeyListener(keyListener);
         btn3.setOnClickListener(listener);
         btn3.setVisibility(View.VISIBLE);
         btn3.setOnFocusChangeListener(focusListener);
     }
 
-    public void setOnButton1Icon(int icon){
+    public void setButton1Icon(int icon){
         btn1.setImageResource(icon);
     }
-    public void setOnButton2Icon(int icon){
+    public void setButton2Icon(int icon){
         btn2.setImageResource(icon);
     }
-    public void setOnButton3Icon(int icon){
+    public void setButton3Icon(int icon){
         btn3.setImageResource(icon);
+    }
+
+    public void setButton1Background(Drawable background){
+        btn1.setBackground(background);
+    }
+
+    public void setButton2Background(Drawable background){
+        btn2.setBackground(background);
+    }
+
+    public void setButton3Background(Drawable background){
+        btn3.setBackground(background);
     }
 
     private void init(Context context) {

@@ -63,21 +63,10 @@ public class TextIconPresenter extends Presenter {
                     if (event.getAction() == KeyEvent.ACTION_DOWN) {
                         // Швидка реакція – збільшуємо
                         circle.animate().alpha(0.3f).setDuration(50).start();
-//                        v.animate()
-//                                .scaleX(1.22f)
-//                                .scaleY(1.22f)
-//                                .setDuration(50)
-//                                .start();
-
                     } else if (event.getAction() == KeyEvent.ACTION_UP) {
                         circle.animate().alpha(0.2f).setDuration(50).start();
                         // Затримуємо зменшення, щоб ефект не зникав миттєво
                         handler.postDelayed(() -> {
-//                            v.animate()
-//                                    .scaleX(1.2f)
-//                                    .scaleY(1.2f)
-//                                    .setDuration(50)
-//                                    .start();
                         }, 50); // затримка ~80 мс
 
                     }

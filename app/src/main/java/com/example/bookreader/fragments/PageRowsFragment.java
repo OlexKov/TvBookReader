@@ -78,7 +78,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     private void loadCategoryRows() {
          String category = getCurrentCategoryName();
         if (category != null && category.isEmpty()) return;
-        progressBarManager.show();
+
         BookRepository bookRepo = new BookRepository();
         CategoryRepository categoryRepo = new CategoryRepository();
         BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
@@ -88,7 +88,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                     List<CompletableFuture<ListRow>> futures = new ArrayList<>();
 
                     if ("Всі".equals(category)) {
-
+                        requireActivity().runOnUiThread(() -> {progressBarManager.show();});
                         futures.add(bookRepo.getAllBookAsyncCF()
                                 .thenApply(books -> {
                                     if(books != null && !books.isEmpty()){
@@ -138,7 +138,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         settingsAdapter.add(new TextIcon(ActionType.SETTING_3.getId(), R.drawable.settings, "Додати папку"));
                         return CompletableFuture.completedFuture(List.of(new ListRow(new HeaderItem(10101, "Налаштування"), settingsAdapter)));
                     } else {
-
+                        requireActivity().runOnUiThread(() -> {progressBarManager.show();});
                         Optional<Category> optionalCategory = categories.stream().filter(x -> x.name.equals(category)).findFirst();
                         if (optionalCategory.isPresent()) {
                             Category selectedCategory = optionalCategory.get();

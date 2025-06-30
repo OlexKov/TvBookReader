@@ -1,14 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,20 +14,14 @@ import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
-import androidx.leanback.widget.Row;
-import androidx.leanback.widget.RowHeaderPresenter;
 
-import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.RowPresenterSelector;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.BrowserTransitionListener;
-import com.example.bookreader.listeners.HeaderButtonOnFocusListener;
-import com.example.bookreader.listeners.HeaderButtonOnKeyListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
@@ -100,7 +87,7 @@ public class MainFragment extends BrowseSupportFragment {
             customeView.setOnButton1ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 1", Toast.LENGTH_SHORT).show());
             customeView.setOnButton2ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 2", Toast.LENGTH_SHORT).show());
             customeView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
-            customeView.setOnButton1Icon(R.drawable.books_stack);
+            customeView.setButton1Icon(R.drawable.books_stack);
         }
     }
 
