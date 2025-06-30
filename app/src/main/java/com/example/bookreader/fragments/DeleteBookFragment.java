@@ -17,6 +17,7 @@ import java.util.List;
 public class DeleteBookFragment  extends GuidedStepSupportFragment {
 
     private final Book book;
+    private final BookReaderApp app = BookReaderApp.getInstance();
 
     public DeleteBookFragment(Book book) {
         this.book = book;
@@ -52,8 +53,8 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
         if (action.getId() == 1) {
             new BookRepository().deleteBook(book,rows->{
                 if(rows != 0){
-                    BookReaderApp.getInstance().getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED,null);
-                    BookReaderApp.getInstance().getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED,book);
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED,null);
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED,book);
                     Toast.makeText(requireContext(), "Книгу \"" + book.name + "\" видалено", Toast.LENGTH_SHORT).show();
                     requireActivity().finish();
                 }

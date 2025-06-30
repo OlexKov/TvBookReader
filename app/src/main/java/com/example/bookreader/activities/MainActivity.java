@@ -22,7 +22,7 @@ public class MainActivity extends FragmentActivity {
     private boolean doubleBackToExitPressedOnce = false;
     private boolean backToMain = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
-
+    private final BookReaderApp app = BookReaderApp.getInstance();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,7 +40,7 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void handleOnBackPressed() {
                 Log.d("Exit log", String.valueOf(backToMain));
-                if (BookReaderApp.getInstance().isMenuOpen()) {
+                if (app.isMenuOpen()) {
                     if (doubleBackToExitPressedOnce) {
                         Log.d("Exit log","App exit");
                         finish();
@@ -59,7 +59,7 @@ public class MainActivity extends FragmentActivity {
                 }
             }
         });
-        BookReaderApp.getInstance().getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE,( menuOpen)->{
+        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGED,(menuOpen)->{
             backToMain = (boolean)menuOpen;
         });
     }

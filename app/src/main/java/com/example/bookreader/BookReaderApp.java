@@ -38,6 +38,10 @@ public class BookReaderApp  extends Application {
     private boolean isMenuOpen = true;
 
     @Getter
+    @Setter
+    private String currentCategory = "Всі";
+
+    @Getter
     private GlobalEventListener globalEventListener;
 
     private SharedPreferences prefs;

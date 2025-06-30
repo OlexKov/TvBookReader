@@ -2,8 +2,6 @@ package com.example.bookreader.listeners;
 import android.view.KeyEvent;
 import android.view.View;
 
-
-
 public class HeaderButtonOnKeyListener implements View.OnKeyListener {
     private int currentButtonIndex = 0;
     private final View[] buttons;
@@ -13,6 +11,13 @@ public class HeaderButtonOnKeyListener implements View.OnKeyListener {
 
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
+        for (int i = 0; i < buttons.length; i++) {
+            if (buttons[i].isFocused()) {
+                currentButtonIndex = i;
+                break;
+            }
+        }
+
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 if(currentButtonIndex < buttons.length-1){

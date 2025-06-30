@@ -15,16 +15,16 @@ import com.example.bookreader.constants.GlobalEventType;
 @SuppressLint("CustomSplashScreen")
 public class StartSplashActivity extends Activity {
     private long splashStartTime;
-
+    private final BookReaderApp app = BookReaderApp.getInstance();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.start_splash);
         splashStartTime = System.currentTimeMillis();
-        if (!BookReaderApp.getInstance().isDataBaseInit()) {
-            BookReaderApp.getInstance().getGlobalEventListener()
+        if (!app.isDataBaseInit()) {
+            app.getGlobalEventListener()
                     .subscribe(GlobalEventType.DATABASE_DONE, (o) -> runOnUiThread(this::tryStartMainActivity));
-            BookReaderApp.getInstance().DataBaseInit();
+            app.DataBaseInit();
         } else {
             tryStartMainActivity();
         }

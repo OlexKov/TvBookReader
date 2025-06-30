@@ -1,7 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +19,12 @@ import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
+import androidx.leanback.widget.Row;
+import androidx.leanback.widget.RowHeaderPresenter;
 
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.RowPresenterSelector;
@@ -35,7 +39,8 @@ public class MainFragment extends BrowseSupportFragment {
    // private BackgroundManager mBackgroundManager;
   //  private Drawable mDefaultBackground;
   //  private DisplayMetrics mMetrics;
-   private  ArrayObjectAdapter rowsAdapter;
+   private ArrayObjectAdapter rowsAdapter;
+   private final BookReaderApp app = BookReaderApp.getInstance();
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -43,7 +48,7 @@ public class MainFragment extends BrowseSupportFragment {
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
          setupEventListeners();
          setTitle("Всі");
-        addHeaderButtons(view);
+         addHeaderButtons(view);
       //  prepareBackgroundManager();
         setupUIElements();
         setupCategoryRows();
@@ -81,13 +86,12 @@ public class MainFragment extends BrowseSupportFragment {
 
 
     private void setupEventListeners(){
+        setBrowseTransitionListener(new BrowserTransitionListener());
         //Зміна заголовку відповідно до обраної категорії
         HeadersSupportFragment supportFragment = getHeadersSupportFragment();
-        if(supportFragment != null)
-        {
+        if(supportFragment != null) {
             supportFragment.setOnHeaderViewSelectedListener(new HeaderViewSelectedListener(this));
         }
-        setBrowseTransitionListener(new BrowserTransitionListener());
     }
 
     private void setupCategoryRows() {
@@ -130,10 +134,8 @@ public class MainFragment extends BrowseSupportFragment {
 
             btn1.setOnClickListener(v -> Toast.makeText(getContext(), "Кнопка 1 натиснута", Toast.LENGTH_SHORT).show());
             btn2.setOnClickListener(v -> Toast.makeText(getContext(), "Кнопка 2 натиснута", Toast.LENGTH_SHORT).show());
-            btn3.setOnClickListener(v -> Toast.makeText(getContext(), "Кнопка 2 натиснута", Toast.LENGTH_SHORT).show());
+            btn3.setOnClickListener(v -> Toast.makeText(getContext(), "Кнопка 3 натиснута", Toast.LENGTH_SHORT).show());
             LinearLayout buttonContainer = customTitle.findViewById(R.id.button_container);
-
-
 
             buttonContainer.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
@@ -141,7 +143,47 @@ public class MainFragment extends BrowseSupportFragment {
                 }
             });
 
+            app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START,(isMenuStartOpen)->{
+                if(app.getCurrentCategory().equals("Всі") || !(boolean) isMenuStartOpen){
+                    smoothDisplay(buttonContainer);
+                }
+                else{
+                    smoothHide(buttonContainer);
+                }
+            });
+
+
+            app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CHANGED,(category->{
+                String cat = (String) category;
+                if(cat.equals("Всі") || !app.isMenuOpen()){
+                    smoothDisplay(buttonContainer);
+                }
+                else{
+                    smoothHide(buttonContainer);
+                }
+            }));
+
         }
+    }
+
+    private void smoothHide(View view){
+        if(view.getVisibility() != View.GONE ){
+            view.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .withEndAction(() -> view.setVisibility(View.GONE))
+                    .start();
+        }
+
+    }
+    private void smoothDisplay(View view) {
+        if (view.getVisibility() != View.VISIBLE){
+            view.animate()
+                    .withStartAction(() -> view.setVisibility(View.VISIBLE))
+                    .alpha(1f)
+                    .setDuration(300)
+                    .start();
+       }
     }
 
 }

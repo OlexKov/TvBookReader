@@ -6,7 +6,9 @@ public enum GlobalEventType {
     BOOK_DELETED(2),
     BOOK_ADDED(3),
     DATABASE_DONE(4),
-    MENU_STATE_CHANGE(5);
+    MENU_STATE_CHANGED(5),
+    MENU_STATE_CHANGE_START(6),
+    CATEGORY_CHANGED(7);
 
     private final int id;
 
