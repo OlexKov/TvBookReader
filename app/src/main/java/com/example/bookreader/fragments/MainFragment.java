@@ -88,6 +88,8 @@ public class MainFragment extends BrowseSupportFragment {
             customeView.setOnButton2ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 2", Toast.LENGTH_SHORT).show());
             customeView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
             customeView.setButton1Icon(R.drawable.books_stack);
+            customeView.setTitleSize(20);
+            customeView.setTitleIconHeight(20);
         }
     }
 

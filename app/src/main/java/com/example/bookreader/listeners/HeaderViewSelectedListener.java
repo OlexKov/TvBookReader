@@ -11,6 +11,7 @@ import androidx.leanback.widget.RowHeaderPresenter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.extentions.IconHeader;
 
 public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHeaderViewSelectedListener {
     private final BrowseSupportFragment fragment;
@@ -22,11 +23,12 @@ public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHead
     @Override
     public void onHeaderSelected(RowHeaderPresenter.ViewHolder viewHolder, Row row) {
         if (row != null && row.getHeaderItem() != null) {
+            IconHeader iconHeader = (IconHeader) row.getHeaderItem();
             String title = row.getHeaderItem().getName();
             fragment.setTitle(title);
-            if(!title.equals(app.getCurrentCategory())){
-                app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_CHANGED,title);
-                app.setCurrentCategory(title);
+            if(!title.equals(app.getCurrentCategory().getName())){
+                app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_CHANGED,iconHeader);
+                app.setCurrentCategory(iconHeader);
             }
             Object adapterObj = fragment.getAdapter();
             if (adapterObj instanceof ArrayObjectAdapter) {

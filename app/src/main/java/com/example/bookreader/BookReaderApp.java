@@ -8,6 +8,7 @@ import android.util.Log;
 import androidx.room.Room;
 
 import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.utility.GlobalEventListener;
 import com.example.bookreader.data.database.BookDb;
 import com.example.bookreader.data.database.dao.BookDao;
@@ -39,7 +40,7 @@ public class BookReaderApp  extends Application {
 
     @Getter
     @Setter
-    private String currentCategory = "Всі";
+    private IconHeader currentCategory = new IconHeader(123123123, "Всі",R.drawable.books_stack);
 
     @Getter
     private GlobalEventListener globalEventListener;

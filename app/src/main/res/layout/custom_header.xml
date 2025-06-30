@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/button_container"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:focusable="true"
         android:focusableInTouchMode="true"
@@ -55,6 +55,16 @@
             android:visibility="gone"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/title_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_gravity="end|center"
+        tools:ignore="UseCompoundDrawables"
+        android:layout_margin="20dp">
+
     <TextView
         android:id="@+id/vTitle"
         android:layout_width="wrap_content"
@@ -63,7 +73,18 @@
         android:textSize="25sp"
         android:textColor="@android:color/white"
         android:visibility="visible"
-        android:layout_gravity="end|center"
-        android:layout_margin="20dp"
+        android:layout_marginEnd="6dp"
         />
+
+    <ImageView
+        android:id="@+id/title_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        android:src="@drawable/books_stack"
+        android:gravity="end|center"
+        android:maxHeight="25dp"
+        android:adjustViewBounds="true"/>
+
+    </LinearLayout>
 </merge>

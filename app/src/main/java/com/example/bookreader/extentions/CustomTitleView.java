@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -24,6 +25,7 @@ import com.example.bookreader.listeners.HeaderButtonOnKeyListener;
 public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Provider {
     private final BookReaderApp app = BookReaderApp.getInstance();
     private TextView vTitle;
+    private ImageView titleIcon;
     private ImageButton btn1;
     private ImageButton btn2;
     private ImageButton btn3;
@@ -57,8 +59,18 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         init(context);
     }
 
-    public void setTitleSize(float size){
-        vTitle.setTextSize(size);
+    public void setTitleIcon(Drawable icon) {
+        titleIcon.setImageDrawable(icon);
+    }
+
+    public void setTitleIconHeight(int heightDp){
+        // Конвертуємо dp у px
+         int px = (int) (heightDp * getResources().getDisplayMetrics().density + 0.5f);
+         titleIcon.setMaxHeight(px );
+    }
+
+    public void setTitleSize(float sizeSp){
+        vTitle.setTextSize(sizeSp);
     }
 
     public void setTitleColor(int color){
@@ -114,6 +126,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     private void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.custom_header, this, true);
         vTitle = findViewById(R.id.vTitle);
+        titleIcon = findViewById(R.id.title_icon);
         btn1 = findViewById(R.id.button1);
         btn2 = findViewById(R.id.button2);
         btn3 = findViewById(R.id.button3);
@@ -126,7 +139,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         });
 
         app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START,(isMenuStartOpen)->{
-            if(app.getCurrentCategory().equals("Всі") || !(boolean) isMenuStartOpen){
+            if(app.getCurrentCategory().getName().equals("Всі") || !(boolean) isMenuStartOpen){
                 smoothDisplay(buttonContainer);
             }
             else{
@@ -136,7 +149,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
 
 
         app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CHANGED,(category->{
-            String cat = (String) category;
+            String cat = ((IconHeader) category).getName();
             if(cat.equals("Всі") || !app.isMenuOpen()){
                 smoothDisplay(buttonContainer);
             }
