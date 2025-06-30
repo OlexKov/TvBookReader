@@ -2,11 +2,13 @@ package com.example.bookreader.fragments;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -53,7 +55,6 @@ public class MainFragment extends BrowseSupportFragment {
         setupUIElements();
         setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
-
     }
 
     private void setupUIElements(){
@@ -170,7 +171,7 @@ public class MainFragment extends BrowseSupportFragment {
         if(view.getVisibility() != View.GONE ){
             view.animate()
                     .alpha(0f)
-                    .setDuration(300)
+                    .setDuration(250)
                     .withEndAction(() -> view.setVisibility(View.GONE))
                     .start();
         }
@@ -181,7 +182,7 @@ public class MainFragment extends BrowseSupportFragment {
             view.animate()
                     .withStartAction(() -> view.setVisibility(View.VISIBLE))
                     .alpha(1f)
-                    .setDuration(300)
+                    .setDuration(250)
                     .start();
        }
     }
