@@ -27,6 +27,7 @@ import androidx.leanback.widget.RowHeaderPresenter;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.RowPresenterSelector;
@@ -42,7 +43,7 @@ public class MainFragment extends BrowseSupportFragment {
   //  private Drawable mDefaultBackground;
   //  private DisplayMetrics mMetrics;
    private ArrayObjectAdapter rowsAdapter;
-   private final BookReaderApp app = BookReaderApp.getInstance();
+
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -50,8 +51,7 @@ public class MainFragment extends BrowseSupportFragment {
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
          setupEventListeners();
          setTitle("Всі");
-         addHeaderButtons(view);
-      //  prepareBackgroundManager();
+         //  prepareBackgroundManager();
         setupUIElements();
         setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
@@ -93,6 +93,15 @@ public class MainFragment extends BrowseSupportFragment {
         if(supportFragment != null) {
             supportFragment.setOnHeaderViewSelectedListener(new HeaderViewSelectedListener(this));
         }
+
+       View titleView  = getTitleView();
+        if(titleView instanceof CustomTitleView){
+            CustomTitleView customeView = (CustomTitleView) titleView;
+            customeView.setOnButton1ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 1", Toast.LENGTH_SHORT).show());
+            customeView.setOnButton2ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 2", Toast.LENGTH_SHORT).show());
+            customeView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
+            customeView.setOnButton1Icon(R.drawable.books_stack);
+        }
     }
 
     private void setupCategoryRows() {
@@ -109,82 +118,4 @@ public class MainFragment extends BrowseSupportFragment {
             requireActivity().runOnUiThread(() -> { setAdapter(rowsAdapter);});
         });
     }
-
-    private void addHeaderButtons(View view){
-        View titleView = view.findViewById(androidx.leanback.R.id.browse_title_group);
-        if (titleView instanceof ViewGroup) {
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-
-            View customTitle = inflater.inflate(R.layout.header_image_button, (ViewGroup) titleView, false);
-            ((ViewGroup)titleView).addView(customTitle);
-
-            ImageButton btn1 = customTitle.findViewById(R.id.button1);
-            ImageButton btn2 = customTitle.findViewById(R.id.button2);
-            ImageButton btn3 = customTitle.findViewById(R.id.button3);
-
-            View.OnFocusChangeListener focusListener = new HeaderButtonOnFocusListener();
-            View.OnKeyListener keyListener = new HeaderButtonOnKeyListener(btn1,btn2,btn3);
-
-            btn1.setOnKeyListener(keyListener);
-            btn2.setOnKeyListener(keyListener);
-            btn3.setOnKeyListener(keyListener);
-
-            btn1.setOnFocusChangeListener(focusListener);
-            btn2.setOnFocusChangeListener(focusListener);
-            btn3.setOnFocusChangeListener(focusListener);
-
-            btn1.setOnClickListener(v -> Toast.makeText(getContext(), "Кнопка 1 натиснута", Toast.LENGTH_SHORT).show());
-            btn2.setOnClickListener(v -> Toast.makeText(getContext(), "Кнопка 2 натиснута", Toast.LENGTH_SHORT).show());
-            btn3.setOnClickListener(v -> Toast.makeText(getContext(), "Кнопка 3 натиснута", Toast.LENGTH_SHORT).show());
-            LinearLayout buttonContainer = customTitle.findViewById(R.id.button_container);
-
-            buttonContainer.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) {
-                    btn1.requestFocus();
-                }
-            });
-
-            app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START,(isMenuStartOpen)->{
-                if(app.getCurrentCategory().equals("Всі") || !(boolean) isMenuStartOpen){
-                    smoothDisplay(buttonContainer);
-                }
-                else{
-                    smoothHide(buttonContainer);
-                }
-            });
-
-
-            app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CHANGED,(category->{
-                String cat = (String) category;
-                if(cat.equals("Всі") || !app.isMenuOpen()){
-                    smoothDisplay(buttonContainer);
-                }
-                else{
-                    smoothHide(buttonContainer);
-                }
-            }));
-
-        }
-    }
-
-    private void smoothHide(View view){
-        if(view.getVisibility() != View.GONE ){
-            view.animate()
-                    .alpha(0f)
-                    .setDuration(250)
-                    .withEndAction(() -> view.setVisibility(View.GONE))
-                    .start();
-        }
-
-    }
-    private void smoothDisplay(View view) {
-        if (view.getVisibility() != View.VISIBLE){
-            view.animate()
-                    .withStartAction(() -> view.setVisibility(View.VISIBLE))
-                    .alpha(1f)
-                    .setDuration(250)
-                    .start();
-       }
-    }
-
 }
