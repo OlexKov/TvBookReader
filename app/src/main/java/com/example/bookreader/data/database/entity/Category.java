@@ -29,6 +29,7 @@ public class Category {
     public long id;
     public String name;
     public Long parentId = null; // NULL для основних категорій
+    public Integer iconId = null;
 
     public boolean equals(Object o) {
         if (this == o) return true;

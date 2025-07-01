@@ -95,7 +95,7 @@ public class MainFragment extends BrowseSupportFragment {
         rowsAdapter.add(new PageRow( new IconHeader(123123123, "Всі",R.drawable.books_stack)));
         repo.getAllParentCategoriesAsyncCF().thenAccept(categories -> {
             categories.forEach(category -> {
-                IconHeader header = new IconHeader(category.id, category.name,R.drawable.books_stack);
+                IconHeader header = new IconHeader(category.id, category.name,category.iconId);
                 rowsAdapter.add(new PageRow(header));
             });
             rowsAdapter.add(new DividerRow());

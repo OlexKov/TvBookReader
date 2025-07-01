@@ -1,7 +1,9 @@
 package com.example.bookreader.listeners;
 
 import android.util.Log;
+import android.view.View;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
@@ -11,6 +13,7 @@ import androidx.leanback.widget.RowHeaderPresenter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
 
 public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHeaderViewSelectedListener {
@@ -26,6 +29,11 @@ public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHead
             IconHeader iconHeader = (IconHeader) row.getHeaderItem();
             String title = row.getHeaderItem().getName();
             fragment.setTitle(title);
+            View titleView  = fragment.getTitleView();
+            if(titleView instanceof CustomTitleView){
+                ((CustomTitleView)titleView).setTitleIcon(ContextCompat.getDrawable(titleView.getContext(), iconHeader.iconResId));
+            }
+
             if(!title.equals(app.getCurrentCategory().getName())){
                 app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_CHANGED,iconHeader);
                 app.setCurrentCategory(iconHeader);

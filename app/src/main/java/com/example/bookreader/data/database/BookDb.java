@@ -13,7 +13,7 @@ import com.example.bookreader.data.database.entity.Category;
                 Category.class,
                 Book.class
         },
-        version = 4,
+        version = 5,
         exportSchema = false
 )
 public abstract class BookDb extends RoomDatabase{

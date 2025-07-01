@@ -55,7 +55,7 @@ public class BookReaderApp  extends Application {
         instance = this;
         prefs = getApplicationContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
        // prefs.edit().putBoolean("db_seeded", false).apply();
-       // getApplicationContext().deleteDatabase("book-database");
+        //getApplicationContext().deleteDatabase("book-database");
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
                 .fallbackToDestructiveMigration() // видалить базу при несумісності схем
                 .build();
@@ -74,6 +74,7 @@ public class BookReaderApp  extends Application {
                 }
                 long categoryId =  сdao.insert(Category.builder()
                         .name( "Категорія 1")
+                        .iconId(R.drawable.settings)
                         .build());
 
                 long subcategoryId  = сdao.insert(Category.builder()
@@ -110,6 +111,7 @@ public class BookReaderApp  extends Application {
 
                 categoryId =  сdao.insert(Category.builder()
                         .name( "Категорія 2")
+                        .iconId(R.drawable.books_stack)
                         .build());
 
                 subcategoryId  = сdao.insert(Category.builder()
