@@ -24,7 +24,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.bookreader.constants.ActionType;
 
-import com.example.bookreader.data.database.entity.Book;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.listeners.BookActionClickListener;
 import com.example.bookreader.presenters.BookDetailsPresenter;
 import com.example.bookreader.presenters.CustomBookDetailsPresenter;
@@ -40,7 +40,6 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         buildDetails();
     }
@@ -53,7 +52,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void buildDetails() {
-        Book book = (Book) getActivity().getIntent().getSerializableExtra("BOOK");
+        BookDto book = (BookDto) getActivity().getIntent().getSerializableExtra("BOOK");
         if(book == null) return;
         // Attach your media item details presenter to the row presenter:
         ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(book);
@@ -97,7 +96,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                 });
     }
 
-    private ArrayObjectAdapter  AttachBookDetailsPresenter(Book book){
+    private ArrayObjectAdapter  AttachBookDetailsPresenter(BookDto book){
         ClassPresenterSelector selector = new ClassPresenterSelector();
 
         // Attach your media item details presenter to the row presenter:
@@ -110,7 +109,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         return new ArrayObjectAdapter(selector);
     }
 
-    private void setDetailsOverview( ArrayObjectAdapter rowsAdapter,Book book){
+    private void setDetailsOverview( ArrayObjectAdapter rowsAdapter,BookDto book){
         DetailsOverviewRow detailsOverview = new DetailsOverviewRow(book);
         setActions(detailsOverview);
         setOverviewImage(detailsOverview,rowsAdapter);

@@ -12,6 +12,7 @@ import androidx.leanback.widget.Presenter;
 
 import com.bumptech.glide.Glide;
 import com.example.bookreader.R;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 
 import org.jspecify.annotations.NonNull;
@@ -51,7 +52,7 @@ public class BookPreviewPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, @Nullable Object item) {
-        Book book  = (Book)item;
+        BookDto book  = (BookDto)item;
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         if(book != null && cardView != null){
             cardView.setTitleText(book.name);

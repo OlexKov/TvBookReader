@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
 
+import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.entity.Category;
 
 import java.util.List;
@@ -16,13 +17,13 @@ public interface CategoryDao {
     @Query("SELECT * " +
             "FROM categories " +
             "WHERE parentId IS NULL")
-    List<Category> getAllParent();
+    List<CategoryDto> getAllParent();
 
     @Query("SELECT * " +
             "FROM categories " +
             "WHERE parentId = :categoryId")
-    List<Category> getAllSubcategoryByCategoryId(long categoryId);
+    List<CategoryDto> getAllSubcategoryByCategoryId(long categoryId);
 
     @Query("SELECT * FROM categories WHERE id = :categoryId")
-    Category getById(long categoryId);
+    CategoryDto getById(long categoryId);
 }

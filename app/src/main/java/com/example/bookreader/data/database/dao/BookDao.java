@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 
 import java.util.List;
@@ -17,21 +18,24 @@ public interface BookDao {
     @Delete
     int delete(Book book);
 
+    @Query("DELETE FROM books WHERE id = :bookId")
+    int deleteById(long bookId);
+
     @Query("SELECT * FROM books")
-    List<Book> getAll();
+    List<BookDto> getAll();
 
     @Query("SELECT * FROM books WHERE id = :bookId")
-    Book getById(long bookId);
+    BookDto getById(long bookId);
 
     @Query("SELECT * " +
             "FROM books  " +
             "WHERE categoryId = :categoryId")
-    List<Book> getByCategoryId(long categoryId);
+    List<BookDto> getByCategoryId(long categoryId);
 
     @Query("SELECT * " +
             "FROM books  " +
             "WHERE categoryId IS NULL")
-    List<Book> getUnsorted();
+    List<BookDto> getUnsorted();
 
     @Query( "SELECT * " +
             "FROM books "+
@@ -41,5 +45,5 @@ public interface BookDao {
               "FROM categories "+
               "WHERE parentId = :parentCategoryId) "
     )
-    List<Book> getAllByCategoryId(long parentCategoryId);
+    List<BookDto> getAllByCategoryId(long parentCategoryId);
 }

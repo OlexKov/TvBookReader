@@ -18,6 +18,7 @@ import com.example.bookreader.R;
 import com.example.bookreader.activities.BookDetailsActivity;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.customclassses.TextIcon;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 
 public class ItemViewClickedListener implements OnItemViewClickedListener {
@@ -30,8 +31,8 @@ public class ItemViewClickedListener implements OnItemViewClickedListener {
     }
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-        if (item instanceof Book) {
-            Book book = (Book) item;
+        if (item instanceof BookDto) {
+            BookDto book = (BookDto) item;
 
             // Наприклад: відкриття нової Activity
             Intent intent = new Intent(activity, BookDetailsActivity.class);

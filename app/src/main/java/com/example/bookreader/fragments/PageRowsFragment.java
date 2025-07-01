@@ -18,6 +18,8 @@ import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.customclassses.TextIcon;
+import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 import com.example.bookreader.data.database.repository.BookRepository;
@@ -62,7 +64,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         super.setExpand(true);
     }
 
-    private void removeBookFromCurrentCategory(ArrayObjectAdapter rowsAdapter, Book bookToRemove) {
+    private void removeBookFromCurrentCategory(ArrayObjectAdapter rowsAdapter, BookDto bookToRemove) {
         for (int i = 0; i < rowsAdapter.size(); i++) {
             Object item = rowsAdapter.get(i);
             if (item instanceof ListRow) {
@@ -113,7 +115,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                     }
                                 }));
 
-                        for (Category cat : categories) {
+                        for (CategoryDto cat : categories) {
                             futures.add(bookRepo.getAllBooksByCategoryIdAsyncCF(cat.id)
                                     .thenApply(books -> {
                                         if(books != null && !books.isEmpty()){
@@ -139,9 +141,9 @@ public class PageRowsFragment extends RowsSupportFragment {
                         return CompletableFuture.completedFuture(List.of(new ListRow(new HeaderItem(10101, "Налаштування"), settingsAdapter)));
                     } else {
                         requireActivity().runOnUiThread(() -> {progressBarManager.show();});
-                        Optional<Category> optionalCategory = categories.stream().filter(x -> x.name.equals(category)).findFirst();
+                        Optional<CategoryDto> optionalCategory = categories.stream().filter(x -> x.name.equals(category)).findFirst();
                         if (optionalCategory.isPresent()) {
-                            Category selectedCategory = optionalCategory.get();
+                            CategoryDto selectedCategory = optionalCategory.get();
                             futures.add(bookRepo.getAllBooksByCategoryIdAsyncCF(selectedCategory.id)
                                     .thenApply(books -> {
                                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
@@ -163,7 +165,7 @@ public class PageRowsFragment extends RowsSupportFragment {
 
                             categoryRepo.getAllSubcategoriesByParentIdAsyncCF(selectedCategory.id)
                                     .thenAccept(subcategories->{
-                                        for (Category subCategory: subcategories){
+                                        for (CategoryDto subCategory: subcategories){
                                             futures.add(bookRepo.getBooksByCategoryIdAsyncCF(subCategory.id)
                                                     .thenApply(books -> {
                                                         if(books != null && !books.isEmpty()){
@@ -199,8 +201,8 @@ public class PageRowsFragment extends RowsSupportFragment {
     private void setupEventListeners(){
         setOnItemViewClickedListener(new ItemViewClickedListener(this));
         BookReaderApp.getInstance().getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,(Object book)->{
-            if(book instanceof Book){
-                removeBookFromCurrentCategory(rowsAdapter,(Book)book);
+            if(book instanceof BookDto){
+                removeBookFromCurrentCategory(rowsAdapter,(BookDto)book);
             }
         });
     }

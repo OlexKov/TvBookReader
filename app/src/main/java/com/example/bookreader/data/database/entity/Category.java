@@ -31,15 +31,4 @@ public class Category {
     public Long parentId = null; // NULL для основних категорій
     public Integer iconId = null;
 
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Category book = (Category) o;
-        return id == book.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(id);
-    }
 }

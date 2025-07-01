@@ -4,13 +4,14 @@ import android.util.Log;
 
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 
 public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
 
     @Override
     protected void onBindDescription(ViewHolder viewHolder, Object item) {
-        Book book = (Book) item;
+        BookDto book = (BookDto) item;
 
         if (book != null) {
             viewHolder.getTitle().setText(book.name);

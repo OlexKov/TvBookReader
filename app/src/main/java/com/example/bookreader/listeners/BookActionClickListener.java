@@ -9,14 +9,15 @@ import androidx.leanback.widget.Action;
 import androidx.leanback.widget.OnActionClickedListener;
 
 import com.example.bookreader.constants.ActionType;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.fragments.DeleteBookFragment;
 
 public class BookActionClickListener implements OnActionClickedListener {
     private final Context context;
-    private final Book book;
+    private final BookDto book;
 
-    public BookActionClickListener(Context context, Book book) {
+    public BookActionClickListener(Context context, BookDto book) {
         this.context = context;
         this.book = book;
     }

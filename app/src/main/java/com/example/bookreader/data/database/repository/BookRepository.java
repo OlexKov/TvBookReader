@@ -7,6 +7,7 @@ import androidx.core.util.Consumer;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.data.database.dao.BookDao;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 
 
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Supplier;
 
 public class BookRepository {
     private final BookDao bookDao;
@@ -33,9 +33,9 @@ public class BookRepository {
         });
     }
 
-    public void getBookByIdAsync(long bookId, Consumer<Book> callback) {
+    public void getBookByIdAsync(long bookId, Consumer<BookDto> callback) {
         executorService.execute(() -> {
-            Book book = bookDao.getById(bookId);
+            BookDto book = bookDao.getById(bookId);
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(book);
             });
@@ -43,17 +43,17 @@ public class BookRepository {
     }
 
     //getAllBooks
-    public CompletableFuture<List<Book>> getAllBookAsyncCF() {
+    public CompletableFuture<List<BookDto>> getAllBookAsyncCF() {
         return CompletableFuture.supplyAsync(bookDao::getAll);
     }
 
-    public  List<Book> getAllBook(){
+    public  List<BookDto> getAllBook(){
         return bookDao.getAll();
     }
 
-    public void getAllBookAsync(Consumer<List<Book>> callback) {
+    public void getAllBookAsync(Consumer<List<BookDto>> callback) {
         executorService.execute(() -> {
-            List<Book> books = bookDao.getAll();
+            List<BookDto> books = bookDao.getAll();
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(books);
             });
@@ -62,46 +62,62 @@ public class BookRepository {
 
 
     //getAllBooksByCategoryId
-    public List<Book> getAllBooksByCategoryId(long categoryId){
+    public List<BookDto> getAllBooksByCategoryId(long categoryId){
         return bookDao.getAllByCategoryId(categoryId);
     }
 
-    public void getAllBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
+    public void getAllBooksByCategoryIdAsync(long categoryId, Consumer<List<BookDto>> callback) {
         executorService.execute(() -> {
-            List<Book> books = bookDao.getAllByCategoryId(categoryId);
+            List<BookDto> books = bookDao.getAllByCategoryId(categoryId);
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(books);
             });
         });
     }
 
-    public CompletableFuture<List<Book>> getAllBooksByCategoryIdAsyncCF(long categoryId) {
+    public CompletableFuture<List<BookDto>> getAllBooksByCategoryIdAsyncCF(long categoryId) {
         return CompletableFuture.supplyAsync(()-> bookDao.getAllByCategoryId(categoryId));
     }
 
 
     //geAllUnsortedBooks
-    public List<Book>  getAllUnsortedBooks( ){
+    public List<BookDto>  getAllUnsortedBooks( ){
         return bookDao.getUnsorted();
     }
 
-    public void getAllUnsortedBooksAsync( Consumer<List<Book>> callback) {
+    public void getAllUnsortedBooksAsync( Consumer<List<BookDto>> callback) {
         executorService.execute(() -> {
-            List<Book> books = bookDao.getUnsorted();
+            List<BookDto> books = bookDao.getUnsorted();
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(books);
             });
         });
     }
 
-    public CompletableFuture<List<Book>> getAllUnsortedBooksAsyncCF() {
+    public CompletableFuture<List<BookDto>> getAllUnsortedBooksAsyncCF() {
         return CompletableFuture.supplyAsync(bookDao::getUnsorted);
     }
 
     //deleteBook
-    public void deleteBook(Book book, Consumer<Integer> callback){
+    public CompletableFuture<Integer> deleteBookAsyncCF(Book book) {
+        return CompletableFuture.supplyAsync(()->bookDao.delete(book));
+    }
+
+    public CompletableFuture<Integer> deleteBookByIdAsyncCF(long bookId) {
+        return CompletableFuture.supplyAsync(()->bookDao.deleteById(bookId));
+    }
+
+    public void deleteBookAsync(Book book, Consumer<Integer> callback){
         executorService.execute(() -> {
          int rows = bookDao.delete(book);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(rows);
+            });
+        });
+    }
+    public void deleteBookByIdAsync(long bookId, Consumer<Integer> callback){
+        executorService.execute(() -> {
+            int rows = bookDao.deleteById(bookId);
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(rows);
             });
@@ -110,20 +126,20 @@ public class BookRepository {
 
 
     //getBooksByCategoryId
-    public List<Book> getBooksByCategoryId(long categoryId){
+    public List<BookDto> getBooksByCategoryId(long categoryId){
         return bookDao.getByCategoryId(categoryId);
     }
 
-    public void getBooksByCategoryIdAsync(long categoryId, Consumer<List<Book>> callback) {
+    public void getBooksByCategoryIdAsync(long categoryId, Consumer<List<BookDto>> callback) {
         executorService.execute(() -> {
-            List<Book> books = bookDao.getByCategoryId(categoryId);
+            List<BookDto> books = bookDao.getByCategoryId(categoryId);
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(books);
             });
         });
     }
 
-    public CompletableFuture<List<Book>> getBooksByCategoryIdAsyncCF(long categoryId) {
+    public CompletableFuture<List<BookDto>> getBooksByCategoryIdAsyncCF(long categoryId) {
         return CompletableFuture.supplyAsync(()->bookDao.getByCategoryId(categoryId));
     }
 
