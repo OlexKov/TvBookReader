@@ -31,7 +31,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     private ImageButton btn3;
     private final HeaderButtonOnKeyListener keyListener = new HeaderButtonOnKeyListener();
     private final View.OnFocusChangeListener focusListener = new HeaderButtonOnFocusListener();
-    private final LinearLayout buttonContainer = findViewById(R.id.button_container);
+    private LinearLayout buttonContainer ;
 
     private final TitleViewAdapter titleViewAdapter = new TitleViewAdapter() {
         @Override
@@ -158,7 +158,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         btn2 = findViewById(R.id.button2);
         btn3 = findViewById(R.id.button3);
 
-
+        buttonContainer = findViewById(R.id.button_container);
         buttonContainer.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 btn1.requestFocus();
