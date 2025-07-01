@@ -16,7 +16,11 @@ import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.data.database.dao.CategoryDao;
+import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.data.database.repository.CategoryRepository;
@@ -30,7 +34,8 @@ public class MainFragment extends BrowseSupportFragment {
    // private BackgroundManager mBackgroundManager;
   //  private Drawable mDefaultBackground;
   //  private DisplayMetrics mMetrics;
-   private ArrayObjectAdapter rowsAdapter;
+    private ArrayObjectAdapter rowsAdapter;
+    private BookReaderApp app = BookReaderApp.getInstance();
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -87,20 +92,24 @@ public class MainFragment extends BrowseSupportFragment {
             customeView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
             customeView.setButton1Icon(R.drawable.books_stack);
         }
+        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED,(v)->{
+            if(rowsAdapter.size() > 0){
+                setupCategoryRows();
+            }
+        });
     }
 
     private void setupCategoryRows() {
-        CategoryRepository repo = new CategoryRepository();
-
+        rowsAdapter.clear();
         rowsAdapter.add(new PageRow( new IconHeader(123123123, "Всі",R.drawable.books_stack)));
-        repo.getAllParentCategoriesAsyncCF().thenAccept(categories -> {
-            categories.forEach(category -> {
+        for (CategoryDto category:app.getCategoriesCash()){
+            if(category.booksCount > 0 && category.parentId == null){
                 IconHeader header = new IconHeader(category.id, category.name,category.iconId);
                 rowsAdapter.add(new PageRow(header));
-            });
-            rowsAdapter.add(new DividerRow());
-            rowsAdapter.add(new PageRow(new IconHeader(100000, "Налаштування",R.drawable.settings)));
-            requireActivity().runOnUiThread(() -> { setAdapter(rowsAdapter);});
-        });
+            }
+        }
+        rowsAdapter.add(new DividerRow());
+        rowsAdapter.add(new PageRow(new IconHeader(100000, "Налаштування",R.drawable.settings)));
+        requireActivity().runOnUiThread(() -> { setAdapter(rowsAdapter);});
     }
 }

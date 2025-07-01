@@ -1,10 +1,8 @@
 package com.example.bookreader.listeners;
 
-import android.util.Log;
 import android.view.View;
 
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -34,9 +32,9 @@ public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHead
                 ((CustomTitleView)titleView).setTitleIcon(ContextCompat.getDrawable(titleView.getContext(), iconHeader.iconResId));
             }
 
-            if(!title.equals(app.getCurrentCategory().getName())){
+            if(!title.equals(app.getSelectedParentCategoryHeader().getName())){
                 app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_CHANGED,iconHeader);
-                app.setCurrentCategory(iconHeader);
+                app.setSelectedParentCategoryHeader(iconHeader);
             }
             Object adapterObj = fragment.getAdapter();
             if (adapterObj instanceof ArrayObjectAdapter) {

@@ -22,11 +22,11 @@ public class StartSplashActivity extends Activity {
         setContentView(R.layout.start_splash);
         splashStartTime = System.currentTimeMillis();
         if (!app.isDataBaseInit()) {
-            app.getGlobalEventListener()
-                    .subscribe(GlobalEventType.DATABASE_DONE, (o) -> runOnUiThread(this::tryStartMainActivity));
+            app.getGlobalEventListener().subscribe(GlobalEventType.DATABASE_DONE, (o) -> runOnUiThread(this::tryStartMainActivity));
             app.DataBaseInit();
         } else {
-            tryStartMainActivity();
+            app.updateCategoryCash();
+            app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED, (o) -> runOnUiThread(this::tryStartMainActivity));
         }
     }
 

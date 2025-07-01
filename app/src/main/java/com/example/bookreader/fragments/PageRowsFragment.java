@@ -12,6 +12,9 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
+import androidx.leanback.widget.ObjectAdapter;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -27,6 +30,7 @@ import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.RowPresenterSelector;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.ItemViewClickedListener;
+import com.example.bookreader.listeners.RowItemSelectedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
 import com.example.bookreader.presenters.TextIconPresenter;
 
@@ -40,10 +44,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class PageRowsFragment extends RowsSupportFragment {
-
+    private final int UPLOAD_THRESHOLD = 5;
+    private final int UPLOAD_SIZE = 10;
     ProgressBarManager progressBarManager;
     ArrayObjectAdapter rowsAdapter;
-
+    BookReaderApp app = BookReaderApp.getInstance();
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -53,6 +58,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         if(root != null){
             progressBarManager.setRootView((ViewGroup) root.getRootView());
             progressBarManager.setInitialDelay(0);
+            progressBarManager.hide();
         }
         setupEventListeners();
         loadCategoryRows();
@@ -77,125 +83,132 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
     }
 
-    private void loadCategoryRows() {
-         String category = getCurrentCategoryName();
-        if (category != null && category.isEmpty()) return;
+    private CompletableFuture<List<ListRow>> getSettingRows(){
+        return CompletableFuture.supplyAsync(() -> {
+            ArrayObjectAdapter settingsAdapter = new ArrayObjectAdapter(new TextIconPresenter());
+            settingsAdapter.add(new TextIcon(ActionType.SETTING_1.getId(), R.drawable.settings, "Налаштування категорій"));
+            settingsAdapter.add(new TextIcon(ActionType.SETTING_2.getId(), R.drawable.settings, "Додати книгу"));
+            settingsAdapter.add(new TextIcon(ActionType.SETTING_3.getId(), R.drawable.settings, "Додати папку"));
+            return List.of(new ListRow(new HeaderItem(10101, "Налаштування"), settingsAdapter));
+        });
+    }
 
-        BookRepository bookRepo = new BookRepository();
-        CategoryRepository categoryRepo = new CategoryRepository();
-        BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
+    private CompletableFuture<List<ListRow>> getAllRows(BookRepository bookRepo,BookPreviewPresenter itemPresenter,List<CategoryDto> categories){
+        return bookRepo.getAllBookAsyncCF()
+                .thenApply(books -> {
+                    List<ListRow> rows = new ArrayList<>();
+                    ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                    if(books != null && !books.isEmpty()){
+                        adapter.addAll(0, books);
+                        rows.add(new ListRow(new HeaderItem(111111111111111L, "Всі"), adapter));
+                    }
+                    else {
+                        return rows;
+                    }
 
-        categoryRepo.getAllParentCategoriesAsyncCF()
-                .thenCompose(categories -> {
-                    List<CompletableFuture<ListRow>> futures = new ArrayList<>();
+                    adapter = new ArrayObjectAdapter(itemPresenter);
+                    List<BookDto> unsorted = books.stream().filter(book->book.categoryId == null).collect(Collectors.toList());
+                    if(!unsorted.isEmpty()){
+                        adapter.addAll(0,unsorted);
+                        rows.add(new ListRow(new HeaderItem(111111111111111L + 1, "Не сортовані"), adapter));
+                    }
+                    for (CategoryDto cat : categories) {
+                        if(cat.booksCount > 0 && cat.parentId == null){
+                            List<Long> subcategoriesIds = app.getCategoriesCash().stream()
+                                    .filter(c->c.parentId != null && c.parentId == cat.id)
+                                    .map(c->c.id).collect(Collectors.toList());
+                            List<BookDto> categoryBooks = books.stream()
+                                    .filter(book->(book.categoryId != null && book.categoryId == cat.id) || subcategoriesIds.contains(book.categoryId))
+                                    .collect(Collectors.toList());
+                            adapter = new ArrayObjectAdapter(itemPresenter);
+                            adapter.addAll(0, categoryBooks);
+                            rows.add(new ListRow(new HeaderItem(cat.id + 222222222222222L, cat.name), adapter));
 
-                    if ("Всі".equals(category)) {
-                        requireActivity().runOnUiThread(() -> {progressBarManager.show();});
-                        futures.add(bookRepo.getAllBookAsyncCF()
-                                .thenApply(books -> {
-                                    if(books != null && !books.isEmpty()){
-                                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                        adapter.addAll(0, books);
-                                        return new ListRow(new HeaderItem(111111111111111L, "Всі"), adapter);
-                                    }
-                                    else {
-                                        return null;
-                                    }
-                                }));
-
-                        futures.add(bookRepo.getAllUnsortedBooksAsyncCF()
-                                .thenApply(books -> {
-                                    if(books != null && !books.isEmpty()){
-                                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                        adapter.addAll(0, books);
-                                        return new ListRow(new HeaderItem(111111111111111L + 1, "Не сортовані"), adapter);
-                                    }
-                                    else{
-                                        return null;
-                                    }
-                                }));
-
-                        for (CategoryDto cat : categories) {
-                            futures.add(bookRepo.getAllBooksByCategoryIdAsyncCF(cat.id)
-                                    .thenApply(books -> {
-                                        if(books != null && !books.isEmpty()){
-                                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                            adapter.addAll(0, books);
-                                            return new ListRow(new HeaderItem(cat.id + 222222222222222L, cat.name), adapter);
-                                        }
-                                        else{
-                                            return null;
-                                        }
-                                    }));
-                        }
-                        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                .thenApply(v -> futures.stream()
-                                        .map(CompletableFuture::join)
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.toList()));
-                    } else if ("Налаштування".equals(category)) {
-                        ArrayObjectAdapter settingsAdapter = new ArrayObjectAdapter(new TextIconPresenter());
-                        settingsAdapter.add(new TextIcon(ActionType.SETTING_1.getId(), R.drawable.settings, "Налаштування категорій"));
-                        settingsAdapter.add(new TextIcon(ActionType.SETTING_2.getId(), R.drawable.settings, "Додати книгу"));
-                        settingsAdapter.add(new TextIcon(ActionType.SETTING_3.getId(), R.drawable.settings, "Додати папку"));
-                        return CompletableFuture.completedFuture(List.of(new ListRow(new HeaderItem(10101, "Налаштування"), settingsAdapter)));
-                    } else {
-                        requireActivity().runOnUiThread(() -> {progressBarManager.show();});
-                        Optional<CategoryDto> optionalCategory = categories.stream().filter(x -> x.name.equals(category)).findFirst();
-                        if (optionalCategory.isPresent()) {
-                            CategoryDto selectedCategory = optionalCategory.get();
-                            futures.add(bookRepo.getAllBooksByCategoryIdAsyncCF(selectedCategory.id)
-                                    .thenApply(books -> {
-                                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                        adapter.addAll(0, books);
-                                        return new ListRow(new HeaderItem(1233454456, "Всі"), adapter);
-                                    }));
-
-                            futures.add(bookRepo.getBooksByCategoryIdAsyncCF(selectedCategory.id)
-                                    .thenApply(books -> {
-                                        if(books != null && !books.isEmpty()){
-                                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                            adapter.addAll(0, books);
-                                            return new ListRow(new HeaderItem(12389456, "Не сортовані"), adapter);
-                                        }
-                                        else{
-                                            return null;
-                                        }
-                                    }));
-
-                            categoryRepo.getAllSubcategoriesByParentIdAsyncCF(selectedCategory.id)
-                                    .thenAccept(subcategories->{
-                                        for (CategoryDto subCategory: subcategories){
-                                            futures.add(bookRepo.getBooksByCategoryIdAsyncCF(subCategory.id)
-                                                    .thenApply(books -> {
-                                                        if(books != null && !books.isEmpty()){
-                                                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                                                            adapter.addAll(0, books);
-                                                            return new ListRow(new HeaderItem(subCategory.id, subCategory.name), adapter);
-                                                        }
-                                                        else{
-                                                            return null;
-                                                        }
-                                                    }));
-                                        }
-                                    });
-                            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                    .thenApply(v -> futures.stream()
-                                            .map(CompletableFuture::join)
-                                            .collect(Collectors.toList()));
-
-
-                        }else {
-                            return CompletableFuture.completedFuture(List.of());
                         }
                     }
-                }).thenAccept(listRows -> {
-                        requireActivity().runOnUiThread(() -> {
-                        rowsAdapter.addAll(0, listRows);
-                        if (isAdded()) setAdapter(rowsAdapter);
-                        progressBarManager.hide();
-                    });
+
+                    return rows;
                 });
+    }
+
+    private CompletableFuture<List<ListRow>> getOtherRows(BookRepository bookRepo,BookPreviewPresenter itemPresenter,String category,List<CategoryDto> categories){
+        Optional<CategoryDto> optionalCategory = categories.stream().filter(x -> x.name.equals(category)).findFirst();
+        if (optionalCategory.isPresent()) {
+            CategoryDto selectedCategory = optionalCategory.get();
+            return bookRepo.getAllBooksByCategoryIdAsyncCF(selectedCategory.id)
+                    .thenApply(books -> {
+                        List<ListRow> rows = new ArrayList<>();
+                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
+                        if(books != null && !books.isEmpty()) {
+                            adapter.addAll(0, books);
+                            rows.add(new ListRow(new HeaderItem(1233454456, "Всі"), adapter));
+                        }
+                        else{
+                            return rows;
+                        }
+                        adapter = new ArrayObjectAdapter(itemPresenter);
+                        List<BookDto> unsorted = books.stream()
+                                .filter(book->book.categoryId != null && book.categoryId == selectedCategory.id)
+                                .collect(Collectors.toList());
+                        if(!unsorted.isEmpty()){
+                            adapter.addAll(0,unsorted);
+                            rows.add(new ListRow(new HeaderItem(111111111111111L + 1, "Не сортовані"), adapter));
+                        }
+                        List<CategoryDto> subcategories = app.getCategoriesCash().stream()
+                                .filter(c->c.parentId != null && c.parentId == selectedCategory.id)
+                                .collect(Collectors.toList());
+                        for (CategoryDto subCaterory:subcategories){
+                            List<BookDto> catBooks = books.stream()
+                                    .filter(book->book.categoryId != null && book.categoryId == subCaterory.id)
+                                    .collect(Collectors.toList());
+                            adapter = new ArrayObjectAdapter(itemPresenter);
+                            adapter.addAll(0,catBooks);
+                            rows.add(new ListRow(new HeaderItem(subCaterory.id, subCaterory.name), adapter));
+                        }
+                        return rows;
+                    });
+        }
+        else{
+            return CompletableFuture.completedFuture(List.of());
+        }
+    }
+
+    private void loadCategoryRows() {
+        String category = getCurrentCategoryName();
+        if (category == null || category.isEmpty()) return;
+        BookRepository bookRepo = new BookRepository();
+        BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
+        CompletableFuture<List<ListRow>> future ;
+
+        if ("Налаштування".equals(category)) {
+            future = getSettingRows();
+        }
+        else{
+            progressBarManager.show();
+            List<CategoryDto> categories = app.getCategoriesCash().stream()
+                    .filter(c->c.booksCount > 0).collect(Collectors.toList());
+
+            if(category.equals("Всі")){
+               future = getAllRows(bookRepo,itemPresenter,categories);
+            }
+            else{
+                future = getOtherRows(bookRepo,itemPresenter,category,categories);
+            }
+        }
+
+        future.thenAccept(listRows -> {
+            if (!isAdded() || isDetached()) return;
+            requireActivity().runOnUiThread(() -> {
+                Log.d("DEBUG", "UI thread update");
+                rowsAdapter.addAll(0, listRows);
+                setAdapter(rowsAdapter);
+                progressBarManager.hide();
+            });
+        }).exceptionally(ex -> {
+            Log.e("ERROR", "Exception in future: " + ex.getMessage(), ex);
+            requireActivity().runOnUiThread(() -> progressBarManager.hide());
+            return null;
+        });
     }
 
     private void setupEventListeners(){
@@ -205,6 +218,33 @@ public class PageRowsFragment extends RowsSupportFragment {
                 removeBookFromCurrentCategory(rowsAdapter,(BookDto)book);
             }
         });
+        setOnItemViewSelectedListener(new RowItemSelectedListener());
+
+        app.getGlobalEventListener().subscribe(GlobalEventType.ITEM_SELECTED_CHANGE,(book)->{
+
+            if(book instanceof BookDto){
+                BookDto selectedBook = (BookDto) book;
+                ListRow selectedRow = app.getSelectedRow();
+                if(selectedRow != null){
+                    ObjectAdapter objectAdapter = selectedRow.getAdapter();
+                    if(objectAdapter instanceof ArrayObjectAdapter){
+                        ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
+                        boolean needUpload = false;
+
+                        for (int i = 0; i < adapter.size(); i++) {
+                            if(adapter.get(i) == selectedBook){
+                                needUpload = (adapter.size() - i + 1) <= UPLOAD_THRESHOLD;
+                                break;
+                            }
+                        }
+                        if(needUpload){
+                            Log.d("UploadLog","need upload " );
+                        }
+                    }
+                }
+            }
+        });
+
     }
 
     private  String getCurrentCategoryName(){

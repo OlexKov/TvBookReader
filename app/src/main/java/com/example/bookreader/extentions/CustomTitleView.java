@@ -1,10 +1,8 @@
 package com.example.bookreader.extentions;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -140,7 +138,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         });
 
         app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START,(isMenuStartOpen)->{
-            if(app.getCurrentCategory().getName().equals("Всі") || !(boolean) isMenuStartOpen){
+            if(app.getSelectedParentCategoryHeader().getName().equals("Всі") || !(boolean) isMenuStartOpen){
                 smoothDisplay(buttonContainer);
             }
             else{
