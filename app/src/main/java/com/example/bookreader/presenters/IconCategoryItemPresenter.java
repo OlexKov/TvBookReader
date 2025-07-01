@@ -18,7 +18,7 @@ public class IconCategoryItemPresenter extends RowHeaderPresenter {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup) {
         LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
-        View view = inflater.inflate(R.layout.category_items_layout, null);
+        View view = inflater.inflate(R.layout.category_menu_item, null);
         return new ViewHolder(view);
     }
 

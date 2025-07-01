@@ -6,7 +6,7 @@
 
     <style name="Theme.BrowseCustomTitleTheme" parent="Theme.Leanback">
         <item name="browseTitleViewLayout">@layout/custom_title</item>
-        <item name="browseRowsMarginTop">150dp</item>
+        <item name="browseRowsMarginTop">130dp</item>
     </style>
 
 </resources>

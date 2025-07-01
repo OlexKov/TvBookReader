@@ -2,11 +2,11 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
         android:focusable="true"
         android:focusableInTouchMode="true"
@@ -15,75 +15,76 @@
 
         <ImageButton
             android:id="@+id/button1"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@drawable/round_button_background"
-            android:src="@drawable/settings"
             android:clickable="true"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:padding="8dp"
-            android:layout_margin="8dp"
             android:scaleType="centerInside"
-            android:visibility="gone"/>
+            android:src="@drawable/settings"
+            android:visibility="invisible"
+            android:layout_margin="8dp"/>
 
         <ImageButton
             android:id="@+id/button2"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="8dp"
-            android:padding="8dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@drawable/round_button_background"
-            android:src="@drawable/settings"
             android:clickable="true"
             android:focusable="true"
             android:focusableInTouchMode="true"
+            android:padding="8dp"
             android:scaleType="centerInside"
-            android:visibility="gone"/>
+            android:src="@drawable/settings"
+            android:visibility="invisible"
+            android:layout_margin="8dp"/>
+
         <ImageButton
             android:id="@+id/button3"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="8dp"
-            android:padding="8dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@drawable/round_button_background"
-            android:src="@drawable/settings"
             android:clickable="true"
             android:focusable="true"
             android:focusableInTouchMode="true"
+            android:padding="8dp"
             android:scaleType="centerInside"
-            android:visibility="gone"/>
+            android:src="@drawable/settings"
+            android:visibility="invisible"
+            android:layout_margin="8dp"/>
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/title_container"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:layout_gravity="end|center"
-        tools:ignore="UseCompoundDrawables"
-        android:layout_margin="20dp">
+        tools:ignore="UseCompoundDrawables">
 
     <TextView
         android:id="@+id/vTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAllCaps="true"
-        android:textSize="25sp"
+        android:textSize="30sp"
         android:textColor="@android:color/white"
         android:visibility="visible"
-        android:layout_marginEnd="6dp"
+        android:paddingEnd="6dp"
+        android:paddingStart="6dp"
         />
 
     <ImageView
         android:id="@+id/title_icon"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:visibility="visible"
         android:src="@drawable/books_stack"
         android:gravity="end|center"
-        android:maxHeight="25dp"
+        android:maxHeight="35dp"
         android:adjustViewBounds="true"/>
 
     </LinearLayout>

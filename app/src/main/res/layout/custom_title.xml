@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.bookreader.extentions.CustomTitleView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.example.bookreader.extentions.CustomTitleView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/browse_title_group"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="40dp"/>
+    android:layout_height="80dp"
+    android:paddingStart="35dp"
+    android:paddingEnd="35dp"
+    android:paddingTop="20dp" />

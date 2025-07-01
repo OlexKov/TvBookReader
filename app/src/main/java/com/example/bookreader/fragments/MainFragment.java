@@ -1,6 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -31,7 +32,6 @@ public class MainFragment extends BrowseSupportFragment {
   //  private DisplayMetrics mMetrics;
    private ArrayObjectAdapter rowsAdapter;
 
-
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -47,7 +47,6 @@ public class MainFragment extends BrowseSupportFragment {
     private void setupUIElements(){
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
-        setBrandColor(ContextCompat.getColor(requireContext(), R.color.default_background));
         setHeaderPresenterSelector(new PresenterSelector() {
             @Override
             public Presenter getPresenter(Object o) {
@@ -59,7 +58,6 @@ public class MainFragment extends BrowseSupportFragment {
                 }
             }
         });
-
     }
 
 //    private void prepareBackgroundManager() {
@@ -88,8 +86,6 @@ public class MainFragment extends BrowseSupportFragment {
             customeView.setOnButton2ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 2", Toast.LENGTH_SHORT).show());
             customeView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
             customeView.setButton1Icon(R.drawable.books_stack);
-            customeView.setTitleSize(20);
-            customeView.setTitleIconHeight(20);
         }
     }
 
