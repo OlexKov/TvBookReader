@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Consumer;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -35,7 +36,7 @@ public class MainFragment extends BrowseSupportFragment {
   //  private Drawable mDefaultBackground;
   //  private DisplayMetrics mMetrics;
     private ArrayObjectAdapter rowsAdapter;
-    private BookReaderApp app = BookReaderApp.getInstance();
+    private final BookReaderApp app = BookReaderApp.getInstance();
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -47,6 +48,12 @@ public class MainFragment extends BrowseSupportFragment {
         setupUIElements();
         setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
+    }
+
+    @Override
+    public void onDestroyView(){
+        super.onDestroyView();
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
     }
 
     private void setupUIElements(){
@@ -92,12 +99,14 @@ public class MainFragment extends BrowseSupportFragment {
             customeView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
             customeView.setButton1Icon(R.drawable.books_stack);
         }
-        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED,(v)->{
-            if(rowsAdapter.size() > 0){
-                setupCategoryRows();
-            }
-        });
+        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
     }
+
+    private final Consumer<Object> categoryCashUpdateHandler = (object)->{
+        if(rowsAdapter.size() > 0){
+            setupCategoryRows();
+        }
+    };
 
     private void setupCategoryRows() {
         rowsAdapter.clear();

@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 
 import androidx.annotation.AttrRes;
+import androidx.core.util.Consumer;
 import androidx.leanback.widget.TitleViewAdapter;
 
 import com.example.bookreader.BookReaderApp;
@@ -30,6 +31,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     private ImageButton btn3;
     private final HeaderButtonOnKeyListener keyListener = new HeaderButtonOnKeyListener();
     private final View.OnFocusChangeListener focusListener = new HeaderButtonOnFocusListener();
+    private final LinearLayout buttonContainer = findViewById(R.id.button_container);
 
     private final TitleViewAdapter titleViewAdapter = new TitleViewAdapter() {
         @Override
@@ -44,6 +46,13 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         }
 
     };
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.MENU_STATE_CHANGE_START, menuChangeButtonProcessorHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CHANGED,categoryChangeButtonProcessorHandler);
+    }
 
     public CustomTitleView(Context context) {
         this(context, null, 0);
@@ -122,6 +131,25 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         btn3.setBackground(background);
     }
 
+    private final Consumer<Object> menuChangeButtonProcessorHandler = (isMenuStartOpen)->{
+        if(app.getSelectedParentCategoryHeader().getName().equals("Всі") || !(boolean) isMenuStartOpen){
+            smoothDisplay(buttonContainer);
+        }
+        else{
+            smoothHide(buttonContainer);
+        }
+    };
+
+    private final Consumer<Object> categoryChangeButtonProcessorHandler = (category)->{
+        String cat = ((IconHeader) category).getName();
+        if(cat.equals("Всі") || !app.isMenuOpen()){
+            smoothDisplay(buttonContainer);
+        }
+        else{
+            smoothHide(buttonContainer);
+        }
+    };
+
     private void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.custom_header, this, true);
         vTitle = findViewById(R.id.vTitle);
@@ -130,32 +158,15 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         btn2 = findViewById(R.id.button2);
         btn3 = findViewById(R.id.button3);
 
-        LinearLayout buttonContainer = findViewById(R.id.button_container);
+
         buttonContainer.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 btn1.requestFocus();
             }
         });
 
-        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START,(isMenuStartOpen)->{
-            if(app.getSelectedParentCategoryHeader().getName().equals("Всі") || !(boolean) isMenuStartOpen){
-                smoothDisplay(buttonContainer);
-            }
-            else{
-                smoothHide(buttonContainer);
-            }
-        });
-
-
-        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CHANGED,(category->{
-            String cat = ((IconHeader) category).getName();
-            if(cat.equals("Всі") || !app.isMenuOpen()){
-                smoothDisplay(buttonContainer);
-            }
-            else{
-                smoothHide(buttonContainer);
-            }
-        }));
+        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START, menuChangeButtonProcessorHandler);
+        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CHANGED,categoryChangeButtonProcessorHandler);
 
     }
     private void smoothHide(View view){

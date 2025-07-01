@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
+import androidx.core.util.Consumer;
 import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -62,6 +63,12 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
         setupEventListeners();
         loadCategoryRows();
+    }
+    @Override
+    public void onDestroyView(){
+        super.onDestroyView();
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_DELETED,bookDeletedHandler);
     }
 
     @Override
@@ -213,39 +220,41 @@ public class PageRowsFragment extends RowsSupportFragment {
 
     private void setupEventListeners(){
         setOnItemViewClickedListener(new ItemViewClickedListener(this));
-        BookReaderApp.getInstance().getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,(Object book)->{
-            if(book instanceof BookDto){
-                removeBookFromCurrentCategory(rowsAdapter,(BookDto)book);
-            }
-        });
         setOnItemViewSelectedListener(new RowItemSelectedListener());
+        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,bookDeletedHandler);
+        app.getGlobalEventListener().subscribe(GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler);
 
-        app.getGlobalEventListener().subscribe(GlobalEventType.ITEM_SELECTED_CHANGE,(book)->{
+    }
 
-            if(book instanceof BookDto){
-                BookDto selectedBook = (BookDto) book;
-                ListRow selectedRow = app.getSelectedRow();
-                if(selectedRow != null){
-                    ObjectAdapter objectAdapter = selectedRow.getAdapter();
-                    if(objectAdapter instanceof ArrayObjectAdapter){
-                        ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
-                        boolean needUpload = false;
+    private final Consumer<Object> bookDeletedHandler = (book)->{
+        if(book instanceof BookDto){
+            removeBookFromCurrentCategory(rowsAdapter,(BookDto)book);
+        }
+    };
+    private final Consumer<Object> itemSelectChangeListenerHandler = (book)->{
+        Log.d("UploadLog","ITEM_SELECTED_CHANGEd " );
+        if(book instanceof BookDto){
+            BookDto selectedBook = (BookDto) book;
+            ListRow selectedRow = app.getSelectedRow();
+            if(selectedRow != null){
+                ObjectAdapter objectAdapter = selectedRow.getAdapter();
+                if(objectAdapter instanceof ArrayObjectAdapter){
+                    ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
+                    boolean needUpload = false;
 
-                        for (int i = 0; i < adapter.size(); i++) {
-                            if(adapter.get(i) == selectedBook){
-                                needUpload = (adapter.size() - i + 1) <= UPLOAD_THRESHOLD;
-                                break;
-                            }
+                    for (int i = 0; i < adapter.size(); i++) {
+                        if(adapter.get(i) == selectedBook){
+                            needUpload = (adapter.size() - i + 1) <= UPLOAD_THRESHOLD;
+                            break;
                         }
-                        if(needUpload){
-                            Log.d("UploadLog","need upload " );
-                        }
+                    }
+                    if(needUpload){
+                        Log.d("UploadLog","need upload " );
                     }
                 }
             }
-        });
-
-    }
+        }
+    };
 
     private  String getCurrentCategoryName(){
         return getArguments() != null ? getArguments().getString("category") : "";

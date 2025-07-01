@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.core.util.Consumer;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.bookreader.BookReaderApp;
@@ -23,6 +24,7 @@ public class MainActivity extends FragmentActivity {
     private boolean backToMain = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final BookReaderApp app = BookReaderApp.getInstance();
+    private final Consumer<Object> menuChangeHandler = (menuOpen)-> backToMain = (boolean)menuOpen;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,8 +61,11 @@ public class MainActivity extends FragmentActivity {
                 }
             }
         });
-        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGED,(menuOpen)->{
-            backToMain = (boolean)menuOpen;
-        });
+        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGED,menuChangeHandler);
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.MENU_STATE_CHANGED,menuChangeHandler);
     }
 }

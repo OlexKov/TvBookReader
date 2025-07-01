@@ -7,28 +7,42 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.core.util.Consumer;
+
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.GlobalEventType;
+
+
 
 
 @SuppressLint("CustomSplashScreen")
 public class StartSplashActivity extends Activity {
     private long splashStartTime;
     private final BookReaderApp app = BookReaderApp.getInstance();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.start_splash);
         splashStartTime = System.currentTimeMillis();
         if (!app.isDataBaseInit()) {
-            app.getGlobalEventListener().subscribe(GlobalEventType.DATABASE_DONE, (o) -> runOnUiThread(this::tryStartMainActivity));
+            app.getGlobalEventListener().subscribe(GlobalEventType.DATABASE_DONE, startMainActivityHandler);
             app.DataBaseInit();
         } else {
             app.updateCategoryCash();
-            app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED, (o) -> runOnUiThread(this::tryStartMainActivity));
+            app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED, startMainActivityHandler);
         }
     }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.DATABASE_DONE, startMainActivityHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CASH_UPDATED, startMainActivityHandler);
+    }
+
+    private final Consumer<Object> startMainActivityHandler = (object)->runOnUiThread(this::tryStartMainActivity);
 
     private void tryStartMainActivity() {
         long elapsed = System.currentTimeMillis() - splashStartTime;
