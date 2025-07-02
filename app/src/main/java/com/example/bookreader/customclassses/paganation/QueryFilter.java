@@ -107,6 +107,6 @@ public class QueryFilter {
 
    public SupportSQLiteQuery buildCount(){
       prebuildQuery(false);
-      return new SimpleSQLiteQuery(sb.toString());
+      return new SimpleSQLiteQuery(sb.toString(), args.toArray());
    }
 }
