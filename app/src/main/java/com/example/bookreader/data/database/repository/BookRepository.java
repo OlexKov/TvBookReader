@@ -2,12 +2,12 @@ package com.example.bookreader.data.database.repository;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.core.util.Consumer;
 
 import com.example.bookreader.BookReaderApp;
-import com.example.bookreader.customclassses.paganation.QueryFilter;
+import com.example.bookreader.data.database.paganation.PaginationResultData;
+import com.example.bookreader.data.database.paganation.QueryFilter;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
@@ -49,7 +49,7 @@ public class BookRepository {
         return CompletableFuture.supplyAsync(bookDao::getAll);
     }
 
-    public  List<BookDto> getAllBook(){
+    public List<BookDto> getAllBook() {
         return bookDao.getAll();
     }
 
@@ -62,23 +62,39 @@ public class BookRepository {
         });
     }
 
-    public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page,int size) {
+    public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page, int size) {
         //Log.d("SqlLog",new QueryFilter().buildPagination(page,size).getSql());
-        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(new QueryFilter().buildPagination(page,size)));
+        return CompletableFuture.supplyAsync(() -> bookDao.getBookPageWithFilter(new QueryFilter().buildPagination(page, size)));
     }
 
-    public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page,int size,QueryFilter filter) {
+    public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page, int size, QueryFilter filter) {
         //Log.d("SqlLog",filter.buildPagination(page,size).getSql());
-        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(filter.buildPagination(page,size)));
+        return CompletableFuture.supplyAsync(() -> bookDao.getBookPageWithFilter(filter.buildPagination(page, size)));
     }
 
     public CompletableFuture<Long> getBooksFilterCountAsyncCF(QueryFilter filter) {
-        return CompletableFuture.supplyAsync(()->bookDao.getBookPageCountWithFilter(filter.buildCount()));
+        return CompletableFuture.supplyAsync(() -> bookDao.getBookPageCountWithFilter(filter.buildCount()));
+    }
+
+    public CompletableFuture<PaginationResultData<BookDto>> getBooksPageDataAsyncCF(int page, int size, QueryFilter filter) {
+        CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(() -> bookDao.getBookPageCountWithFilter(filter.buildCount()));
+        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getBookPageWithFilter(filter.buildPagination(page, size)));
+        return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {
+            PaginationResultData<BookDto> result = new PaginationResultData<>();
+            result.setData(bookList.join());
+            result.setTotal(booksCount.join());
+            return result;
+        });
+    }
+
+    public CompletableFuture<PaginationResultData<BookDto>> getBooksPageDataAsyncCF(int page, int size) {
+        QueryFilter emptyFilter = new QueryFilter();
+        return getBooksPageDataAsyncCF(page,size,emptyFilter);
     }
 
 
     //getAllBooksByCategoryId
-    public List<BookDto> getAllBooksByCategoryId(long categoryId){
+    public List<BookDto> getAllBooksByCategoryId(long categoryId) {
         return bookDao.getAllByCategoryId(categoryId);
     }
 
@@ -92,16 +108,16 @@ public class BookRepository {
     }
 
     public CompletableFuture<List<BookDto>> getAllBooksByCategoryIdAsyncCF(long categoryId) {
-        return CompletableFuture.supplyAsync(()-> bookDao.getAllByCategoryId(categoryId));
+        return CompletableFuture.supplyAsync(() -> bookDao.getAllByCategoryId(categoryId));
     }
 
 
     //geAllUnsortedBooks
-    public List<BookDto>  getAllUnsortedBooks( ){
+    public List<BookDto> getAllUnsortedBooks() {
         return bookDao.getUnsorted();
     }
 
-    public void getAllUnsortedBooksAsync( Consumer<List<BookDto>> callback) {
+    public void getAllUnsortedBooksAsync(Consumer<List<BookDto>> callback) {
         executorService.execute(() -> {
             List<BookDto> books = bookDao.getUnsorted();
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -116,22 +132,23 @@ public class BookRepository {
 
     //deleteBook
     public CompletableFuture<Integer> deleteBookAsyncCF(Book book) {
-        return CompletableFuture.supplyAsync(()->bookDao.delete(book));
+        return CompletableFuture.supplyAsync(() -> bookDao.delete(book));
     }
 
     public CompletableFuture<Integer> deleteBookByIdAsyncCF(long bookId) {
-        return CompletableFuture.supplyAsync(()->bookDao.deleteById(bookId));
+        return CompletableFuture.supplyAsync(() -> bookDao.deleteById(bookId));
     }
 
-    public void deleteBookAsync(Book book, Consumer<Integer> callback){
+    public void deleteBookAsync(Book book, Consumer<Integer> callback) {
         executorService.execute(() -> {
-         int rows = bookDao.delete(book);
+            int rows = bookDao.delete(book);
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(rows);
             });
         });
     }
-    public void deleteBookByIdAsync(long bookId, Consumer<Integer> callback){
+
+    public void deleteBookByIdAsync(long bookId, Consumer<Integer> callback) {
         executorService.execute(() -> {
             int rows = bookDao.deleteById(bookId);
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -142,7 +159,7 @@ public class BookRepository {
 
 
     //getBooksByCategoryId
-    public List<BookDto> getBooksByCategoryId(long categoryId){
+    public List<BookDto> getBooksByCategoryId(long categoryId) {
         return bookDao.getByCategoryId(categoryId);
     }
 
@@ -156,7 +173,8 @@ public class BookRepository {
     }
 
     public CompletableFuture<List<BookDto>> getBooksByCategoryIdAsyncCF(long categoryId) {
-        return CompletableFuture.supplyAsync(()->bookDao.getByCategoryId(categoryId));
+        return CompletableFuture.supplyAsync(() -> bookDao.getByCategoryId(categoryId));
     }
-
 }
+
+

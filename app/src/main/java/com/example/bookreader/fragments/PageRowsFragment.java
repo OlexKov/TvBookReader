@@ -12,23 +12,18 @@ import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
-import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.ObjectAdapter;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.customclassses.RowUploadInfo;
 import com.example.bookreader.customclassses.TextIcon;
-import com.example.bookreader.customclassses.paganation.QueryFilter;
+import com.example.bookreader.data.database.paganation.QueryFilter;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
-import com.example.bookreader.data.database.entity.Book;
-import com.example.bookreader.data.database.entity.Category;
 import com.example.bookreader.data.database.repository.BookRepository;
-import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.RowPresenterSelector;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.ItemViewClickedListener;
@@ -43,15 +38,20 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class PageRowsFragment extends RowsSupportFragment {
-    private final int UPLOAD_THRESHOLD = 5;
-    private final int PAGE_SIZE = 30;
+    private final int INIT_PAGES_COUNT = 3;
     private final int UPLOAD_SIZE = 10;
-    ProgressBarManager progressBarManager;
-    ArrayObjectAdapter rowsAdapter;
-    BookReaderApp app = BookReaderApp.getInstance();
+    private final int INIT_PAGE_SIZE = UPLOAD_SIZE*INIT_PAGES_COUNT;
+    private final int UPLOAD_THRESHOLD = UPLOAD_SIZE;
+    private ProgressBarManager progressBarManager;
+    private ArrayObjectAdapter rowsAdapter;
+    private final BookReaderApp app = BookReaderApp.getInstance();
+    private final ConcurrentHashMap<Long, RowUploadInfo> rowsUploadInfo = new ConcurrentHashMap<>();
+    private final BookRepository bookRepository = new BookRepository();
+    private boolean updatedNow = false;
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -93,6 +93,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     private CompletableFuture<List<ListRow>> getSettingRows(){
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler);
         return CompletableFuture.supplyAsync(() -> {
             ArrayObjectAdapter settingsAdapter = new ArrayObjectAdapter(new TextIconPresenter());
             settingsAdapter.add(new TextIcon(ActionType.SETTING_1.getId(), R.drawable.settings, "Налаштування категорій"));
@@ -103,27 +104,35 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
 
-    private CompletableFuture<List<ListRow>> getAllRowsPage(BookRepository bookRepo,BookPreviewPresenter itemPresenter,List<CategoryDto> categories){
-        CompletableFuture<List<ListRow>> allBooks = bookRepo.getBooksPageAsyncCF(1,PAGE_SIZE)
-                .thenApply(books ->{
+    private CompletableFuture<List<ListRow>> getAllRowsPage(BookRepository bookRepo, BookPreviewPresenter itemPresenter, List<CategoryDto> categories){
+        CompletableFuture<List<ListRow>> allBooks = bookRepo.getBooksPageDataAsyncCF(1, INIT_PAGE_SIZE)
+                .thenApply(booksData ->{
                     List<ListRow> rows = new ArrayList<>();
                     ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                    if(books != null && !books.isEmpty()){
+                    List<BookDto> books = booksData.getData();
+                    if(!books.isEmpty()){
                         adapter.addAll(0, books);
                         rows.add(new ListRow(new HeaderItem(111111111111111L, "Всі"), adapter));
+                        RowUploadInfo info = new RowUploadInfo();
+                        info.setMaxElements(booksData.getTotal());
+                        rowsUploadInfo.put(111111111111111L,info);
                     }
                     return rows;
                 });
 
         QueryFilter filter  = new QueryFilter();
         filter.setCategoryId(-1L);
-        CompletableFuture<List<ListRow>> unsortedBooks = bookRepo.getBooksPageAsyncCF(1,PAGE_SIZE,filter)
-                .thenApply(books ->{
+        CompletableFuture<List<ListRow>> unsortedBooks = bookRepo.getBooksPageDataAsyncCF(1, INIT_PAGE_SIZE,filter)
+                .thenApply(booksData ->{
                     List<ListRow> rows = new ArrayList<>();
                     ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                    if(books != null && !books.isEmpty()){
+                    List<BookDto> books = booksData.getData();
+                    if(!books.isEmpty()){
                         adapter.addAll(0, books);
                         rows.add(new ListRow(new HeaderItem(111111111111111L + 1, "Не сортовані"), adapter));
+                        RowUploadInfo info = new RowUploadInfo();
+                        info.setMaxElements(booksData.getTotal());
+                        rowsUploadInfo.put(111111111111111L + 1,info);
                     }
                     return rows;
                 });
@@ -135,11 +144,15 @@ public class PageRowsFragment extends RowsSupportFragment {
                     QueryFilter bookFilter  = new QueryFilter();
                     bookFilter.setCategoryId(cat.id);
                     bookFilter.setInParentCategoryId(cat.id);
-                    CompletableFuture<ListRow> futureRow = bookRepo.getBooksPageAsyncCF(1, PAGE_SIZE, bookFilter)
-                            .thenApply(books -> {
-                                if (books != null && !books.isEmpty()) {
+                    CompletableFuture<ListRow> futureRow = bookRepo.getBooksPageDataAsyncCF(1, INIT_PAGE_SIZE, bookFilter)
+                            .thenApply(booksData -> {
+                                List<BookDto> books = booksData.getData();
+                                if (!books.isEmpty()) {
                                     ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
                                     adapter.addAll(0, books);
+                                    RowUploadInfo info = new RowUploadInfo();
+                                    info.setMaxElements(booksData.getTotal());
+                                    rowsUploadInfo.put( 111111111111111L + cat.id,info);
                                     return new ListRow(new HeaderItem(111111111111111L + cat.id, cat.name), adapter);
                                 }
                                 return null;
@@ -177,13 +190,17 @@ public class PageRowsFragment extends RowsSupportFragment {
             QueryFilter filter = new QueryFilter();
             filter.setCategoryId(selectedCategory.id);
             filter.setInParentCategoryId(selectedCategory.id);
-            CompletableFuture<List<ListRow>> allCategoryBooks = bookRepo.getBooksPageAsyncCF(1, PAGE_SIZE, filter)
-                    .thenApply(books -> {
+            CompletableFuture<List<ListRow>> allCategoryBooks = bookRepo.getBooksPageDataAsyncCF(1, INIT_PAGE_SIZE, filter)
+                    .thenApply(booksData -> {
                         List<ListRow> rows = new ArrayList<>();
+                        List<BookDto> books = booksData.getData();
                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
                         if (books != null && !books.isEmpty()) {
                             adapter.addAll(0, books);
                             rows.add(new ListRow(new HeaderItem(111111111111111L, "Всі"), adapter));
+                            RowUploadInfo info = new RowUploadInfo();
+                            info.setMaxElements(booksData.getTotal());
+                            rowsUploadInfo.put( 111111111111111L,info);
                         }
                         return rows;
                     });
@@ -192,13 +209,17 @@ public class PageRowsFragment extends RowsSupportFragment {
             QueryFilter unsortedFilter = new QueryFilter();
             unsortedFilter.setCategoryId(selectedCategory.id);
             unsortedFilter.setInParentCategoryId(-1L);
-            CompletableFuture<List<ListRow>> unsortedCategoryBooks = bookRepo.getBooksPageAsyncCF(1, PAGE_SIZE, unsortedFilter)
-                    .thenApply(books -> {
+            CompletableFuture<List<ListRow>> unsortedCategoryBooks = bookRepo.getBooksPageDataAsyncCF(1, INIT_PAGE_SIZE, unsortedFilter)
+                    .thenApply(booksData -> {
                         List<ListRow> rows = new ArrayList<>();
-                        ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
-                        if (books != null && !books.isEmpty()) {
+                        List<BookDto> books = booksData.getData();
+                        if (!books.isEmpty()) {
+                            ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
                             adapter.addAll(0, books);
-                            rows.add(new ListRow(new HeaderItem(111111111111111L + 1, "Не сортовані"), adapter));
+                            rows.add(new ListRow(new HeaderItem(11111111111111L + 1, "Не сортовані"), adapter));
+                            RowUploadInfo info = new RowUploadInfo();
+                            info.setMaxElements(booksData.getTotal());
+                            rowsUploadInfo.put( 111111111111111L + 1,info);
                         }
                         return rows;
                     });
@@ -212,11 +233,15 @@ public class PageRowsFragment extends RowsSupportFragment {
                         QueryFilter bookFilter = new QueryFilter();
                         bookFilter.setCategoryId(subCategory.id);
                         bookFilter.setInParentCategoryId(subCategory.id);
-                        CompletableFuture<ListRow> futureRow = bookRepo.getBooksPageAsyncCF(1, PAGE_SIZE, bookFilter)
-                                .thenApply(books -> {
-                                    if (books != null && !books.isEmpty()) {
+                        CompletableFuture<ListRow> futureRow = bookRepo.getBooksPageDataAsyncCF(1, INIT_PAGE_SIZE, bookFilter)
+                                .thenApply(booksData -> {
+                                    List<BookDto> books = booksData.getData();
+                                    if (!books.isEmpty()) {
                                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
                                         adapter.addAll(0, books);
+                                        RowUploadInfo info = new RowUploadInfo();
+                                        info.setMaxElements(booksData.getTotal());
+                                        rowsUploadInfo.put( 111111111111111L + subCategory.id,info);
                                         return new ListRow(new HeaderItem(111111111111111L + subCategory.id, subCategory.name), adapter);
                                     }
                                     return null;
@@ -292,7 +317,6 @@ public class PageRowsFragment extends RowsSupportFragment {
         setOnItemViewSelectedListener(new RowItemSelectedListener());
         app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,bookDeletedHandler);
         app.getGlobalEventListener().subscribe(GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler);
-
     }
 
     private final Consumer<Object> bookDeletedHandler = (book)->{
@@ -300,34 +324,80 @@ public class PageRowsFragment extends RowsSupportFragment {
             removeBookFromCurrentCategory(rowsAdapter,(BookDto)book);
         }
     };
+
     private final Consumer<Object> itemSelectChangeListenerHandler = (book)->{
-        Log.d("UploadLog","ITEM_SELECTED_CHANGEd " );
-        if(book instanceof BookDto){
+        if(book instanceof BookDto && !updatedNow){
             BookDto selectedBook = (BookDto) book;
             ListRow selectedRow = app.getSelectedRow();
             if(selectedRow != null){
-                ObjectAdapter objectAdapter = selectedRow.getAdapter();
-                if(objectAdapter instanceof ArrayObjectAdapter){
-                    ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
-                    boolean needUpload = false;
-
-                    for (int i = 0; i < adapter.size(); i++) {
-                        if(adapter.get(i) == selectedBook){
-                            needUpload = (adapter.size() - i + 1) <= UPLOAD_THRESHOLD;
-                            break;
+                RowUploadInfo info = rowsUploadInfo.get(selectedRow.getId());
+                if(info != null && info.getMaxElements() > INIT_PAGE_SIZE){
+                    ObjectAdapter objectAdapter = selectedRow.getAdapter();
+                    if(objectAdapter instanceof ArrayObjectAdapter){
+                        ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
+                        boolean needUploadNext = false;
+                        boolean needUploadPrev = false;
+                        for (int i = 0; i < adapter.size(); i++) {
+                            if(adapter.get(i) == selectedBook){
+                                needUploadNext = i+1 + UPLOAD_THRESHOLD > INIT_PAGE_SIZE && (((long) (info.getStartUploadPage() + 2) * UPLOAD_SIZE) < info.getMaxElements());
+                                needUploadPrev = i+1 - UPLOAD_THRESHOLD < 0 && info.getStartUploadPage() != 1;
+                                break;
+                            }
                         }
-                    }
-                    if(needUpload){
-                        Log.d("UploadLog","need upload " );
+                        if(needUploadNext  || needUploadPrev){
+                           updatedNow = true;
+                           String categoryName = selectedRow.getHeaderItem().getName();
+                           String parentCategoryName = app.getSelectedParentCategoryHeader().getName();
+                           if(categoryName.equals("Всі")){
+                               if(parentCategoryName.equals("Всі")){
+                                   int updatePage = needUploadNext ? info.getStartUploadPage() + INIT_PAGES_COUNT: info.getStartUploadPage()-1;
+                                   boolean finalNeedUploadNext = needUploadNext;
+                                   bookRepository.getBooksPageAsyncCF(updatePage,UPLOAD_SIZE).thenAccept(books->{
+                                       requireActivity().runOnUiThread(() -> {
+                                           updateRow(adapter,books,info,finalNeedUploadNext);
+                                           updatedNow = false;
+                                       });
+                                   });
+                               }
+                               else{
+
+                               }
+
+                           }
+                           else if(categoryName.equals("Не сортовані")){
+                               if(parentCategoryName.equals("Всі")){
+
+                               }
+                               else{
+
+                               }
+                           }
+                           else{
+
+                           }
+                        }
+
                     }
                 }
             }
         }
     };
 
+
+    private void updateRow(ArrayObjectAdapter adapter,List<BookDto> books,RowUploadInfo info,boolean next){
+        if(next){
+            adapter.addAll(adapter.size(), books);
+            adapter.removeItems(0,UPLOAD_SIZE);
+            info.setStartUploadPage(info.getStartUploadPage() + 1);
+        }
+        else{
+            adapter.addAll(0, books);
+            adapter.removeItems(adapter.size()-UPLOAD_SIZE,UPLOAD_SIZE);
+            info.setStartUploadPage(info.getStartUploadPage() - 1);
+        }
+    }
+
     private  String getCurrentCategoryName(){
         return getArguments() != null ? getArguments().getString("category") : "";
     }
-
-
 }

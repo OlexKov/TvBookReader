@@ -1,4 +1,4 @@
-package com.example.bookreader.customclassses.paganation;
+package com.example.bookreader.data.database.paganation;
 
 import androidx.sqlite.db.SimpleSQLiteQuery;
 import androidx.sqlite.db.SupportSQLiteQuery;
