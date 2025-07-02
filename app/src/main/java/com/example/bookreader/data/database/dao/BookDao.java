@@ -4,7 +4,10 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.RawQuery;
+import androidx.sqlite.db.SupportSQLiteQuery;
 
+import com.example.bookreader.customclassses.paganation.QueryFilter;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 
@@ -46,4 +49,10 @@ public interface BookDao {
               "WHERE parentId = :parentCategoryId) "
     )
     List<BookDto> getAllByCategoryId(long parentCategoryId);
+
+    @RawQuery(observedEntities = Book.class)
+    List<BookDto> getBookPageWithFilter(SupportSQLiteQuery query);
+
+    @RawQuery(observedEntities = Book.class)
+    long getBookPageCountWithFilter(SupportSQLiteQuery query);
 }

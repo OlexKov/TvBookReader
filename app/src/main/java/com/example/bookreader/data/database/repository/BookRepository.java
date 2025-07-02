@@ -6,6 +6,7 @@ import android.os.Looper;
 import androidx.core.util.Consumer;
 
 import com.example.bookreader.BookReaderApp;
+import com.example.bookreader.customclassses.paganation.QueryFilter;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
@@ -58,6 +59,18 @@ public class BookRepository {
                 callback.accept(books);
             });
         });
+    }
+
+    public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page,int size) {
+        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(new QueryFilter().buildPagination(size,page)));
+    }
+
+    public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page,int size,QueryFilter filter) {
+        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(filter.buildPagination(size,page)));
+    }
+
+    public CompletableFuture<Long> getBooksFilterCountAsyncCF(QueryFilter filter) {
+        return CompletableFuture.supplyAsync(()->bookDao.getBookPageCountWithFilter(filter.buildCount()));
     }
 
 
