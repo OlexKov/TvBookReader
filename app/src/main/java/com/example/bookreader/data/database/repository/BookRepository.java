@@ -2,6 +2,7 @@ package com.example.bookreader.data.database.repository;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.core.util.Consumer;
 
@@ -62,11 +63,13 @@ public class BookRepository {
     }
 
     public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page,int size) {
-        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(new QueryFilter().buildPagination(size,page)));
+        //Log.d("SqlLog",new QueryFilter().buildPagination(page,size).getSql());
+        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(new QueryFilter().buildPagination(page,size)));
     }
 
     public CompletableFuture<List<BookDto>> getBooksPageAsyncCF(int page,int size,QueryFilter filter) {
-        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(filter.buildPagination(size,page)));
+        //Log.d("SqlLog",filter.buildPagination(page,size).getSql());
+        return CompletableFuture.supplyAsync(()->bookDao.getBookPageWithFilter(filter.buildPagination(page,size)));
     }
 
     public CompletableFuture<Long> getBooksFilterCountAsyncCF(QueryFilter filter) {
