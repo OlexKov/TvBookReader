@@ -3,6 +3,9 @@ package com.example.bookreader;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.leanback.widget.ListRow;
@@ -12,15 +15,15 @@ import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.IconHeader;
-import com.example.bookreader.utility.GlobalEventListener;
+import com.example.bookreader.utility.eventlistener.GlobalEventListener;
 import com.example.bookreader.data.database.BookDb;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 
 import lombok.Getter;
@@ -71,6 +74,17 @@ public class BookReaderApp  extends Application {
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        updateLocale(this, new Locale("uk"));  // або змінну збережену в SharedPreferences
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(updateLocale(base, new Locale("uk")));
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
         globalEventListener = new GlobalEventListener();
@@ -82,6 +96,21 @@ public class BookReaderApp  extends Application {
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
                 .fallbackToDestructiveMigration() // видалить базу при несумісності схем
                 .build();
+    }
+
+    public static Context updateLocale(Context context, Locale locale) {
+        Locale.setDefault(locale);
+        Resources resources = context.getResources();
+        Configuration config = new Configuration(resources.getConfiguration());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.setLocale(locale);
+            context = context.createConfigurationContext(config);
+        } else {
+            config.locale = locale;
+            resources.updateConfiguration(config, resources.getDisplayMetrics());
+        }
+        return context;
     }
 
     public void DataBaseInit(){

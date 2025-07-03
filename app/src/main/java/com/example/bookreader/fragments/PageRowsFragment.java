@@ -2,25 +2,23 @@ package com.example.bookreader.fragments;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
-import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
-import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.ObjectAdapter;
-import androidx.leanback.widget.Presenter;
-import androidx.leanback.widget.RowPresenter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
+import com.example.bookreader.constants.Constants;
 import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.customclassses.RowUploadInfo;
 import com.example.bookreader.customclassses.TextIcon;
@@ -34,7 +32,6 @@ import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.listeners.RowItemSelectedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
-import com.example.bookreader.presenters.IconCategoryItemPresenter;
 import com.example.bookreader.presenters.TextIconPresenter;
 
 import org.jspecify.annotations.NonNull;
@@ -129,9 +126,44 @@ public class PageRowsFragment extends RowsSupportFragment {
             settingsAdapter.add(new TextIcon(ActionType.SETTING_1.getId(), R.drawable.settings, "Налаштування категорій"));
             settingsAdapter.add(new TextIcon(ActionType.SETTING_2.getId(), R.drawable.settings, "Додати книгу"));
             settingsAdapter.add(new TextIcon(ActionType.SETTING_3.getId(), R.drawable.settings, "Додати папку"));
-            return List.of(new ListRow(new HeaderItem(10101, "Налаштування"), settingsAdapter));
+            return List.of(new ListRow(new HeaderItem(Constants.SETTINGS_CATEGORY_ID, "Налаштування"), settingsAdapter));
         });
     }
+
+
+    private CompletableFuture<List<BookDto>> loadRowBooks(int page,int size,QueryFilter filter){
+        Pair<Long,Long> ids = correctIds(filter.getCategoryId(), filter.getInParentCategoryId());
+        filter.setCategoryId(ids.first);
+        filter.setInParentCategoryId(ids.second);
+        return bookRepository.getBooksPageAsyncCF(page,size,filter);
+    }
+
+    private Pair<Long,Long> correctIds(Long parentCategoryId,Long categoryId){
+
+        if(parentCategoryId == Constants.ALL_BOOKS_CATEGORY_ID){
+            if(categoryId == Constants.ALL_BOOKS_CATEGORY_ID){
+                return new Pair<>(null,null);
+            }
+            else if(categoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID){
+                return new Pair<>(-1L,null);
+            }
+            else{
+                return new Pair<>(categoryId,categoryId);
+            }
+        }
+        else{
+            if(categoryId == Constants.ALL_BOOKS_CATEGORY_ID){
+                return new Pair<>(categoryId,categoryId);
+            }
+            else if(categoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID){
+                return new Pair<>(categoryId,-1L);
+            }
+            else{
+                return new Pair<>(categoryId,categoryId);
+            }
+        }
+    }
+
 
 
     private CompletableFuture<List<ListRow>> getAllRowsPage(BookRepository bookRepo, BookPreviewPresenter itemPresenter, List<CategoryDto> categories){
@@ -142,10 +174,12 @@ public class PageRowsFragment extends RowsSupportFragment {
                     List<BookDto> books = booksData.getData();
                     if(!books.isEmpty()){
                         adapter.addAll(0, books);
-                        rows.add(new ListRow(new IconHeader(111111111111111L, "Всі",R.drawable.books_stack), adapter));
+                        rows.add(new ListRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID,
+                                getContext().getString(R.string.all_category),R.drawable.books_stack),
+                                adapter));
                         RowUploadInfo info = new RowUploadInfo();
                         info.setMaxElements(booksData.getTotal());
-                        rowsUploadInfo.put(111111111111111L,info);
+                        rowsUploadInfo.put(Constants.ALL_BOOKS_CATEGORY_ID,info);
                     }
                     return rows;
                 });
@@ -159,10 +193,10 @@ public class PageRowsFragment extends RowsSupportFragment {
                     List<BookDto> books = booksData.getData();
                     if(!books.isEmpty()){
                         adapter.addAll(0, books);
-                        rows.add(new ListRow(new HeaderItem(111111111111111L + 1, "Не сортовані"), adapter));
+                        rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getContext().getString(R.string.unsorted_category)), adapter));
                         RowUploadInfo info = new RowUploadInfo();
                         info.setMaxElements(booksData.getTotal());
-                        rowsUploadInfo.put(111111111111111L + 1,info);
+                        rowsUploadInfo.put(Constants.UNSORTED_BOOKS_CATEGORY_ID,info);
                     }
                     return rows;
                 });
@@ -182,8 +216,8 @@ public class PageRowsFragment extends RowsSupportFragment {
                                     adapter.addAll(0, books);
                                     RowUploadInfo info = new RowUploadInfo();
                                     info.setMaxElements(booksData.getTotal());
-                                    rowsUploadInfo.put( 111111111111111L + cat.id,info);
-                                    return new ListRow(new HeaderItem(111111111111111L + cat.id, cat.name), adapter);
+                                    rowsUploadInfo.put( cat.id,info);
+                                    return new ListRow(new HeaderItem(cat.id, cat.name), adapter);
                                 }
                                 return null;
                             });
@@ -227,10 +261,10 @@ public class PageRowsFragment extends RowsSupportFragment {
                         ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
                         if (books != null && !books.isEmpty()) {
                             adapter.addAll(0, books);
-                            rows.add(new ListRow(new HeaderItem(111111111111111L, "Всі"), adapter));
+                            rows.add(new ListRow(new HeaderItem(Constants.ALL_BOOKS_CATEGORY_ID, getContext().getString(R.string.all_category)), adapter));
                             RowUploadInfo info = new RowUploadInfo();
                             info.setMaxElements(booksData.getTotal());
-                            rowsUploadInfo.put( 111111111111111L,info);
+                            rowsUploadInfo.put( Constants.ALL_BOOKS_CATEGORY_ID,info);
                         }
                         return rows;
                     });
@@ -246,10 +280,10 @@ public class PageRowsFragment extends RowsSupportFragment {
                         if (!books.isEmpty()) {
                             ArrayObjectAdapter adapter = new ArrayObjectAdapter(itemPresenter);
                             adapter.addAll(0, books);
-                            rows.add(new ListRow(new HeaderItem(11111111111111L + 1, "Не сортовані"), adapter));
+                            rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getContext().getString(R.string.unsorted_category)), adapter));
                             RowUploadInfo info = new RowUploadInfo();
                             info.setMaxElements(booksData.getTotal());
-                            rowsUploadInfo.put( 111111111111111L + 1,info);
+                            rowsUploadInfo.put(Constants.UNSORTED_BOOKS_CATEGORY_ID,info);
                         }
                         return rows;
                     });
@@ -271,8 +305,8 @@ public class PageRowsFragment extends RowsSupportFragment {
                                         adapter.addAll(0, books);
                                         RowUploadInfo info = new RowUploadInfo();
                                         info.setMaxElements(booksData.getTotal());
-                                        rowsUploadInfo.put( 111111111111111L + subCategory.id,info);
-                                        return new ListRow(new HeaderItem(111111111111111L + subCategory.id, subCategory.name), adapter);
+                                        rowsUploadInfo.put( subCategory.id,info);
+                                        return new ListRow(new HeaderItem(subCategory.id, subCategory.name), adapter);
                                     }
                                     return null;
                                 });

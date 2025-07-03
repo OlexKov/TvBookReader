@@ -1,4 +1,4 @@
-package com.example.bookreader.utility;
+package com.example.bookreader.utility.eventlistener;
 import android.util.Log;
 
 import androidx.core.util.Consumer;

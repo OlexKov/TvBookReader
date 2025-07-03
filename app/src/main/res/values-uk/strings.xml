@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TvBookReader</string>
+    <string name="all_category">Всі</string>
+    <string name="unsorted_category">Не відсортовані</string>
+    <string name="settings">Налаштування</string>
+    <string name="read">Читати</string>
+    <string name="edit">Редагувати</string>
+    <string name="delete">Видалити</string>
+    <string name="q_delete_book">Видалити книгу?</string>
+    <string name="confirmation">Підтвердження</string>
+    <string name="yes">Так</string>
+    <string name="no">Ні</string>
+    <string name="cancel">Скасувати</string>
+    <string name="book_deleted">Книга \"%1$s\" видалена</string>
+    <string name="oops_error">Упс...щось пішло не так...:(</string>
+</resources>

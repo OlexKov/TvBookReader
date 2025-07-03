@@ -1,7 +1,6 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -12,19 +11,17 @@ import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DividerPresenter;
 import androidx.leanback.widget.DividerRow;
-import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.constants.Constants;
 import com.example.bookreader.constants.GlobalEventType;
-import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
-import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.RowPresenterSelector;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.BrowserTransitionListener;
@@ -43,7 +40,7 @@ public class MainFragment extends BrowseSupportFragment {
         super.onViewCreated(view, savedInstanceState);
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
          setupEventListeners();
-         setTitle("Всі");
+         setTitle(getContext().getString(R.string.all_category));
          //  prepareBackgroundManager();
         setupUIElements();
         setupCategoryRows();
@@ -110,7 +107,7 @@ public class MainFragment extends BrowseSupportFragment {
 
     private void setupCategoryRows() {
         rowsAdapter.clear();
-        rowsAdapter.add(new PageRow( new IconHeader(123123123, "Всі",R.drawable.books_stack)));
+        rowsAdapter.add(new PageRow( new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID, getContext().getString(R.string.all_category),R.drawable.books_stack)));
         for (CategoryDto category:app.getCategoriesCash()){
             if(category.booksCount > 0 && category.parentId == null){
                 IconHeader header = new IconHeader(category.id, category.name,category.iconId);
@@ -118,7 +115,7 @@ public class MainFragment extends BrowseSupportFragment {
             }
         }
         rowsAdapter.add(new DividerRow());
-        rowsAdapter.add(new PageRow(new IconHeader(100000, "Налаштування",R.drawable.settings)));
+        rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getContext().getString(R.string.settings),R.drawable.settings)));
         requireActivity().runOnUiThread(() -> { setAdapter(rowsAdapter);});
     }
 }

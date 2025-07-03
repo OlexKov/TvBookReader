@@ -1,6 +1,7 @@
 package com.example.bookreader.activities;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +16,7 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.constants.GlobalEventType;
 import com.example.bookreader.fragments.MainFragment;
 import com.example.bookreader.R;
+import com.example.bookreader.utility.LocaleHelper;
 
 /*
  * Main Activity class that loads {@link MainFragment}.
@@ -25,6 +27,12 @@ public class MainActivity extends FragmentActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final BookReaderApp app = BookReaderApp.getInstance();
     private final Consumer<Object> menuChangeHandler = (menuOpen)-> backToMain = (boolean)menuOpen;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase, "uk"));  // або інша мова
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,4 +76,6 @@ public class MainActivity extends FragmentActivity {
         super.onDestroy();
         app.getGlobalEventListener().unSubscribe(GlobalEventType.MENU_STATE_CHANGED,menuChangeHandler);
     }
+
+
 }
