@@ -77,8 +77,8 @@ public class BookReaderApp  extends Application {
         // Зберігаємо інстанс класу для глобального доступу
         instance = this;
         prefs = getApplicationContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-       // prefs.edit().putBoolean("db_seeded", false).apply();
-       // getApplicationContext().deleteDatabase("book-database");
+        prefs.edit().putBoolean("db_seeded", false).apply();
+        getApplicationContext().deleteDatabase("book-database");
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
                 .fallbackToDestructiveMigration() // видалить базу при несумісності схем
                 .build();

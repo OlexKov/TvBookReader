@@ -7,12 +7,16 @@ import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
+import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
+import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.ObjectAdapter;
+import androidx.leanback.widget.Presenter;
+import androidx.leanback.widget.RowPresenter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -24,11 +28,13 @@ import com.example.bookreader.data.database.paganation.QueryFilter;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.extentions.RowPresenterSelector;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.listeners.RowItemSelectedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
+import com.example.bookreader.presenters.IconCategoryItemPresenter;
 import com.example.bookreader.presenters.TextIconPresenter;
 
 import org.jspecify.annotations.NonNull;
@@ -43,7 +49,7 @@ import java.util.stream.Collectors;
 
 public class PageRowsFragment extends RowsSupportFragment {
     private final int INIT_PAGES_COUNT = 3;
-    private final int UPLOAD_SIZE = 10;
+    private final int UPLOAD_SIZE = 5;
     private final int INIT_PAGE_SIZE = UPLOAD_SIZE*INIT_PAGES_COUNT;
     private final int UPLOAD_THRESHOLD = UPLOAD_SIZE;
     private ProgressBarManager progressBarManager;
@@ -79,14 +85,38 @@ public class PageRowsFragment extends RowsSupportFragment {
         super.setExpand(true);
     }
 
-    private void removeBookFromCurrentCategory(ArrayObjectAdapter rowsAdapter, BookDto bookToRemove) {
+    private void removeBookFromCurrentCategory(BookDto bookToRemove) {
+        boolean hasDeleted = false;
+        List<ListRow> rowsToDelete = new ArrayList<>();
         for (int i = 0; i < rowsAdapter.size(); i++) {
             Object item = rowsAdapter.get(i);
             if (item instanceof ListRow) {
                 ListRow row = (ListRow) item;
                 ArrayObjectAdapter rowAdapter = (ArrayObjectAdapter) row.getAdapter();
                 if (rowAdapter != null) {
-                   rowAdapter.remove(bookToRemove);
+                   if(rowAdapter.remove(bookToRemove)){
+                       if(rowAdapter.size() == 0){
+                           rowsToDelete.add(row);
+                       }
+                       else{
+                           RowUploadInfo info = rowsUploadInfo.get(row.getId());
+                           if(info != null){
+                               info.setMaxElements(info.getMaxElements()-1);
+                           }
+                       }
+                       hasDeleted = true;
+                   }
+                }
+            }
+        }
+        if(hasDeleted){
+            if(!rowsToDelete.isEmpty()){
+                for (ListRow row:rowsToDelete){
+                    rowsAdapter.remove(row);
+                    rowsUploadInfo.remove(row.getId());
+                }
+                if(rowsAdapter.size()==0){
+                     app.updateCategoryCash();
                 }
             }
         }
@@ -112,7 +142,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                     List<BookDto> books = booksData.getData();
                     if(!books.isEmpty()){
                         adapter.addAll(0, books);
-                        rows.add(new ListRow(new HeaderItem(111111111111111L, "Всі"), adapter));
+                        rows.add(new ListRow(new IconHeader(111111111111111L, "Всі",R.drawable.books_stack), adapter));
                         RowUploadInfo info = new RowUploadInfo();
                         info.setMaxElements(booksData.getTotal());
                         rowsUploadInfo.put(111111111111111L,info);
@@ -321,7 +351,7 @@ public class PageRowsFragment extends RowsSupportFragment {
 
     private final Consumer<Object> bookDeletedHandler = (book)->{
         if(book instanceof BookDto){
-            removeBookFromCurrentCategory(rowsAdapter,(BookDto)book);
+            removeBookFromCurrentCategory((BookDto)book);
         }
     };
 
@@ -331,52 +361,62 @@ public class PageRowsFragment extends RowsSupportFragment {
             ListRow selectedRow = app.getSelectedRow();
             if(selectedRow != null){
                 RowUploadInfo info = rowsUploadInfo.get(selectedRow.getId());
-                if(info != null && info.getMaxElements() > INIT_PAGE_SIZE){
-                    ObjectAdapter objectAdapter = selectedRow.getAdapter();
-                    if(objectAdapter instanceof ArrayObjectAdapter){
-                        ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
+                ObjectAdapter objectAdapter = selectedRow.getAdapter();
+                if(objectAdapter instanceof ArrayObjectAdapter){
+                    ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
+                    if(info != null && info.getMaxElements() > adapter.size()){
+                        Log.d("AdapterLog",String.valueOf(adapter.size()));
                         boolean needUploadNext = false;
                         boolean needUploadPrev = false;
                         for (int i = 0; i < adapter.size(); i++) {
-                            if(adapter.get(i) == selectedBook){
-                                needUploadNext = i+1 + UPLOAD_THRESHOLD > INIT_PAGE_SIZE && (((long) (info.getStartUploadPage() + 2) * UPLOAD_SIZE) < info.getMaxElements());
-                                needUploadPrev = i+1 - UPLOAD_THRESHOLD < 0 && info.getStartUploadPage() != 1;
+                            BookDto tempBook = (BookDto)adapter.get(i);
+                            if(tempBook != null && tempBook.id == selectedBook.id){
+                                int rightThresholdPosition = i+1 + UPLOAD_THRESHOLD;
+                                int leftThresholdPosition = i+1 - UPLOAD_THRESHOLD;
+                                long lastUploadedPage = (info.getStartUploadPage() + INIT_PAGES_COUNT - 1);
+                                Log.d("UploadLog","max elements - " + String.valueOf(info.getMaxElements()));
+                                Log.d("UploadLog","adapter count - " + String.valueOf(adapter.size()));
+
+                                boolean canUploadNext = (lastUploadedPage * UPLOAD_SIZE) < info.getMaxElements();
+                                needUploadNext = (rightThresholdPosition > adapter.size() && canUploadNext);
+                                needUploadPrev = leftThresholdPosition < 0 && info.getStartUploadPage() != 1;
                                 break;
                             }
                         }
                         if(needUploadNext  || needUploadPrev){
-                           updatedNow = true;
-                           String categoryName = selectedRow.getHeaderItem().getName();
-                           String parentCategoryName = app.getSelectedParentCategoryHeader().getName();
-                           if(categoryName.equals("Всі")){
-                               if(parentCategoryName.equals("Всі")){
-                                   int updatePage = needUploadNext ? info.getStartUploadPage() + INIT_PAGES_COUNT: info.getStartUploadPage()-1;
-                                   boolean finalNeedUploadNext = needUploadNext;
-                                   bookRepository.getBooksPageAsyncCF(updatePage,UPLOAD_SIZE).thenAccept(books->{
-                                       requireActivity().runOnUiThread(() -> {
-                                           updateRow(adapter,books,info,finalNeedUploadNext);
-                                           updatedNow = false;
-                                       });
-                                   });
-                               }
-                               else{
 
-                               }
+                            String categoryName = selectedRow.getHeaderItem().getName();
+                            String parentCategoryName = app.getSelectedParentCategoryHeader().getName();
+                            int pageSize = UPLOAD_SIZE + INIT_PAGE_SIZE - adapter.size();
+                            int uploadPage = needUploadNext ? info.getStartUploadPage() + INIT_PAGES_COUNT: info.getStartUploadPage() - 1;
+                            boolean finalNeedUploadNext = needUploadNext;
+                            if(categoryName.equals("Всі")){
+                                if(parentCategoryName.equals("Всі")){
+                                    updatedNow = true;
+                                    bookRepository.getBooksPageAsyncCF(uploadPage,pageSize).thenAccept(books->{
+                                        requireActivity().runOnUiThread(() -> {
+                                            updateRow(adapter,books,info,finalNeedUploadNext);
+                                            updatedNow = false;
+                                        });
+                                    });
+                                }
+                                else{
 
-                           }
-                           else if(categoryName.equals("Не сортовані")){
-                               if(parentCategoryName.equals("Всі")){
+                                }
 
-                               }
-                               else{
+                            }
+                            else if(categoryName.equals("Не сортовані")){
+                                if(parentCategoryName.equals("Всі")){
 
-                               }
-                           }
-                           else{
+                                }
+                                else{
 
-                           }
+                                }
+                            }
+                            else{
+
+                            }
                         }
-
                     }
                 }
             }
