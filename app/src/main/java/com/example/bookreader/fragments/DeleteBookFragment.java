@@ -28,9 +28,9 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
        // Bitmap bitmap = ...;
       //  Drawable drawable = new BitmapDrawable(getResources(), bitmap);
         return new GuidanceStylist.Guidance(
-                "Видалити книгу?",
+                getContext().getString(R.string.q_delete_book),
                 book.name,
-                "Підтвердження",
+                getContext().getString(R.string.confirmation),
                 ContextCompat.getDrawable(requireContext(), R.drawable.settings)
         );
     }
@@ -39,12 +39,12 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
         actions.add(new GuidedAction.Builder(requireContext())
                 .id(1)
-                .title("Так, видалити")
+                .title(getContext().getString(R.string.yes)+", "+ getContext().getString(R.string.delete))
                 .build());
 
         actions.add(new GuidedAction.Builder(requireContext())
                 .id(2)
-                .title("Скасувати")
+                .title(getContext().getString(R.string.cancel))
                 .build());
     }
 
@@ -55,12 +55,12 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
                 if(rows != 0){
                     app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED,null);
                     app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED,book);
-                    Toast.makeText(requireContext(), "Книгу \"" + book.name + "\" видалено", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), getString(R.string.book_deleted, book.name), Toast.LENGTH_SHORT).show();
                     requireActivity().finish();
                 }
                 else{
                     requireActivity().getSupportFragmentManager().popBackStack();
-                    Toast.makeText(requireContext(), "Упс...щось пішло не так...:(", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), getString(R.string.oops_error), Toast.LENGTH_SHORT).show();
                 }
             });
         }

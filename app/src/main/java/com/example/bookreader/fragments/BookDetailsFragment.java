@@ -22,6 +22,7 @@ import androidx.leanback.widget.SparseArrayObjectAdapter;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 
 import com.example.bookreader.data.database.dto.BookDto;
@@ -69,9 +70,9 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     private void setActions(DetailsOverviewRow detailsOverview){
         SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
-        actionAdapter.set(0, new Action(ActionType.BOOK_READ.getId(), "Читати"));
-        actionAdapter.set(1, new Action(ActionType.BOOK_EDIT.getId(), "Редагувати"));
-        actionAdapter.set(2, new Action(ActionType.BOOK_DELETE.getId(), "Видалити"));
+        actionAdapter.set(0, new Action(ActionType.BOOK_READ.getId(), getContext().getString(R.string.read)));
+        actionAdapter.set(1, new Action(ActionType.BOOK_EDIT.getId(), getContext().getString(R.string.edit)));
+        actionAdapter.set(2, new Action(ActionType.BOOK_DELETE.getId(), getContext().getString(R.string.delete)));
         detailsOverview.setActionsAdapter(actionAdapter);
     }
 
