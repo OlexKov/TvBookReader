@@ -1,6 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
@@ -52,17 +53,18 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
         if (action.getId() == 1) {
-            new BookRepository().deleteBookByIdAsyncCF(book.id).thenAccept( rows->{
-                if(rows != 0){
-                    app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED,null);
-                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED,new RowItemData(app.getSelectedRow(),book));
-                    Toast.makeText(requireContext(), getString(R.string.book_deleted, book.name), Toast.LENGTH_SHORT).show();
-                    requireActivity().finish();
-                }
-                else{
-                    requireActivity().getSupportFragmentManager().popBackStack();
-                    Toast.makeText(requireContext(), getString(R.string.oops_error), Toast.LENGTH_SHORT).show();
-                }
+            new BookRepository().deleteBookByIdAsyncCF(book.id).thenAccept( deletedRowsCount->{
+                requireActivity().runOnUiThread(() -> {
+                    if (deletedRowsCount != 0) {
+                        app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED, null);
+                        app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED, new RowItemData(app.getSelectedRow(), book));
+                        Toast.makeText(requireContext(), getString(R.string.book_deleted, book.name), Toast.LENGTH_SHORT).show();
+                        requireActivity().finish();
+                    } else {
+                        requireActivity().getSupportFragmentManager().popBackStack();
+                        Toast.makeText(requireContext(), getString(R.string.oops_error), Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
         }
         else {

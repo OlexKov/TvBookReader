@@ -8,26 +8,27 @@ import androidx.leanback.widget.RowPresenter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
 
 public class RowItemSelectedListener implements OnItemViewSelectedListener {
     BookReaderApp app = BookReaderApp.getInstance();
     @Override
     public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-        if (row instanceof ListRow) {
+        if(row instanceof ListRow && item instanceof BookDto){
             ListRow rowList = (ListRow)row;
-            if(rowList != app.getSelectedRow()){
-               if(app.getSelectedRow() != null){
-                   app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_SELECTED_CHANGE,row);
-               }
-               app.setSelectedRow(rowList);
-            }
-        }
-        if (item instanceof BookDto) {
             BookDto book = (BookDto)item;
+
+            if(rowList != app.getSelectedRow()){
+                if(app.getSelectedRow() != null){
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_SELECTED_CHANGE, new RowItemData(rowList,book));
+                }
+                app.setSelectedRow(rowList);
+            }
+
             if(book != app.getSelectedItem()){
                 if(app.getSelectedItem() != null){
-                    app.getGlobalEventListener().sendEvent(GlobalEventType.ITEM_SELECTED_CHANGE,book);
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.ITEM_SELECTED_CHANGE,new RowItemData(rowList,book));
                 }
                 app.setSelectedItem(book);
             }

@@ -44,7 +44,7 @@ public interface BookDao {
             "WHERE categoryId = :categoryId "+
             "OR categoryId IN " +
             "( SELECT id FROM categories "+
-            "WHERE parentId = :categoryId OR parentId IS NULL) ")
+            "WHERE parentId = :categoryId) ")
     Long getAllByCategoryIdCount(long categoryId);
 
     /// -------------------------------------------------------
@@ -60,7 +60,7 @@ public interface BookDao {
 
     @Query("SELECT * FROM books  " +
             "WHERE categoryId = :categoryId "+
-            "OR categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) "+
+            "AND categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) "+
             "LIMIT :size OFFSET (:page -1) * :size")
     List<BookDto> getUnsortedByCategoryId(Long categoryId,int page,int size);
 

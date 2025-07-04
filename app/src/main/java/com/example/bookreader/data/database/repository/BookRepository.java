@@ -86,7 +86,7 @@ public class BookRepository {
 
 
 
-    public CompletableFuture<PaginationResultData<BookDto>> getPageDataUnsortedBooksBuCategoryIdAsync(Long categoryId, int page, int size){
+    public CompletableFuture<PaginationResultData<BookDto>> getPageDataUnsortedBooksByCategoryIdAsync(Long categoryId, int page, int size){
         CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCount(categoryId));
         CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getUnsortedByCategoryId(categoryId,page, size));
         return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {

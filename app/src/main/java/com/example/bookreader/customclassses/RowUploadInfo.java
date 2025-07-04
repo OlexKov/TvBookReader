@@ -6,4 +6,5 @@ import lombok.Data;
 public class RowUploadInfo {
     private int startUploadPage = 1;
     private Long maxElements;
+    private boolean isLoading;
 }
