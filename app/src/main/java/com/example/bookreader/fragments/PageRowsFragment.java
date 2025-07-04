@@ -363,7 +363,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         int currentPosition = adapter.indexOf(selectedBook);
                         boolean canUploadNext;
                         if(adapterSize < INIT_ADATTER_SIZE){
-                            lastUploadedPage =  info.getStartUploadPage() + adapterSize/UPLOAD_SIZE;
+                            lastUploadedPage =  info.getStartUploadPage() + adapterSize / UPLOAD_SIZE - 1;
                             canUploadNext = ((long) lastUploadedPage * UPLOAD_SIZE) <= info.getMaxElements();
                             needUploadNext = (adapterSize == INIT_ADATTER_SIZE - UPLOAD_THRESHOLD) && canUploadNext;
                         }
@@ -399,10 +399,9 @@ public class PageRowsFragment extends RowsSupportFragment {
 
                             Long categoryId = selectedRow.getHeaderItem().getId();
                             Long parentCategoryId = app.getSelectedParentCategoryHeader().getId();
-                            int uploadPage = needUploadNext ?  lastUploadedPage+1 : info.getStartUploadPage() - 1;
+                            int uploadPage = needUploadNext ?  lastUploadedPage + 1: info.getStartUploadPage() - 1;
                             Log.d("Logp","uploadPage - "+String.valueOf(uploadPage));
-                            Log.d("Logp","----------------------------------");
-                            boolean finalNeedUploadNext = needUploadNext;
+                             boolean finalNeedUploadNext = needUploadNext;
                             info.setLoading(true);
                             QueryFilter filter = new QueryFilter();
                             filter.setCategoryId(parentCategoryId);
@@ -464,9 +463,11 @@ public class PageRowsFragment extends RowsSupportFragment {
             }
         }
         else{
-            adapter.removeItems(adapter.size()-UPLOAD_SIZE,UPLOAD_SIZE);
-            info.setStartUploadPage(info.getStartUploadPage() - 1);
             adapter.addAll(0, books);
+            if(adapter.size() > INIT_ADATTER_SIZE){
+                adapter.removeItems(adapter.size()-UPLOAD_SIZE,UPLOAD_SIZE);
+                info.setStartUploadPage(info.getStartUploadPage() - 1);
+            }
         }
     }
 
