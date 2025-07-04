@@ -68,4 +68,7 @@ dependencies {
     }
     implementation (libs.slf4j.android)
 
+
+    debugImplementation (libs.leakcanary.android)
+
 }

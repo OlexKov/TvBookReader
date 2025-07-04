@@ -17,9 +17,6 @@ public interface BookDao {
     @Insert
     long insert(Book book);
 
-    @Delete
-    int delete(Book book);
-
     @Query("DELETE FROM books WHERE id = :bookId")
     int deleteById(long bookId);
 
@@ -29,25 +26,55 @@ public interface BookDao {
     @Query("SELECT * FROM books WHERE id = :bookId")
     BookDto getById(long bookId);
 
-    @Query("SELECT * " +
-            "FROM books  " +
-            "WHERE categoryId = :categoryId")
-    List<BookDto> getByCategoryId(long categoryId);
 
-    @Query("SELECT * " +
-            "FROM books  " +
-            "WHERE categoryId IS NULL")
-    List<BookDto> getUnsorted();
+    /// --------------Count query -----------------------------
 
-    @Query( "SELECT * " +
-            "FROM books "+
-            "WHERE categoryId = :parentCategoryId "+
+    @Query("SELECT COUNT(*) FROM books")
+    Long getAllCount();
+
+    @Query("SELECT COUNT(*) FROM books WHERE categoryId IS NULL ")
+    Long getUnsortedCount();
+
+    @Query("SELECT COUNT(*) FROM books  " +
+            "WHERE categoryId = :categoryId "+
+            "OR categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) ")
+    Long getUnsortedByCategoryIdCount(Long categoryId);
+
+    @Query( "SELECT COUNT(*) FROM books "+
+            "WHERE categoryId = :categoryId "+
             "OR categoryId IN " +
-              "( SELECT id " +
-              "FROM categories "+
-              "WHERE parentId = :parentCategoryId) "
-    )
-    List<BookDto> getAllByCategoryId(long parentCategoryId);
+            "( SELECT id FROM categories "+
+            "WHERE parentId = :categoryId OR parentId IS NULL) ")
+    Long getAllByCategoryIdCount(long categoryId);
+
+    /// -------------------------------------------------------
+
+    ///--------------- Pagination --------------------------------
+
+    @Query("SELECT * FROM books LIMIT :size OFFSET (:page -1) * :size")
+    List<BookDto> getAll(int page,int size);
+
+    @Query("SELECT * FROM books WHERE categoryId IS NULL " +
+            "LIMIT :size OFFSET (:page -1) * :size")
+    List<BookDto> getUnsorted(int page,int size);
+
+    @Query("SELECT * FROM books  " +
+            "WHERE categoryId = :categoryId "+
+            "OR categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) "+
+            "LIMIT :size OFFSET (:page -1) * :size")
+    List<BookDto> getUnsortedByCategoryId(Long categoryId,int page,int size);
+
+    @Query( "SELECT * FROM books "+
+            "WHERE categoryId = :categoryId "+
+            "OR categoryId IN " +
+               "( SELECT id FROM categories "+
+               "WHERE parentId = :categoryId) "+
+            "LIMIT :size OFFSET (:page -1) * :size")
+    List<BookDto> getAllByCategoryId(long categoryId,int page,int size);
+
+
+
+    //-------------------------------------------------------------------------
 
     @RawQuery(observedEntities = Book.class)
     List<BookDto> getBookPageWithFilter(SupportSQLiteQuery query);

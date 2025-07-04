@@ -9,6 +9,7 @@ import androidx.leanback.widget.GuidedAction;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import org.jspecify.annotations.NonNull;
@@ -51,10 +52,10 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
         if (action.getId() == 1) {
-            new BookRepository().deleteBookByIdAsync(book.id, rows->{
+            new BookRepository().deleteBookByIdAsyncCF(book.id).thenAccept( rows->{
                 if(rows != 0){
                     app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED,null);
-                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED,book);
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED,new RowItemData(app.getSelectedRow(),book));
                     Toast.makeText(requireContext(), getString(R.string.book_deleted, book.name), Toast.LENGTH_SHORT).show();
                     requireActivity().finish();
                 }
