@@ -22,8 +22,11 @@ public class StringPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
-        String text = (String) item;
-        ((TextView) viewHolder.view).setText(text);
+        if(item instanceof String text){
+            if(viewHolder.view instanceof TextView textView){
+                textView.setText(text);
+            }
+        }
     }
 
     @Override

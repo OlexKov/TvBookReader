@@ -12,7 +12,7 @@ import androidx.leanback.widget.ListRow;
 import androidx.room.Room;
 
 import com.example.bookreader.constants.Constants;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.IconHeader;
@@ -23,8 +23,10 @@ import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.Executors;
 
 import lombok.Getter;
@@ -65,7 +67,7 @@ public class BookReaderApp  extends Application {
     private SharedPreferences prefs;
 
     @Getter
-    private List<CategoryDto> categoriesCash ;
+    private List<CategoryDto> categoriesCash = new ArrayList<>();
 
     public void updateCategoryCash(){
         Executors.newSingleThreadExecutor().execute(() -> {
@@ -119,9 +121,12 @@ public class BookReaderApp  extends Application {
             Executors.newSingleThreadExecutor().execute(() -> {
                 CategoryDao сdao = appDatabase.categoryDao();
                 BookDao bdao = appDatabase.bookDao();
+                Random random = new Random();
+
                 for (int i = 0; i < 10;i++){
-                    bdao.insert( Book.builder()
+                     bdao.insert( Book.builder()
                             .name("книга - " + i)
+                             .isFavorite(random.nextInt(100) > 80)
                             .categoryId(null)
                             .build());
                 }
@@ -137,6 +142,7 @@ public class BookReaderApp  extends Application {
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
                             .name("Категорія 1 - Субкатегорія 1 - книга - " + i)
+                            .isFavorite(random.nextInt(100)>70)
                             .categoryId(subcategoryId)
                             .build());
                 }
@@ -149,6 +155,7 @@ public class BookReaderApp  extends Application {
                     bdao.insert( Book.builder()
                             .name("Категорія 1 - Субкатегорія 2 - книга - " + i)
                             .categoryId(subcategoryId)
+                            .isFavorite(random.nextInt(100)>90)
                             .build());
                 }
 
@@ -156,6 +163,7 @@ public class BookReaderApp  extends Application {
                     bdao.insert( Book.builder()
                             .name("Категорія 1 - книга - " + i)
                             .categoryId(categoryId)
+                            .isFavorite(random.nextInt(100)>95)
                             .build());
                 }
 
@@ -185,12 +193,14 @@ public class BookReaderApp  extends Application {
                     bdao.insert( Book.builder()
                             .name("Категорія 2 - Субкатегорія 2 - книга - " + i)
                             .categoryId(subcategoryId)
+                            .isFavorite(random.nextInt(100)>95)
                             .build());
                 }
                 for (int i = 0; i < 5;i++){
                     bdao.insert( Book.builder()
                             .name("Категорія 2 - книга - " + i)
                             .categoryId(categoryId)
+                            .isFavorite(random.nextInt(100)>95)
                             .build());
                 }
 

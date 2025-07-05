@@ -31,16 +31,13 @@ public class ItemViewClickedListener implements OnItemViewClickedListener {
     }
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-        if (item instanceof BookDto) {
-            BookDto book = (BookDto) item;
-
+        if (item instanceof BookDto book){
             // Наприклад: відкриття нової Activity
             Intent intent = new Intent(activity, BookDetailsActivity.class);
             intent.putExtra("BOOK", book);
             activity.startActivity(intent);
         }
-        else if(item instanceof TextIcon){
-            TextIcon textIcon = (TextIcon) item;
+        else if(item instanceof TextIcon textIcon){
             ActionType actionType = ActionType.fromId(textIcon.id);
             switch (actionType){
                 case SETTING_1:

@@ -34,6 +34,34 @@ public class BookRepository {
         });
     }
 
+    ///  toggle favorites
+
+    public CompletableFuture<Void> addBookAToFavoriteAsync(Long bookId) {
+        return CompletableFuture.runAsync(() -> bookDao.markBookAsFavorite(bookId));
+    }
+    public CompletableFuture<Void> removeBookFromFavoriteAsync(Long bookId) {
+        return CompletableFuture.runAsync(() -> bookDao.unmarkBookAsFavorite(bookId));
+    }
+
+    public void addBookAToFavorite(Long bookId ,Consumer<Long> callback) {
+        executorService.execute(() -> {
+            bookDao.markBookAsFavorite(bookId);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(null);
+            });
+        });
+    }
+
+    public void removeBookFromFavorite(Long bookId ,Consumer<Long> callback) {
+        executorService.execute(() -> {
+            bookDao.unmarkBookAsFavorite(bookId);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(null);
+            });
+        });
+    }
+
+
 
     //get All Books
 

@@ -3,6 +3,8 @@ import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -22,8 +24,8 @@ import lombok.NoArgsConstructor;
 public class Book {
     @PrimaryKey(autoGenerate = true)
     public long id;
-
     public String name;
-
     public Long categoryId = null;
+    public boolean isFavorite = false;
+    public Date creationDate = new Date();
 }

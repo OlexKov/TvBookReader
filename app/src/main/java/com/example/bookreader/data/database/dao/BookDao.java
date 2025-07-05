@@ -1,7 +1,6 @@
 package com.example.bookreader.data.database.dao;
 
 import androidx.room.Dao;
-import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.RawQuery;
@@ -26,6 +25,11 @@ public interface BookDao {
     @Query("SELECT * FROM books WHERE id = :bookId")
     BookDto getById(long bookId);
 
+    @Query("UPDATE books SET isFavorite = 1 WHERE id = :bookId")
+    void markBookAsFavorite(long bookId);
+
+    @Query("UPDATE books SET isFavorite = 0 WHERE id = :bookId")
+    void unmarkBookAsFavorite(long bookId);
 
     /// --------------Count query -----------------------------
 
@@ -51,17 +55,22 @@ public interface BookDao {
 
     ///--------------- Pagination --------------------------------
 
-    @Query("SELECT * FROM books LIMIT :size OFFSET (:page -1) * :size")
+    @Query("SELECT * FROM books " +
+            "WHERE isFavorite  ORDER BY creationDate DESC " +
+            "LIMIT :size OFFSET (:page -1) * :size")
+    List<BookDto> getFavorites(int page,int size);
+
+    @Query("SELECT * FROM books ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
     List<BookDto> getAll(int page,int size);
 
     @Query("SELECT * FROM books WHERE categoryId IS NULL " +
-            "LIMIT :size OFFSET (:page -1) * :size")
+            "ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
     List<BookDto> getUnsorted(int page,int size);
 
     @Query("SELECT * FROM books  " +
             "WHERE categoryId = :categoryId "+
             "AND categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) "+
-            "LIMIT :size OFFSET (:page -1) * :size")
+            "ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
     List<BookDto> getUnsortedByCategoryId(Long categoryId,int page,int size);
 
     @Query( "SELECT * FROM books "+
@@ -69,7 +78,7 @@ public interface BookDao {
             "OR categoryId IN " +
                "( SELECT id FROM categories "+
                "WHERE parentId = :categoryId) "+
-            "LIMIT :size OFFSET (:page -1) * :size")
+            "ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
     List<BookDto> getAllByCategoryId(long categoryId,int page,int size);
 
 

@@ -35,14 +35,13 @@ public class TextIconPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, @Nullable Object item) {
-        if(item instanceof TextIcon){
-            TextIcon icon = (TextIcon) item;
+        if(item instanceof TextIcon icon){
             View rootView = viewHolder.view;
             TextView view =  rootView.findViewById(R.id.header_label);
             View circle = rootView.findViewById(R.id.focus_circle);
             view.setText(icon.name);
             ImageView iconView = rootView.findViewById(R.id.header_icon);
-            iconView.setImageResource(((TextIcon) item).idIconRs);
+            iconView.setImageResource(icon.idIconRs);
             rootView.setOnFocusChangeListener((v, hasFocus) -> {
                 float scale = hasFocus ? 1.2f : 1f;
                 if (hasFocus) {

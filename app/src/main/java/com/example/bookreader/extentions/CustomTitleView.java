@@ -18,7 +18,7 @@ import androidx.leanback.widget.TitleViewAdapter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.listeners.HeaderButtonOnFocusListener;
 import com.example.bookreader.listeners.HeaderButtonOnKeyListener;
 
@@ -132,7 +132,9 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     }
 
     private final Consumer<Object> menuChangeButtonProcessorHandler = (isMenuStartOpen)->{
-        if(app.getSelectedParentCategoryHeader().getName().equals("Всі") || !(boolean) isMenuStartOpen){
+        String currentMainCategoryName = app.getSelectedParentCategoryHeader().getName();
+        if(currentMainCategoryName.equals(getContext().getString(R.string.all_category))
+                || !(boolean) isMenuStartOpen){
             smoothDisplay(buttonContainer);
         }
         else{
@@ -142,7 +144,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
 
     private final Consumer<Object> categoryChangeButtonProcessorHandler = (category)->{
         String cat = ((IconHeader) category).getName();
-        if(cat.equals("Всі") || !app.isMenuOpen()){
+        if(cat.equals(getContext().getString(R.string.all_category)) || !app.isMenuOpen()){
             smoothDisplay(buttonContainer);
         }
         else{

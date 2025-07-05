@@ -1,6 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -14,11 +15,13 @@ import androidx.leanback.widget.DividerRow;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
+import androidx.leanback.widget.VerticalGridView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.Constants;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
@@ -51,6 +54,7 @@ public class MainFragment extends BrowseSupportFragment {
     public void onDestroyView(){
         super.onDestroyView();
         app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_UPDATED,bookFavoriteUpdatedHandler);
     }
 
     private void setupUIElements(){
@@ -84,22 +88,37 @@ public class MainFragment extends BrowseSupportFragment {
         setBrowseTransitionListener(new BrowserTransitionListener());
         //Зміна заголовку відповідно до обраної категорії
         HeadersSupportFragment supportFragment = getHeadersSupportFragment();
-        if(supportFragment != null) {
+        if( supportFragment != null) {
             supportFragment.setOnHeaderViewSelectedListener(new HeaderViewSelectedListener(this));
         }
 
-       View titleView  = getTitleView();
-        if(titleView instanceof CustomTitleView){
-            CustomTitleView customeView = (CustomTitleView) titleView;
-            customeView.setOnButton1ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 1", Toast.LENGTH_SHORT).show());
-            customeView.setOnButton2ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 2", Toast.LENGTH_SHORT).show());
-            customeView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
-            customeView.setButton1Icon(R.drawable.books_stack);
+        if(getTitleView() instanceof CustomTitleView customsView){
+            customsView.setOnButton1ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 1", Toast.LENGTH_SHORT).show());
+            customsView.setOnButton2ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 2", Toast.LENGTH_SHORT).show());
+            customsView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
+            customsView.setButton1Icon(R.drawable.books_stack);
         }
         app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
+        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler);
     }
 
+    private final Consumer<Object> bookFavoriteUpdatedHandler = (book)->{
+       if(!(book instanceof  BookDto favoriteBook)) return;
+       for (int i = 0; i < rowsAdapter.size(); i++) {
+            if(rowsAdapter.get(i) instanceof PageRow pageRow){
+                if(pageRow.getId() == Constants.FAVORITE_CATEGORY_ID) return;
+            }
+        }
+       if(favoriteBook.isFavorite){
+          rowsAdapter.add(0,new PageRow( new IconHeader(Constants.FAVORITE_CATEGORY_ID,
+                   getString(R.string.favorite),
+                   R.drawable.books_stack)));
+       }
+    };
+
+
     private final Consumer<Object> categoryCashUpdateHandler = (object)->{
+
         if(rowsAdapter.size() > 0){
             setupCategoryRows();
         }
@@ -107,6 +126,7 @@ public class MainFragment extends BrowseSupportFragment {
 
     private void setupCategoryRows() {
         rowsAdapter.clear();
+
         rowsAdapter.add(new PageRow( new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID, getContext().getString(R.string.all_category),R.drawable.books_stack)));
         for (CategoryDto category:app.getCategoriesCash()){
             if(category.booksCount > 0 && category.parentId == null){
@@ -116,6 +136,11 @@ public class MainFragment extends BrowseSupportFragment {
         }
         rowsAdapter.add(new DividerRow());
         rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getContext().getString(R.string.settings),R.drawable.settings)));
-        requireActivity().runOnUiThread(() -> { setAdapter(rowsAdapter);});
+        requireActivity().runOnUiThread(() -> {
+            setAdapter(rowsAdapter);
+            if (!app.isMenuOpen()){
+                startHeadersTransition(true);
+            }
+        });
     }
 }

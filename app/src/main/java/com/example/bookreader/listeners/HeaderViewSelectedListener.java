@@ -10,7 +10,7 @@ import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowHeaderPresenter;
 
 import com.example.bookreader.BookReaderApp;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
 
@@ -28,17 +28,17 @@ public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHead
             String title = row.getHeaderItem().getName();
             fragment.setTitle(title);
             View titleView  = fragment.getTitleView();
-            if(titleView instanceof CustomTitleView){
-                ((CustomTitleView)titleView).setTitleIcon(ContextCompat.getDrawable(titleView.getContext(), iconHeader.iconResId));
+            if(titleView instanceof CustomTitleView customTitleView) {
+                customTitleView.setTitleIcon(ContextCompat.getDrawable(titleView.getContext(), iconHeader.iconResId));
             }
 
             if(!title.equals(app.getSelectedParentCategoryHeader().getName())){
                 app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_CHANGED,iconHeader);
                 app.setSelectedParentCategoryHeader(iconHeader);
             }
+
             Object adapterObj = fragment.getAdapter();
-            if (adapterObj instanceof ArrayObjectAdapter) {
-                ArrayObjectAdapter adapter = (ArrayObjectAdapter) adapterObj;
+            if (adapterObj instanceof ArrayObjectAdapter adapter) {
                 int position = adapter.indexOf(row);
                 if (position >= 0) {
                     fragment.setSelectedPosition(position, true);

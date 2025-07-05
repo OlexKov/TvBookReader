@@ -13,7 +13,7 @@ import androidx.core.util.Consumer;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.bookreader.BookReaderApp;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.fragments.MainFragment;
 import com.example.bookreader.R;
 import com.example.bookreader.utility.LocaleHelper;
@@ -37,9 +37,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main_browse_fragment, new MainFragment())
@@ -52,7 +50,6 @@ public class MainActivity extends FragmentActivity {
                 Log.d("Exit log", String.valueOf(backToMain));
                 if (app.isMenuOpen()) {
                     if (doubleBackToExitPressedOnce) {
-                        Log.d("Exit log","App exit");
                         finish();
                     } else {
                         doubleBackToExitPressedOnce = true;
@@ -61,7 +58,6 @@ public class MainActivity extends FragmentActivity {
                     }
                 }
                 else if(!backToMain){
-                    Log.d("Exit log","App back");
                     setEnabled(false);  // Вимикаємо цей callback
                     MainActivity.super.getOnBackPressedDispatcher().onBackPressed();
                     setEnabled(true);
@@ -76,6 +72,4 @@ public class MainActivity extends FragmentActivity {
         super.onDestroy();
         app.getGlobalEventListener().unSubscribe(GlobalEventType.MENU_STATE_CHANGED,menuChangeHandler);
     }
-
-
 }

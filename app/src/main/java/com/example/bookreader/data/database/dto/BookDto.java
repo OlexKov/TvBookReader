@@ -3,13 +3,14 @@ package com.example.bookreader.data.database.dto;
 import com.example.bookreader.data.database.entity.Book;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class BookDto implements Serializable {
     public long id;
-
     public String name;
-
     public Long categoryId = null;
+    public boolean isFavorite = false;
+    public Date creationDate;
 
     @Override
     public boolean equals(Object o) {

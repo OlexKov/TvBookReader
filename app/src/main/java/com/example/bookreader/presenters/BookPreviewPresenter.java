@@ -22,6 +22,7 @@ public class BookPreviewPresenter extends Presenter {
     private static final int WIDTH_ITEM = 300;
     private static final int HEIGHT_ITEM = 400;
 
+    @androidx.annotation.NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
 
@@ -52,31 +53,28 @@ public class BookPreviewPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, @Nullable Object item) {
-        BookDto book  = (BookDto)item;
-        ImageCardView cardView = (ImageCardView) viewHolder.view;
-        if(book != null && cardView != null){
-            cardView.setTitleText(book.name);
-            cardView.setContentText("author");
-            cardView.setMainImageScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            // cardView.setMainImageAdjustViewBounds(true);
-            // cardView.setMainImageDimensions(400, 300);
-            // cardView.setCardType(BaseCardView.CARD_TYPE_INFO_OVER | BaseCardView.CARD_TYPE_FLAG_CONTENT);
-            TextView titleView = cardView.findViewById(androidx.leanback.R.id.title_text);
-            if (titleView != null) {
-                titleView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-                titleView.setMarqueeRepeatLimit(-1);
-                titleView.setSingleLine(true);
-                titleView.setHorizontallyScrolling(true);
-            }
-            cardView.setInfoAreaBackgroundColor(
-                    ContextCompat.getColor(cardView.getContext(), android.R.color.transparent)
-            );
-            ImageView imageView = cardView.getMainImageView();
-            if(imageView != null){
-                Glide.with(cardView.getContext())
-                        .load("https://picsum.photos/400?random=" + book.id)
-                        .into(imageView);
-            }
+        if(!(item instanceof BookDto book) || !(viewHolder.view instanceof ImageCardView cardView)) return;
+        cardView.setTitleText(book.name);
+        cardView.setContentText("author");
+        cardView.setMainImageScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        // cardView.setMainImageAdjustViewBounds(true);
+        // cardView.setMainImageDimensions(400, 300);
+        // cardView.setCardType(BaseCardView.CARD_TYPE_INFO_OVER | BaseCardView.CARD_TYPE_FLAG_CONTENT);
+        TextView titleView = cardView.findViewById(androidx.leanback.R.id.title_text);
+        if (titleView != null) {
+            titleView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            titleView.setMarqueeRepeatLimit(-1);
+            titleView.setSingleLine(true);
+            titleView.setHorizontallyScrolling(true);
+        }
+        cardView.setInfoAreaBackgroundColor(
+                ContextCompat.getColor(cardView.getContext(), android.R.color.transparent)
+        );
+        ImageView imageView = cardView.getMainImageView();
+        if(imageView != null){
+            Glide.with(cardView.getContext())
+                    .load("https://picsum.photos/400?random=" + book.id)
+                    .into(imageView);
         }
     }
 

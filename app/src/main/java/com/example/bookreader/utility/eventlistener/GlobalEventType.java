@@ -1,8 +1,8 @@
-package com.example.bookreader.constants;
+package com.example.bookreader.utility.eventlistener;
 
 public enum GlobalEventType {
     ROW_CHANGED(0),
-    BOOK_EDITED(1),
+    BOOK_UPDATED(1),
     BOOK_DELETED(2),
     BOOK_ADDED(3),
     DATABASE_DONE(4),
@@ -11,7 +11,9 @@ public enum GlobalEventType {
     CATEGORY_CHANGED(7),
     ROW_SELECTED_CHANGE(8),
     ITEM_SELECTED_CHANGE(9),
-    CATEGORY_CASH_UPDATED(10);
+    CATEGORY_CASH_UPDATED(10),
+    BOOK_FAVORITE_UPDATED(11);
+
 
     private final int id;
 

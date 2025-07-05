@@ -14,4 +14,7 @@
     <string name="cancel">Отменить</string>
     <string name="book_deleted">Книга \"%1$s\" удалена</string>
     <string name="oops_error">Упс...что то пошло не так...:(</string>
+    <string name="favorite">Избранные</string>
+    <string name="add_to_favorite">Добавить в избранное</string>
+    <string name="remove_from_favorite">Удалить из избранных</string>
 </resources>

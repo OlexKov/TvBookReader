@@ -25,23 +25,16 @@ public class CustomBookDetailsPresenter extends FullWidthDetailsOverviewRowPrese
         lp.setMarginStart(v.getResources().getDimensionPixelSize(
                 androidx.leanback.R.dimen.lb_details_v2_logo_margin_start));
         lp.topMargin = v.getResources().getDimensionPixelSize(androidx.leanback.R.dimen.lb_details_v2_blank_height) - lp.height / 2;
-
-        switch (viewHolder.getState()) {
-            case STATE_FULL:
-            default:
-                if (mPreviousState == STATE_HALF) {
-                    v.animate().translationY(0);
-                }
-
-                break;
-            case STATE_HALF:
-                if (mPreviousState == STATE_FULL) {
-                    final float offset = v.getResources().getDimensionPixelSize(androidx.leanback.R.dimen.lb_details_v2_actions_height) +
-                            v.getResources().getDimensionPixelSize(androidx.leanback.R.dimen.lb_details_v2_description_margin_top) + lp.height / 2;
-                    v.animate().translationY(offset);
-                }
-
-                break;
+        if (viewHolder.getState() == STATE_HALF) {
+            if (mPreviousState == STATE_FULL) {
+                final float offset = v.getResources().getDimensionPixelSize(androidx.leanback.R.dimen.lb_details_v2_actions_height) +
+                        v.getResources().getDimensionPixelSize(androidx.leanback.R.dimen.lb_details_v2_description_margin_top) +
+                        (float) lp.height / 2;
+                v.animate().translationY(offset);
+            }
+        }
+        else if (mPreviousState == STATE_HALF) {
+                v.animate().translationY(0);
         }
         mPreviousState = viewHolder.getState();
         v.setLayoutParams(lp);

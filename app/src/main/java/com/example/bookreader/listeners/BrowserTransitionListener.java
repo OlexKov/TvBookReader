@@ -3,7 +3,7 @@ package com.example.bookreader.listeners;
 import androidx.leanback.app.BrowseSupportFragment;
 
 import com.example.bookreader.BookReaderApp;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 public class BrowserTransitionListener extends BrowseSupportFragment.BrowseTransitionListener {
     private final BookReaderApp app = BookReaderApp.getInstance();

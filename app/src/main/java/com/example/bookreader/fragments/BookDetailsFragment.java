@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,12 +31,13 @@ import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.presenters.StringPresenter;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
-    private static final int DETAIL_THUMB_WIDTH = 400;
-    private static final int DETAIL_THUMB_HEIGHT = 500;
+    private static final int DETAIL_THUMB_WIDTH = 280;
+    private static final int DETAIL_THUMB_HEIGHT = 400;
 
 
     private static final String TAG = "MediaItemDetailsFragment";
-
+    private final SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
+    private  BookDto book;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,13 +53,13 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void buildDetails() {
-        BookDto book = (BookDto) getActivity().getIntent().getSerializableExtra("BOOK");
-        if(book == null) return;
-        // Attach your media item details presenter to the row presenter:
+        Object serializedBook = getActivity().getIntent().getSerializableExtra("BOOK");
+        if(!(serializedBook instanceof  BookDto bookDto)) return;
+        book = bookDto;
+         // Attach your media item details presenter to the row presenter:
         ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(book);
-
         setDetailsOverview(rowsAdapter,book);
-        setAdititionalMediaRow(rowsAdapter);
+        setAdditionalMediaRow(rowsAdapter);
         setAdapter(rowsAdapter);
     }
 
@@ -69,10 +69,15 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void setActions(DetailsOverviewRow detailsOverview){
-        SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
-        actionAdapter.set(0, new Action(ActionType.BOOK_READ.getId(), getContext().getString(R.string.read)));
-        actionAdapter.set(1, new Action(ActionType.BOOK_EDIT.getId(), getContext().getString(R.string.edit)));
-        actionAdapter.set(2, new Action(ActionType.BOOK_DELETE.getId(), getContext().getString(R.string.delete)));
+        actionAdapter.set(ActionType.BOOK_READ.getId(), new Action(ActionType.BOOK_READ.getId(), getString(R.string.read)));
+        actionAdapter.set(ActionType.BOOK_EDIT.getId(), new Action(ActionType.BOOK_EDIT.getId(), getString(R.string.edit)));
+        actionAdapter.set(ActionType.BOOK_DELETE.getId(), new Action(ActionType.BOOK_DELETE.getId(), getString(R.string.delete)));
+        actionAdapter.set(ActionType.BOOK_TOGGLE_FAVORITE.getId(), new Action(
+                ActionType.BOOK_TOGGLE_FAVORITE.getId(),
+                book.isFavorite
+                ? getString(R.string.remove_from_favorite)
+                : getString(R.string.add_to_favorite)
+        ));
         detailsOverview.setActionsAdapter(actionAdapter);
     }
 
@@ -104,7 +109,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         FullWidthDetailsOverviewRowPresenter rowPresenter =
                 new CustomBookDetailsPresenter(
                         new BookDetailsPresenter());
-        rowPresenter.setOnActionClickedListener(new BookActionClickListener(getContext(),book));
+        rowPresenter.setOnActionClickedListener(new BookActionClickListener(getContext(),book,actionAdapter));
         selector.addClassPresenter(DetailsOverviewRow.class, rowPresenter);
         selector.addClassPresenter(ListRow.class,  new ListRowPresenter());
         return new ArrayObjectAdapter(selector);
@@ -117,7 +122,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         rowsAdapter.add(detailsOverview);
     }
 
-    private void setAdititionalMediaRow( ArrayObjectAdapter rowsAdapter){
+    private void setAdditionalMediaRow(ArrayObjectAdapter rowsAdapter){
         ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(new StringPresenter());
         listRowAdapter.add("Media Item 3");
         listRowAdapter.add("Media Item 4");

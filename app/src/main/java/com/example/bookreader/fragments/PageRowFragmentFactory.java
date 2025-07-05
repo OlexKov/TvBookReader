@@ -13,18 +13,14 @@ public class PageRowFragmentFactory extends BrowseSupportFragment.FragmentFactor
     @NonNull
     @Override
     public Fragment createFragment(Object rowObj) {
-        if (rowObj instanceof PageRow) {
-            PageRow row = (PageRow) rowObj;
-            HeaderItem header = row.getHeaderItem();
+        if(!(rowObj instanceof PageRow row)) return new Fragment();
+        HeaderItem header = row.getHeaderItem();
 
-            // Передаємо назву або ID категорії в PageRowsFragment
-            PageRowsFragment fragment = new PageRowsFragment();
-            Bundle args = new Bundle();
-            args.putString("category", header.getName()); // або header.getId() як long
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        return new Fragment(); // fallback
+        // Передаємо назву або ID категорії в PageRowsFragment
+        PageRowsFragment fragment = new PageRowsFragment();
+        Bundle args = new Bundle();
+        args.putString("category", header.getName()); // або header.getId() як long
+        fragment.setArguments(args);
+        return fragment;
     }
 }

@@ -7,7 +7,8 @@ public enum ActionType {
     BOOK_DELETE(2),
     SETTING_1(3),
     SETTING_2(4),
-    SETTING_3(5);
+    SETTING_3(5),
+    BOOK_TOGGLE_FAVORITE(6);
 
     private final int id;
 

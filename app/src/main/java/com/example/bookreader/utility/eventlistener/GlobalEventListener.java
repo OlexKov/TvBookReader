@@ -2,7 +2,7 @@ package com.example.bookreader.utility.eventlistener;
 import android.util.Log;
 
 import androidx.core.util.Consumer;
-import com.example.bookreader.constants.GlobalEventType;
+
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;

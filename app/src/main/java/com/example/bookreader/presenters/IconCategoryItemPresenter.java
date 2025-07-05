@@ -24,8 +24,8 @@ public class IconCategoryItemPresenter extends RowHeaderPresenter {
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object o) {
-            if(o instanceof PageRow){
-                HeaderItem headerItem = ((PageRow) o).getHeaderItem();
+            if(o instanceof PageRow pageRow){
+                HeaderItem headerItem = pageRow.getHeaderItem();
                 View rootView = viewHolder.view;
                 rootView.setFocusable(View.FOCUSABLE);
                 ImageView iconView = rootView.findViewById(R.id.header_icon);

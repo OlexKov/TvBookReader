@@ -12,9 +12,8 @@ public class StableIdArrayObjectAdapter extends ArrayObjectAdapter {
 
     @Override
     public long getId(int position) {
-        Object item = get(position);
-        if (item instanceof ListRow) {
-            return ((ListRow) item).getId();
+        if (get(position) instanceof ListRow item) {
+            return item.getId();
         }
         return super.getId(position);
     }

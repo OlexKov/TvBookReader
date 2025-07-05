@@ -1,7 +1,6 @@
 package com.example.bookreader.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
@@ -9,7 +8,7 @@ import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
@@ -25,14 +24,15 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
         this.book = book;
     }
 
+    @androidx.annotation.NonNull
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
        // Bitmap bitmap = ...;
       //  Drawable drawable = new BitmapDrawable(getResources(), bitmap);
         return new GuidanceStylist.Guidance(
-                getContext().getString(R.string.q_delete_book),
+                getString(R.string.q_delete_book),
                 book.name,
-                getContext().getString(R.string.confirmation),
+                getString(R.string.confirmation),
                 ContextCompat.getDrawable(requireContext(), R.drawable.settings)
         );
     }
@@ -41,12 +41,12 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
         actions.add(new GuidedAction.Builder(requireContext())
                 .id(1)
-                .title(getContext().getString(R.string.yes)+", "+ getContext().getString(R.string.delete))
+                .title(getString(R.string.yes)+", "+ getString(R.string.delete))
                 .build());
 
         actions.add(new GuidedAction.Builder(requireContext())
                 .id(2)
-                .title(getContext().getString(R.string.cancel))
+                .title(getString(R.string.cancel))
                 .build());
     }
 

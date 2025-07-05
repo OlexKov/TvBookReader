@@ -11,7 +11,7 @@ import androidx.core.util.Consumer;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.constants.GlobalEventType;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 
 
