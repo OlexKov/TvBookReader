@@ -299,7 +299,6 @@ public class PageRowsFragment extends RowsSupportFragment {
     private final Consumer<Object> bookDeletedHandler = (rowBookData)->{
         if(rowBookData instanceof RowItemData){
             RowItemData bookData = (RowItemData) rowBookData;
-            boolean hasDeleted = false;
             List<ListRow> rowsToDelete = new ArrayList<>();
             for (int i = 0; i < rowsAdapter.size(); i++) {
                 Object item = rowsAdapter.get(i);
@@ -307,34 +306,42 @@ public class PageRowsFragment extends RowsSupportFragment {
                     ListRow row = (ListRow) item;
                     ArrayObjectAdapter rowAdapter = (ArrayObjectAdapter) row.getAdapter();
                     if (rowAdapter != null) {
-                        if (rowAdapter.remove(bookData.getBook())) {
-                            if (rowAdapter.size() == 0) {
+                        if(rowAdapter.indexOf(bookData.getBook())!= -1){
+                            if (rowAdapter.size() == 1) {
                                 rowsToDelete.add(row);
                             } else {
                                 RowUploadInfo info = rowsUploadInfo.get(row.getId());
                                 if (info != null) {
-                                    info.setMaxElements(info.getMaxElements() - 1);
+                                    if(rowAdapter.remove(bookData.getBook())){
+                                        info.setMaxElements(info.getMaxElements() - 1);
+                                        if(rowAdapter.size() == INIT_ADATTER_SIZE - 1 && rowAdapter.size() < info.getMaxElements()) {
+                                            Long categoryId = row.getHeaderItem().getId();
+                                            Long parentCategoryId = app.getSelectedParentCategoryHeader().getId();
+                                            loadRowBooks(parentCategoryId,categoryId,(info.getStartUploadPage() + INIT_PAGES_COUNT -1)*UPLOAD_SIZE ,1)
+                                                .thenAccept((books)->{
+                                                     requireActivity().runOnUiThread(()->{
+                                                         rowAdapter.add(rowAdapter.size(),books.get(0));
+                                                     });
+                                                });
+                                        }
+                                    }
                                 }
-//                                if(bookData.getRow().getId() != row.getId()){
-//                                    paginateRow(row,bookData.getBook().id);
-//                                }
                             }
-                            hasDeleted = true;
                         }
                     }
                 }
             }
-            if (hasDeleted) {
-                if (!rowsToDelete.isEmpty()) {
-                    for (ListRow row : rowsToDelete) {
-                        rowsAdapter.remove(row);
-                        rowsUploadInfo.remove(row.getId());
-                    }
-                    if (rowsAdapter.size() == 0) {
-                        app.updateCategoryCash();
-                    }
+
+            if (!rowsToDelete.isEmpty()) {
+                for (ListRow row : rowsToDelete) {
+                    rowsAdapter.remove(row);
+                    rowsUploadInfo.remove(row.getId());
+                }
+                if (rowsAdapter.size() == 0) {
+                    app.updateCategoryCash();
                 }
             }
+
         }
     };
 
@@ -349,85 +356,54 @@ public class PageRowsFragment extends RowsSupportFragment {
     private void paginateRow(ListRow selectedRow, BookDto selectedBook){
         if(selectedRow != null){
             RowUploadInfo info = rowsUploadInfo.get(selectedRow.getId());
-          //  if(info.isLoading())Log.d("Logp","Loading now!!!");
             if(info != null && !info.isLoading()){
                 ObjectAdapter objectAdapter = selectedRow.getAdapter();
                 if(objectAdapter instanceof ArrayObjectAdapter){
                     ArrayObjectAdapter adapter = (ArrayObjectAdapter)objectAdapter;
+                    int currentFocusPosition = adapter.indexOf(selectedBook);
                     int adapterSize = adapter.size();
+                    if(currentFocusPosition == info.getLastFocusPosition()) return;
+                    boolean isNext = currentFocusPosition > info.getLastFocusPosition();
+
                     if(info.getMaxElements() > adapterSize){
-                        boolean needUploadNext = false;
-                        boolean needUploadPrev = false;
-                        int lastUploadedPage ;
-                        int rightThresholdPosition = adapterSize - UPLOAD_THRESHOLD;
-                        int currentPosition = adapter.indexOf(selectedBook);
-                        boolean canUploadNext;
-                        if(adapterSize < INIT_ADATTER_SIZE){
-                            lastUploadedPage =  info.getStartUploadPage() + adapterSize / UPLOAD_SIZE - 1;
-                            canUploadNext = ((long) lastUploadedPage * UPLOAD_SIZE) <= info.getMaxElements();
-                            needUploadNext = (adapterSize == INIT_ADATTER_SIZE - UPLOAD_THRESHOLD) && canUploadNext;
+                        boolean needUpload = false;
+                        int lastUploadedPage =  info.getStartUploadPage() + INIT_PAGES_COUNT-1;
+                        if(isNext){
+                            boolean canUploadNext;
+                            int rightThresholdPosition = adapterSize - UPLOAD_THRESHOLD;
+                            canUploadNext = ((long) lastUploadedPage * UPLOAD_SIZE) < info.getMaxElements();
+                            needUpload = (currentFocusPosition >= rightThresholdPosition) && canUploadNext;
                         }
                         else{
-                            lastUploadedPage =  info.getStartUploadPage() + INIT_PAGES_COUNT-1;
-                            canUploadNext = ((long) lastUploadedPage * UPLOAD_SIZE) < info.getMaxElements();
-                            needUploadNext = (currentPosition >= rightThresholdPosition) && canUploadNext;
+                           needUpload = UPLOAD_THRESHOLD >= currentFocusPosition && info.getStartUploadPage() != 1;
                         }
 
-                        if(!needUploadNext){
-                            if(adapterSize < INIT_ADATTER_SIZE){
-
-                            }
-                            else{
-                                //  needUploadPrev = UPLOAD_THRESHOLD > currentPosition && info.getStartUploadPage() != 1;
-                            }
-
-
-                        }
-
-                        Log.d("Logp","adapter size - "+String.valueOf(adapterSize));
-                        Log.d("Logp","dbsize size - "+String.valueOf(info.getMaxElements()));
-                        Log.d("Logp","rightThresholdPosition - "+String.valueOf(rightThresholdPosition));
-                        Log.d("Logp","lastUploadedPage - "+String.valueOf(lastUploadedPage));
-                        Log.d("Logp","canUploadNext - "+String.valueOf(canUploadNext));
-                        Log.d("Logp","selected position - "+String.valueOf(currentPosition));
-                        Log.d("Logp","needUploadNext - "+String.valueOf(needUploadNext));
-                        Log.d("Logp","needUploadPrev - "+String.valueOf(needUploadPrev));
-                        Log.d("Logp","----------------------------------");
-
-
-                        if(needUploadNext  || needUploadPrev){
-
+                        if(needUpload){
                             Long categoryId = selectedRow.getHeaderItem().getId();
                             Long parentCategoryId = app.getSelectedParentCategoryHeader().getId();
-                            int uploadPage = needUploadNext ?  lastUploadedPage + 1: info.getStartUploadPage() - 1;
+                            int uploadPage = isNext ?  lastUploadedPage + 1: info.getStartUploadPage() - 1;
                             Log.d("Logp","uploadPage - "+String.valueOf(uploadPage));
-                             boolean finalNeedUploadNext = needUploadNext;
                             info.setLoading(true);
                             QueryFilter filter = new QueryFilter();
                             filter.setCategoryId(parentCategoryId);
                             filter.setInParentCategoryId(categoryId);
                             loadRowBooks(categoryId,parentCategoryId,uploadPage,UPLOAD_SIZE).thenAccept(books->{
-                                Log.d("Logp","parentCategoryId"+String.valueOf(parentCategoryId));
-                                Log.d("Logp","CategoryId"+String.valueOf(categoryId));
-                                Log.d("Logp","book count"+String.valueOf(books.size()));
                                 if(!books.isEmpty()){
                                     requireActivity().runOnUiThread(() -> {
-                                        Log.d("Logp","loading done ");
-                                        Log.d("Logp","----------------------------------");
-                                        updateRow(adapter,books,info,finalNeedUploadNext);
+                                        updateRow(adapter,books,info, isNext);
                                         info.setLoading(false);
+                                        info.setLastFocusPosition(adapter.indexOf(selectedBook));
                                     });
                                 }
-                               // requireActivity().runOnUiThread(() -> {info.setLoading(false);});
                             }).exceptionally(ex->{
                                 Log.e("ERROR", "Exception in future: " + ex.getMessage(), ex);
                                 return null;
                             });
                         }
+                        info.setLastFocusPosition(currentFocusPosition);
                     }
                 }
             }
-
         }
     }
 
