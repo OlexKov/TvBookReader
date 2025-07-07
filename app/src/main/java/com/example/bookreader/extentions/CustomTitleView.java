@@ -3,6 +3,7 @@ package com.example.bookreader.extentions;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -18,6 +19,7 @@ import androidx.leanback.widget.TitleViewAdapter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.listeners.HeaderButtonOnFocusListener;
 import com.example.bookreader.listeners.HeaderButtonOnKeyListener;
@@ -51,7 +53,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         app.getGlobalEventListener().unSubscribe(GlobalEventType.MENU_STATE_CHANGE_START, menuChangeButtonProcessorHandler);
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CHANGED,categoryChangeButtonProcessorHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_SELECTION_CHANGED,categoryChangeButtonProcessorHandler);
     }
 
     public CustomTitleView(Context context) {
@@ -132,9 +134,8 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     }
 
     private final Consumer<Object> menuChangeButtonProcessorHandler = (isMenuStartOpen)->{
-        String currentMainCategoryName = app.getSelectedParentCategoryHeader().getName();
-        if(currentMainCategoryName.equals(getContext().getString(R.string.all_category))
-                || !(boolean) isMenuStartOpen){
+        int currentMainCategoryIndex = app.getSelectedMainCategoryInfo().getIndex();
+        if(currentMainCategoryIndex == 0 || !(boolean) isMenuStartOpen){
             smoothDisplay(buttonContainer);
         }
         else{
@@ -142,9 +143,9 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         }
     };
 
-    private final Consumer<Object> categoryChangeButtonProcessorHandler = (category)->{
-        String cat = ((IconHeader) category).getName();
-        if(cat.equals(getContext().getString(R.string.all_category)) || !app.isMenuOpen()){
+    private final Consumer<Object> categoryChangeButtonProcessorHandler = (categoryInfo)->{
+        if(!(categoryInfo instanceof MainCategoryInfo info)) return;
+        if(info.getIndex() == 0 || !app.isMenuOpen()){
             smoothDisplay(buttonContainer);
         }
         else{
@@ -168,7 +169,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         });
 
         app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START, menuChangeButtonProcessorHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CHANGED,categoryChangeButtonProcessorHandler);
+        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_SELECTION_CHANGED,categoryChangeButtonProcessorHandler);
 
     }
     private void smoothHide(View view){

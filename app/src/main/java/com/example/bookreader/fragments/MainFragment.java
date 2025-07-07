@@ -20,6 +20,7 @@ import androidx.leanback.widget.VerticalGridView;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.Constants;
+import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
@@ -44,7 +45,7 @@ public class MainFragment extends BrowseSupportFragment {
         super.onViewCreated(view, savedInstanceState);
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
         setupEventListeners();
-        setTitle(getString(R.string.all_category));
+
          //  prepareBackgroundManager();
         setupUIElements();
         setupCategoryRows();
@@ -135,7 +136,6 @@ public class MainFragment extends BrowseSupportFragment {
        }
     };
 
-
     private final Consumer<Object> categoryCashUpdateHandler = (object)->{
         if(rowsAdapter.size() > 0){
             setupCategoryRows();
@@ -143,29 +143,41 @@ public class MainFragment extends BrowseSupportFragment {
     };
 
     private void setupCategoryRows() {
+        if (!app.isMenuOpen()){
+            startHeadersTransition(true);
+        }
         rowsAdapter.clear();
         BookRepository bookRepository = new BookRepository();
         bookRepository.getFavoriteBooksCount((count)->{
+
+            String allName = getString(R.string.all_category);
             if(count != null && count > 0){
-                rowsAdapter.add(0,new PageRow( new IconHeader(Constants.FAVORITE_CATEGORY_ID,
-                        getString(R.string.favorite),
-                        R.drawable.books_stack)));
+                String favoriteName = getString(R.string.favorite);
+                var iconHeader = new IconHeader(
+                        Constants.FAVORITE_CATEGORY_ID,
+                        favoriteName,
+                        R.drawable.books_stack);
+                rowsAdapter.add(0,new PageRow( iconHeader));
+                app.setSelectedMainCategoryInfo(
+                        new MainCategoryInfo(0,favoriteName, R.drawable.books_stack)
+                );
             }
-        });
-        rowsAdapter.add(new PageRow( new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category),R.drawable.books_stack)));
-        for (CategoryDto category:app.getCategoriesCash()){
-            if(category.booksCount > 0 && category.parentId == null){
-                IconHeader header = new IconHeader(category.id, category.name,category.iconId);
-                rowsAdapter.add(new PageRow(header));
+            else{
+                app.setSelectedMainCategoryInfo(
+                        new MainCategoryInfo(2,allName, R.drawable.books_stack)
+                );
             }
-        }
-        rowsAdapter.add(new DividerRow());
-        rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getString(R.string.settings),R.drawable.settings)));
-        requireActivity().runOnUiThread(() -> {
+            rowsAdapter.add( new PageRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID,allName,R.drawable.books_stack)));
+            setTitle(app.getSelectedMainCategoryInfo().getName());
+            for (CategoryDto category:app.getCategoriesCash()){
+                if(category.booksCount > 0 && category.parentId == null){
+                    rowsAdapter.add(new PageRow(new IconHeader(category.id, category.name,category.iconId)));
+                }
+            }
+            rowsAdapter.add(new DividerRow());
+            rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getString(R.string.settings),R.drawable.settings)));
             setAdapter(rowsAdapter);
-            if (!app.isMenuOpen()){
-                startHeadersTransition(true);
-            }
+
         });
     }
 }

@@ -9,6 +9,7 @@ import androidx.leanback.widget.ListRow;
 import androidx.room.Room;
 
 import com.example.bookreader.constants.Constants;
+import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -47,7 +48,7 @@ public class BookReaderApp  extends Application {
 
     @Getter
     @Setter
-    private IconHeader selectedParentCategoryHeader = new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID, "Всі",R.drawable.books_stack);
+    private MainCategoryInfo selectedMainCategoryInfo ;
 
     @Getter
     @Setter

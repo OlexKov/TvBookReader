@@ -10,6 +10,7 @@ import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowHeaderPresenter;
 
 import com.example.bookreader.BookReaderApp;
+import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.extentions.CustomTitleView;
 import com.example.bookreader.extentions.IconHeader;
@@ -24,21 +25,20 @@ public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHead
     @Override
     public void onHeaderSelected(RowHeaderPresenter.ViewHolder viewHolder, Row row) {
         if (row != null && row.getHeaderItem() != null) {
-            IconHeader iconHeader = (IconHeader) row.getHeaderItem();
+            if(!(row.getHeaderItem() instanceof  IconHeader iconHeader)) return;
             String title = row.getHeaderItem().getName();
             fragment.setTitle(title);
             View titleView  = fragment.getTitleView();
             if(titleView instanceof CustomTitleView customTitleView) {
                 customTitleView.setTitleIcon(ContextCompat.getDrawable(titleView.getContext(), iconHeader.iconResId));
             }
-
-            if(!title.equals(app.getSelectedParentCategoryHeader().getName())){
-                app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_CHANGED,iconHeader);
-                app.setSelectedParentCategoryHeader(iconHeader);
-            }
-
             Object adapterObj = fragment.getAdapter();
             if (adapterObj instanceof ArrayObjectAdapter adapter) {
+                if(!title.equals(app.getSelectedMainCategoryInfo().getName())){
+                    var categoryInfo = new MainCategoryInfo(adapter.indexOf(row),iconHeader.getName(),iconHeader.iconResId);
+                    app.setSelectedMainCategoryInfo(categoryInfo);
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_SELECTION_CHANGED,categoryInfo);
+                }
                 int position = adapter.indexOf(row);
                 if (position >= 0) {
                     fragment.setSelectedPosition(position, true);
