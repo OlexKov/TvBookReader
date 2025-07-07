@@ -6,4 +6,10 @@ public final class Constants {
     public static long UNSORTED_BOOKS_CATEGORY_ID = 111111111111111112L;
     public static long SETTINGS_CATEGORY_ID       = 111111111111111113L;
 
+    // Row page setting
+
+    public static int UPLOAD_SIZE = 5;
+    public static int INIT_ADAPTER_SIZE = UPLOAD_SIZE * 3;
+    public static int UPLOAD_THRESHOLD = UPLOAD_SIZE;
+
 }

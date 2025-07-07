@@ -23,7 +23,6 @@ import com.example.bookreader.data.database.entity.Category;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.Executors;
 
@@ -61,10 +60,6 @@ public class BookReaderApp  extends Application {
     @Getter
     private GlobalEventListener globalEventListener;
 
-
-
-
-
     public boolean isDataBaseInit(){
         return prefs.getBoolean("db_seeded", false);
     }
@@ -80,7 +75,6 @@ public class BookReaderApp  extends Application {
             globalEventListener.sendEvent(GlobalEventType.CATEGORY_CASH_UPDATED,null);
         });
     }
-
 
     @Override
     public void onCreate() {
