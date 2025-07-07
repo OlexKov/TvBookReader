@@ -21,6 +21,7 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.CustomTitleView;
@@ -42,8 +43,8 @@ public class MainFragment extends BrowseSupportFragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
-         setupEventListeners();
-         setTitle(getContext().getString(R.string.all_category));
+        setupEventListeners();
+        setTitle(getString(R.string.all_category));
          //  prepareBackgroundManager();
         setupUIElements();
         setupCategoryRows();
@@ -55,6 +56,7 @@ public class MainFragment extends BrowseSupportFragment {
         super.onDestroyView();
         app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
         app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_UPDATED,bookFavoriteUpdatedHandler);
+        app.getGlobalEventListener().subscribe(GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler);
     }
 
     private void setupUIElements(){
@@ -100,7 +102,24 @@ public class MainFragment extends BrowseSupportFragment {
         }
         app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
         app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler);
+        app.getGlobalEventListener().subscribe(GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler);
     }
+
+    private final Consumer<Object> categoryDeleteHandler = (categoryId)->{
+        if(!(categoryId instanceof  Long categoryToDeleteId)) return;
+        for (int i = 0; i < rowsAdapter.size(); i++) {
+            if(rowsAdapter.get(i) instanceof PageRow pageRow){
+                if(pageRow.getId() == categoryToDeleteId)
+                {
+                    rowsAdapter.remove(pageRow);
+                    if (!app.isMenuOpen()){
+                        startHeadersTransition(true);
+                    }
+                    return;
+                }
+            }
+        }
+    };
 
     private final Consumer<Object> bookFavoriteUpdatedHandler = (book)->{
        if(!(book instanceof  BookDto favoriteBook)) return;
@@ -118,7 +137,6 @@ public class MainFragment extends BrowseSupportFragment {
 
 
     private final Consumer<Object> categoryCashUpdateHandler = (object)->{
-
         if(rowsAdapter.size() > 0){
             setupCategoryRows();
         }
@@ -126,8 +144,15 @@ public class MainFragment extends BrowseSupportFragment {
 
     private void setupCategoryRows() {
         rowsAdapter.clear();
-
-        rowsAdapter.add(new PageRow( new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID, getContext().getString(R.string.all_category),R.drawable.books_stack)));
+        BookRepository bookRepository = new BookRepository();
+        bookRepository.getFavoriteBooksCount((count)->{
+            if(count != null && count > 0){
+                rowsAdapter.add(0,new PageRow( new IconHeader(Constants.FAVORITE_CATEGORY_ID,
+                        getString(R.string.favorite),
+                        R.drawable.books_stack)));
+            }
+        });
+        rowsAdapter.add(new PageRow( new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category),R.drawable.books_stack)));
         for (CategoryDto category:app.getCategoriesCash()){
             if(category.booksCount > 0 && category.parentId == null){
                 IconHeader header = new IconHeader(category.id, category.name,category.iconId);
@@ -135,7 +160,7 @@ public class MainFragment extends BrowseSupportFragment {
             }
         }
         rowsAdapter.add(new DividerRow());
-        rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getContext().getString(R.string.settings),R.drawable.settings)));
+        rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getString(R.string.settings),R.drawable.settings)));
         requireActivity().runOnUiThread(() -> {
             setAdapter(rowsAdapter);
             if (!app.isMenuOpen()){

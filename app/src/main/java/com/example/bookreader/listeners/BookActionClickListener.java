@@ -1,13 +1,12 @@
 package com.example.bookreader.listeners;
 
-import android.app.Activity;
 import android.content.Context;
 import android.widget.Toast;
 
+import androidx.core.util.Consumer;
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.Action;
-import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.OnActionClickedListener;
 import androidx.leanback.widget.SparseArrayObjectAdapter;
 
@@ -15,16 +14,17 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.fragments.DeleteBookFragment;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
+
 
 public class BookActionClickListener implements OnActionClickedListener {
     private final Context context;
     private final BookDto book;
     private final SparseArrayObjectAdapter actionsAdapter;
-    private final BookReaderApp app  =BookReaderApp.getInstance();
+    private final BookReaderApp app = BookReaderApp.getInstance();
+    private boolean favoriteToggled = false;
 
     public BookActionClickListener(Context context, BookDto book, SparseArrayObjectAdapter actionsAdapter) {
         this.context = context;
@@ -52,25 +52,30 @@ public class BookActionClickListener implements OnActionClickedListener {
                 //Toast.makeText(context, "видалити...", Toast.LENGTH_SHORT).show();
                 break;
             case BOOK_TOGGLE_FAVORITE:
-                BookRepository bookRepo = new BookRepository();
+                favoriteToggled = !favoriteToggled;
                 int index = actionsAdapter.indexOf(action);
-                if(!book.isFavorite){
-                    bookRepo.addBookAToFavorite(book.id,(v)->{
-                        action.setLabel1(context.getString(R.string.remove_from_favorite));
-                        actionsAdapter.notifyArrayItemRangeChanged(index, 1);
-                    });
-                    book.isFavorite = true;
-                }
-                else{
-                     bookRepo.removeBookFromFavorite(book.id,(v)-> {
-                         action.setLabel1(context.getString(R.string.add_to_favorite));
-                         actionsAdapter.notifyArrayItemRangeChanged(index, 1);
-                     });
-                    book.isFavorite = false;
-                }
-                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
-                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_FAVORITE_UPDATED,book);
+                book.isFavorite = !book.isFavorite;
+                action.setLabel1(context.getString(
+                        book.isFavorite ? R.string.remove_from_favorite : R.string.add_to_favorite));
+                actionsAdapter.notifyArrayItemRangeChanged(index, 1);
                 break;
         }
     }
+
+    public void postProcessing(){
+        if(favoriteToggled){
+            BookRepository bookRepo = new BookRepository();
+            Consumer<Long> postToggleHandler = (o)->{
+                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
+                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_FAVORITE_UPDATED,book);
+            };
+            if(book.isFavorite){
+                bookRepo.addBookToFavorite(book.id,postToggleHandler);
+            }
+            else{
+                bookRepo.removeBookFromFavorite(book.id,postToggleHandler);
+            }
+        }
+    }
+
 }

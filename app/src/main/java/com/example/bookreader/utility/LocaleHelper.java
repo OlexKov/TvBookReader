@@ -9,6 +9,7 @@ import android.os.Build;
 import java.util.Locale;
 
 public class LocaleHelper {
+    public static final String PREF_LANGUAGE = "app_language";
 
     public static Context setLocale(Context context, String languageCode) {
         Locale locale = new Locale(languageCode);

@@ -12,7 +12,8 @@ public enum GlobalEventType {
     ROW_SELECTED_CHANGE(8),
     ITEM_SELECTED_CHANGE(9),
     CATEGORY_CASH_UPDATED(10),
-    BOOK_FAVORITE_UPDATED(11);
+    BOOK_FAVORITE_UPDATED(11),
+    NEED_DELETE_CATEGORY(12);
 
 
     private final int id;

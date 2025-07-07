@@ -33,7 +33,6 @@ public class MainActivity extends FragmentActivity {
         super.attachBaseContext(LocaleHelper.setLocale(newBase, "uk"));  // або інша мова
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

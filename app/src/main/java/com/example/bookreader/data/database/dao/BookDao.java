@@ -20,10 +20,12 @@ public interface BookDao {
     int deleteById(long bookId);
 
     @Query("SELECT * FROM books")
-    List<BookDto> getAll();
+    List<BookDto> getAllRange();
 
     @Query("SELECT * FROM books WHERE id = :bookId")
     BookDto getById(long bookId);
+
+    /// ------------- Favorite ------------
 
     @Query("UPDATE books SET isFavorite = 1 WHERE id = :bookId")
     void markBookAsFavorite(long bookId);
@@ -31,7 +33,16 @@ public interface BookDao {
     @Query("UPDATE books SET isFavorite = 0 WHERE id = :bookId")
     void unmarkBookAsFavorite(long bookId);
 
+    @Query("SELECT * FROM books WHERE isFavorite = 1 " +
+            "ORDER BY creationDate DESC " +
+            "LIMIT :size OFFSET (:page -1) * :size" )
+    List<BookDto> getFavoriteBooks(int page,int size);
+
+
     /// --------------Count query -----------------------------
+
+    @Query("SELECT COUNT(*) FROM books WHERE isFavorite = 1 ")
+    Long getFavoriteBooksCount();
 
     @Query("SELECT COUNT(*) FROM books")
     Long getAllCount();
@@ -57,29 +68,29 @@ public interface BookDao {
 
     @Query("SELECT * FROM books " +
             "WHERE isFavorite  ORDER BY creationDate DESC " +
-            "LIMIT :size OFFSET (:page -1) * :size")
-    List<BookDto> getFavorites(int page,int size);
+            "LIMIT :limit OFFSET :offset")
+    List<BookDto> getFavoritesRange(int offset, int limit);
 
-    @Query("SELECT * FROM books ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
-    List<BookDto> getAll(int page,int size);
+    @Query("SELECT * FROM books ORDER BY creationDate DESC LIMIT :limit OFFSET :offset")
+    List<BookDto> getAllRange(int offset, int limit);
 
     @Query("SELECT * FROM books WHERE categoryId IS NULL " +
-            "ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
-    List<BookDto> getUnsorted(int page,int size);
+            "ORDER BY creationDate DESC LIMIT :limit OFFSET :offset")
+    List<BookDto> getUnsortedRange(int offset, int limit);
 
     @Query("SELECT * FROM books  " +
             "WHERE categoryId = :categoryId "+
             "AND categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) "+
-            "ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
-    List<BookDto> getUnsortedByCategoryId(Long categoryId,int page,int size);
+            "ORDER BY creationDate DESC LIMIT :limit OFFSET :offset")
+    List<BookDto> getUnsortedByCategoryIdRange(Long categoryId, int offset, int limit);
 
     @Query( "SELECT * FROM books "+
             "WHERE categoryId = :categoryId "+
             "OR categoryId IN " +
                "( SELECT id FROM categories "+
                "WHERE parentId = :categoryId) "+
-            "ORDER BY creationDate DESC LIMIT :size OFFSET (:page -1) * :size")
-    List<BookDto> getAllByCategoryId(long categoryId,int page,int size);
+            "ORDER BY creationDate DESC LIMIT :limit OFFSET :offset")
+    List<BookDto> getAllByCategoryIdRange(long categoryId, int offset, int limit);
 
 
 

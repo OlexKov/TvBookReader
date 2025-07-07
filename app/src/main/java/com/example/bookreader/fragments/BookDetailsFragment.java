@@ -31,18 +31,27 @@ import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.presenters.StringPresenter;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
-    private static final int DETAIL_THUMB_WIDTH = 280;
-    private static final int DETAIL_THUMB_HEIGHT = 400;
+    private static final int DETAIL_THUMB_WIDTH = 360;
+    private static final int DETAIL_THUMB_HEIGHT = 460;
 
 
     private static final String TAG = "MediaItemDetailsFragment";
     private final SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
     private  BookDto book;
+    BookActionClickListener clickListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         buildDetails();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(clickListener != null){
+            clickListener.postProcessing();
+        }
     }
 
     @Override
@@ -56,8 +65,9 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         Object serializedBook = getActivity().getIntent().getSerializableExtra("BOOK");
         if(!(serializedBook instanceof  BookDto bookDto)) return;
         book = bookDto;
+        clickListener = new BookActionClickListener(getContext(),book,actionAdapter);
          // Attach your media item details presenter to the row presenter:
-        ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(book);
+        ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(book,clickListener);
         setDetailsOverview(rowsAdapter,book);
         setAdditionalMediaRow(rowsAdapter);
         setAdapter(rowsAdapter);
@@ -102,14 +112,13 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                 });
     }
 
-    private ArrayObjectAdapter  AttachBookDetailsPresenter(BookDto book){
+    private ArrayObjectAdapter  AttachBookDetailsPresenter(BookDto book,BookActionClickListener clickListener){
         ClassPresenterSelector selector = new ClassPresenterSelector();
 
         // Attach your media item details presenter to the row presenter:
         FullWidthDetailsOverviewRowPresenter rowPresenter =
-                new CustomBookDetailsPresenter(
-                        new BookDetailsPresenter());
-        rowPresenter.setOnActionClickedListener(new BookActionClickListener(getContext(),book,actionAdapter));
+                new CustomBookDetailsPresenter(new BookDetailsPresenter());
+        rowPresenter.setOnActionClickedListener(clickListener);
         selector.addClassPresenter(DetailsOverviewRow.class, rowPresenter);
         selector.addClassPresenter(ListRow.class,  new ListRowPresenter());
         return new ArrayObjectAdapter(selector);

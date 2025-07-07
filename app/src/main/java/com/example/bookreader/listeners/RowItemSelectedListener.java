@@ -16,18 +16,14 @@ public class RowItemSelectedListener implements OnItemViewSelectedListener {
     @Override
     public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if(!(row instanceof ListRow listRow) || !(item instanceof BookDto book)) return;
-        if(listRow != app.getSelectedRow()){
-            if(app.getSelectedRow() != null){
-                app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_SELECTED_CHANGE, new RowItemData(listRow,book));
-            }
+        if(app.getSelectedRow() == null || listRow != app.getSelectedRow()){
             app.setSelectedRow(listRow);
+            app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_SELECTED_CHANGE, new RowItemData(listRow,book));
         }
 
-        if(book != app.getSelectedItem()){
-            if(app.getSelectedItem() != null){
-                app.getGlobalEventListener().sendEvent(GlobalEventType.ITEM_SELECTED_CHANGE,new RowItemData(listRow,book));
-            }
+        if(app.getSelectedItem() == null || book.id != app.getSelectedItem().id){
             app.setSelectedItem(book);
+            app.getGlobalEventListener().sendEvent(GlobalEventType.ITEM_SELECTED_CHANGE,new RowItemData(listRow,book));
         }
     }
 }

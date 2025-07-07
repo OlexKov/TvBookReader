@@ -3,9 +3,6 @@ package com.example.bookreader;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.os.Build;
 import android.util.Log;
 
 import androidx.leanback.widget.ListRow;
@@ -24,6 +21,7 @@ import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -33,6 +31,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class BookReaderApp  extends Application {
+    private  SharedPreferences prefs;
+    private final List<CategoryDto> categoriesCash = new ArrayList<>();
+
     // Глобальний доступ до інстансу MyApp
     @Getter
     private static BookReaderApp instance;
@@ -40,10 +41,6 @@ public class BookReaderApp  extends Application {
     // Глобальний доступ до бази даних
     @Getter
     private BookDb appDatabase;
-
-    public boolean isDataBaseInit(){
-        return prefs.getBoolean("db_seeded", false);
-    }
 
     @Getter
     @Setter
@@ -64,28 +61,26 @@ public class BookReaderApp  extends Application {
     @Getter
     private GlobalEventListener globalEventListener;
 
-    private SharedPreferences prefs;
 
-    @Getter
-    private List<CategoryDto> categoriesCash = new ArrayList<>();
+
+
+
+    public boolean isDataBaseInit(){
+        return prefs.getBoolean("db_seeded", false);
+    }
+
+    public List<CategoryDto> getCategoriesCash(){
+        return Collections.unmodifiableList(categoriesCash);
+    }
 
     public void updateCategoryCash(){
         Executors.newSingleThreadExecutor().execute(() -> {
-            categoriesCash = appDatabase.categoryDao().getAllParentWithBookCount();
+            categoriesCash.clear();
+            categoriesCash.addAll(appDatabase.categoryDao().getAllParentWithBookCount());
             globalEventListener.sendEvent(GlobalEventType.CATEGORY_CASH_UPDATED,null);
         });
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        updateLocale(this, new Locale("uk"));  // або змінну збережену в SharedPreferences
-    }
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(updateLocale(base, new Locale("uk")));
-    }
 
     @Override
     public void onCreate() {
@@ -101,21 +96,6 @@ public class BookReaderApp  extends Application {
                 .build();
     }
 
-    public static Context updateLocale(Context context, Locale locale) {
-        Locale.setDefault(locale);
-        Resources resources = context.getResources();
-        Configuration config = new Configuration(resources.getConfiguration());
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            config.setLocale(locale);
-            context = context.createConfigurationContext(config);
-        } else {
-            config.locale = locale;
-            resources.updateConfiguration(config, resources.getDisplayMetrics());
-        }
-        return context;
-    }
-
     public void DataBaseInit(){
             Log.d("Info","Data init");
             Executors.newSingleThreadExecutor().execute(() -> {
@@ -126,7 +106,7 @@ public class BookReaderApp  extends Application {
                 for (int i = 0; i < 10;i++){
                      bdao.insert( Book.builder()
                             .name("книга - " + i)
-                             .isFavorite(random.nextInt(100) > 80)
+                            .isFavorite(i%2==0)
                             .categoryId(null)
                             .build());
                 }
@@ -142,7 +122,7 @@ public class BookReaderApp  extends Application {
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
                             .name("Категорія 1 - Субкатегорія 1 - книга - " + i)
-                            .isFavorite(random.nextInt(100)>70)
+                            .isFavorite(i%2==0)
                             .categoryId(subcategoryId)
                             .build());
                 }
@@ -155,15 +135,15 @@ public class BookReaderApp  extends Application {
                     bdao.insert( Book.builder()
                             .name("Категорія 1 - Субкатегорія 2 - книга - " + i)
                             .categoryId(subcategoryId)
-                            .isFavorite(random.nextInt(100)>90)
+                            .isFavorite(i%2==0)
                             .build());
                 }
 
-                for (int i = 0; i < 5;i++){
+                for (int i = 0; i < 7;i++){
                     bdao.insert( Book.builder()
                             .name("Категорія 1 - книга - " + i)
                             .categoryId(categoryId)
-                            .isFavorite(random.nextInt(100)>95)
+                            .isFavorite(i%2==0)
                             .build());
                 }
 
@@ -193,14 +173,12 @@ public class BookReaderApp  extends Application {
                     bdao.insert( Book.builder()
                             .name("Категорія 2 - Субкатегорія 2 - книга - " + i)
                             .categoryId(subcategoryId)
-                            .isFavorite(random.nextInt(100)>95)
                             .build());
                 }
-                for (int i = 0; i < 5;i++){
+                for (int i = 0; i < 7;i++){
                     bdao.insert( Book.builder()
                             .name("Категорія 2 - книга - " + i)
                             .categoryId(categoryId)
-                            .isFavorite(random.nextInt(100)>95)
                             .build());
                 }
 
@@ -215,7 +193,7 @@ public class BookReaderApp  extends Application {
                         .build());
 
                 prefs.edit().putBoolean("db_seeded", true).apply();
-                categoriesCash = appDatabase.categoryDao().getAllParentWithBookCount();
+                categoriesCash.addAll(appDatabase.categoryDao().getAllParentWithBookCount());
                 globalEventListener.sendEvent(GlobalEventType.DATABASE_DONE,null);
             });
         }

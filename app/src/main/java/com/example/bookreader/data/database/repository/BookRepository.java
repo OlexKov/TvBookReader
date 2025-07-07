@@ -36,14 +36,31 @@ public class BookRepository {
 
     ///  toggle favorites
 
-    public CompletableFuture<Void> addBookAToFavoriteAsync(Long bookId) {
-        return CompletableFuture.runAsync(() -> bookDao.markBookAsFavorite(bookId));
-    }
-    public CompletableFuture<Void> removeBookFromFavoriteAsync(Long bookId) {
-        return CompletableFuture.runAsync(() -> bookDao.unmarkBookAsFavorite(bookId));
+    public CompletableFuture<PaginationResultData<BookDto>> getPageDataFavoriteBooksAsync(int page, int size){
+        CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(bookDao::getFavoriteBooksCount);
+        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getFavoritesRange((page - 1) * size, size));
+        return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {
+            PaginationResultData<BookDto> result = new PaginationResultData<>();
+            result.setData(bookList.join());
+            result.setTotal(booksCount.join());
+            return result;
+        });
     }
 
-    public void addBookAToFavorite(Long bookId ,Consumer<Long> callback) {
+    public CompletableFuture<List<BookDto>> getRangeFavoriteBooksAsync(int offset, int limit){
+        return CompletableFuture.supplyAsync(() -> bookDao.getFavoritesRange(offset, limit));
+    }
+
+    public void getFavoriteBooksCount(Consumer<Long> callback) {
+        executorService.execute(() -> {
+            Long count =  bookDao.getFavoriteBooksCount();
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(count);
+            });
+        });
+    }
+
+    public void addBookToFavorite(Long bookId , Consumer<Long> callback) {
         executorService.execute(() -> {
             bookDao.markBookAsFavorite(bookId);
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -67,7 +84,7 @@ public class BookRepository {
 
     public CompletableFuture<PaginationResultData<BookDto>> getPageDataAllBooksAsync(int page, int size){
         CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(bookDao::getAllCount);
-        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getAll(page, size));
+        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getAllRange((page - 1) * size, size));
         return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {
             PaginationResultData<BookDto> result = new PaginationResultData<>();
             result.setData(bookList.join());
@@ -76,15 +93,15 @@ public class BookRepository {
         });
     }
 
-    public CompletableFuture<List<BookDto>> getPageAllBooksAsync(int page,int size){
-         return CompletableFuture.supplyAsync(() -> bookDao.getAll(page, size));
+    public CompletableFuture<List<BookDto>> getRangeAllBooksAsync(int offset, int limit){
+         return CompletableFuture.supplyAsync(() -> bookDao.getAllRange(offset, limit));
     }
 
     //getAllBooksByCategoryId
 
     public CompletableFuture<PaginationResultData<BookDto>> getPageDataAllBooksInCategoryIdAsync(Long categoryId, int page, int size){
         CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(categoryId));
-        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getAllByCategoryId(categoryId,page, size));
+        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getAllByCategoryIdRange(categoryId,(page - 1) * size, size));
         return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {
             PaginationResultData<BookDto> result = new PaginationResultData<>();
             result.setData(bookList.join());
@@ -92,14 +109,14 @@ public class BookRepository {
             return result;
         });
     }
-    public CompletableFuture<List<BookDto>> getPageAllBooksInCategoryIdAsync(Long categoryId, int page, int size){
-        return  CompletableFuture.supplyAsync(() -> bookDao.getAllByCategoryId(categoryId,page, size));
+    public CompletableFuture<List<BookDto>> getRangeAllBooksInCategoryIdAsync(Long categoryId, int offset, int limit){
+        return  CompletableFuture.supplyAsync(() -> bookDao.getAllByCategoryIdRange(categoryId,offset, limit));
     }
 
     //get unsorted books
     public CompletableFuture<PaginationResultData<BookDto>> getPageDataUnsortedBooksAsync(int page, int size){
         CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(bookDao::getUnsortedCount);
-        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getUnsorted(page, size));
+        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getUnsortedRange((page - 1) * size, size));
         return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {
             PaginationResultData<BookDto> result = new PaginationResultData<>();
             result.setData(bookList.join());
@@ -108,15 +125,15 @@ public class BookRepository {
         });
     }
 
-    public CompletableFuture<List<BookDto>> getPageUnsortedBooksAsync(int page, int size){
-        return CompletableFuture.supplyAsync(() -> bookDao.getUnsorted(page, size));
+    public CompletableFuture<List<BookDto>> getRangeUnsortedBooksAsync(int offset, int limit){
+        return CompletableFuture.supplyAsync(() -> bookDao.getUnsortedRange(offset, limit));
     }
 
 
 
     public CompletableFuture<PaginationResultData<BookDto>> getPageDataUnsortedBooksByCategoryIdAsync(Long categoryId, int page, int size){
         CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCount(categoryId));
-        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getUnsortedByCategoryId(categoryId,page, size));
+        CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getUnsortedByCategoryIdRange(categoryId,(page - 1) * size, size));
         return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {
             PaginationResultData<BookDto> result = new PaginationResultData<>();
             result.setData(bookList.join());
@@ -125,8 +142,8 @@ public class BookRepository {
         });
     }
 
-    public CompletableFuture<List<BookDto>> getPageUnsortedBooksBuCategoryIdAsync(Long categoryId, int page, int size){
-        return CompletableFuture.supplyAsync(() -> bookDao.getUnsortedByCategoryId(categoryId,page, size));
+    public CompletableFuture<List<BookDto>> getRageUnsortedBooksByCategoryIdAsync(Long categoryId, int offset, int limit){
+        return CompletableFuture.supplyAsync(() -> bookDao.getUnsortedByCategoryIdRange(categoryId,offset, limit));
     }
 
     //deleteBook
