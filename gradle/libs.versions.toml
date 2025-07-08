@@ -1,6 +1,8 @@
 [versions]
 activity = "1.10.1"
 agp = "8.11.0"
+androidPdfViewer = "3.2.0-beta.1"
+androidPdfViewerVersion = "3.2.0-beta.3"
 appcompat = "1.7.1"
 djvulibre = "0.1.4"
 githubPdfboxAndroid = "master-SNAPSHOT"
@@ -9,8 +11,11 @@ leanback = "1.2.0"
 glide = "4.11.0"
 lombok = "1.18.30"
 lombokVersion = "1.18.38"
+pdfbox = "3.0.5"
 pdfboxAndroid = "2.0.27.0"
 pdfboxAndroidVersion = "2.0.27.0"
+pdfiumAndroid = "1.9.0"
+pdfiumAndroidVersion = "1.9.2"
 roomCompiler = "2.7.2"
 roomCompilerVersion = "2.6.1"
 roomRuntime = "2.6.1"
@@ -19,6 +24,7 @@ tomRoushPdfboxAndroid = "2.0.27.0"
 tomRoushPdfboxAndroidVersion = "2.0.27.0"
 
 [libraries]
+android-pdf-viewer = { module = "com.github.barteksc:android-pdf-viewer", version.ref = "androidPdfViewer" }
 androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
@@ -31,7 +37,11 @@ glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "gl
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-v11838 = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }
+mhiew-android-pdf-viewer = { module = "com.github.mhiew:android-pdf-viewer", version.ref = "androidPdfViewerVersion" }
+mhiew-pdfium-android = { module = "com.github.mhiew:pdfium-android", version.ref = "pdfiumAndroidVersion" }
+pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 pdfbox-android = { module = "org.apache.pdfbox:pdfbox-android", version.ref = "pdfboxAndroid" }
+pdfium-android = { module = "com.github.barteksc:pdfium-android", version.ref = "pdfiumAndroid" }
 projectlombok-lombok = { module = "org.projectlombok:lombok" }
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
 tom-roush-pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "tomRoushPdfboxAndroidVersion" }

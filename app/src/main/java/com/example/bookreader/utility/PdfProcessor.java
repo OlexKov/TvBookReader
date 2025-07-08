@@ -2,25 +2,41 @@ package com.example.bookreader.utility;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.pdf.PdfRenderer;
 import android.os.ParcelFileDescriptor;
 
 import com.example.bookreader.customclassses.BookInfo;
 import com.example.bookreader.interfaces.BookProcessor;
-import com.tom_roush.pdfbox.pdmodel.PDDocument;
-import com.tom_roush.pdfbox.pdmodel.PDDocumentInformation;
+
+
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSDocument;
+import org.apache.pdfbox.io.RandomAccessRead;
+import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
+import org.apache.pdfbox.io.RandomAccessStreamCache;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+
 
 public class PdfProcessor implements BookProcessor {
+
+    @Override
     public BookInfo processFile(Context context, File pdfFile) throws IOException {
         String title;
         String author;
         int pageCount;
+
         // 1. Метадані PDF
-        try (PDDocument document = PDDocument.load(pdfFile)) {
+        RandomAccessRead rar = new RandomAccessReadBufferedFile(pdfFile);
+        try (PDDocument document = Loader.loadPDF(rar)) {
             PDDocumentInformation info = document.getDocumentInformation();
             title = info.getTitle();
             author = info.getAuthor();
@@ -41,8 +57,12 @@ public class PdfProcessor implements BookProcessor {
 
             PdfRenderer.Page page = renderer.openPage(0);
 
-            bitmap = Bitmap.createBitmap(page.getWidth(), page.getHeight(), Bitmap.Config.ARGB_8888);
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+            int previewWidth = page.getWidth() / 2;
+            int previewHeight = page.getHeight() / 2;
+            bitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
+            Matrix matrix = new Matrix();
+            matrix.setScale(0.5f, 0.5f);
+            page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
             page.close();
         }
 

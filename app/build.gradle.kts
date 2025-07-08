@@ -13,7 +13,9 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
+//        ndk {
+//            abiFilters += listOf("arm64-v8a")
+//        }
     }
 
     packaging {
@@ -58,8 +60,9 @@ dependencies {
     compileOnly (libs.lombok.v11838)
     annotationProcessor (libs.lombok.v11838)
 
-    //PdfBox
-    implementation(libs.tom.roush.pdfbox.android)
+    //Pdf
+    implementation(libs.pdfbox)
+    implementation(libs.mhiew.pdfium.android)
 
     //epublib
     implementation("nl.siegmann.epublib:epublib-core:3.1") {

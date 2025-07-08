@@ -135,7 +135,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
 
     private final Consumer<Object> menuChangeButtonProcessorHandler = (isMenuStartOpen)->{
         int currentMainCategoryIndex = app.getSelectedMainCategoryInfo().getIndex();
-        if(currentMainCategoryIndex == 0 || !(boolean) isMenuStartOpen){
+        if(currentMainCategoryIndex <= 1 || !(boolean) isMenuStartOpen){
             smoothDisplay(buttonContainer);
         }
         else{
@@ -145,7 +145,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
 
     private final Consumer<Object> categoryChangeButtonProcessorHandler = (categoryInfo)->{
         if(!(categoryInfo instanceof MainCategoryInfo info)) return;
-        if(info.getIndex() == 0 || !app.isMenuOpen()){
+        if(info.getIndex() <= 1 || !app.isMenuOpen()){
             smoothDisplay(buttonContainer);
         }
         else{
