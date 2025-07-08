@@ -1,62 +1,46 @@
 package com.example.bookreader.utility;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.pdf.PdfRenderer;
+import android.net.Uri;
 import android.os.ParcelFileDescriptor;
-
 import com.example.bookreader.customclassses.BookInfo;
 import com.example.bookreader.interfaces.BookProcessor;
-
-
 import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.io.RandomAccessRead;
 import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
-import org.apache.pdfbox.io.RandomAccessStreamCache;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
+
 
 
 public class PdfProcessor implements BookProcessor {
 
     @Override
-    public BookInfo processFile(Context context, File pdfFile) throws IOException {
-        String title;
-        String author;
-        int pageCount;
+    public BookInfo processFile(Context context, File bookFile) throws IOException {
+        BookInfo result = new BookInfo();
 
         // 1. Метадані PDF
-        RandomAccessRead rar = new RandomAccessReadBufferedFile(pdfFile);
+        RandomAccessRead rar = new RandomAccessReadBufferedFile(bookFile);
         try (PDDocument document = Loader.loadPDF(rar)) {
             PDDocumentInformation info = document.getDocumentInformation();
-            title = info.getTitle();
-            author = info.getAuthor();
-            pageCount = document.getNumberOfPages();
-        }
-
-        if (title == null || title.trim().isEmpty()) {
-            title = pdfFile.getName();
-        }
-        if (author == null || author.trim().isEmpty()) {
-            author = "Unknown";
+            result.title = info.getTitle();
+            result.author = info.getAuthor();
+            result.pageCount = document.getNumberOfPages();
         }
 
         // 2. Рендер першої сторінки
         Bitmap bitmap;
-        try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY);
-             PdfRenderer renderer = new PdfRenderer(fd)) {
+
+        try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY);
+             PdfRenderer renderer = new PdfRenderer(fd);) {
 
             PdfRenderer.Page page = renderer.openPage(0);
-
             int previewWidth = page.getWidth() / 2;
             int previewHeight = page.getHeight() / 2;
             bitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
@@ -65,12 +49,18 @@ public class PdfProcessor implements BookProcessor {
             page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
             page.close();
         }
+        if (result.title == null || result.title.trim().isEmpty()) {
+            result.title = bookFile.getName();
+        }
+        if (result.author == null || result.author.trim().isEmpty()) {
+            result.author = "Unknown";
+        }
 
         // 3. Збереження прев’ю
         File previewDir = new File(context.getFilesDir(), "previews");
         if (!previewDir.exists()) previewDir.mkdirs();
 
-        String baseName = pdfFile.getName();
+        String baseName = bookFile.getName();
         if (baseName.toLowerCase().endsWith(".pdf")) {
             baseName = baseName.substring(0, baseName.length() - 4);
         }
@@ -83,13 +73,16 @@ public class PdfProcessor implements BookProcessor {
         }
 
         // 4. Повернення даних
-        BookInfo result = new BookInfo();
-        result.title = title;
-        result.author = author;
-        result.pageCount = pageCount;
-        result.filePath = pdfFile.getAbsolutePath();
+        result.filePath = bookFile.getAbsolutePath();
         result.previewPath = previewFile.getAbsolutePath();
 
         return result;
+    }
+
+
+    @Override
+    public BookInfo processFile(Context context, Uri bookUri) throws IOException {
+         File bookFile = new File(UriHelper.getPath(context,bookUri));
+         return processFile(context,bookFile);
     }
 }
