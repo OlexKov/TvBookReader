@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1. Шар кольору (фон кнопки) -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#5A7790" />
+        </shape>
+    </item>
+
+    <!-- 2. Шар обводки (поверх) -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="1.5dp" android:color="#D9878787"/>
+        </shape>
+    </item>
+
+</layer-list>

@@ -1,10 +1,14 @@
 package com.example.bookreader.fragments;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.util.Consumer;
 import androidx.leanback.app.BrowseSupportFragment;
@@ -15,14 +19,18 @@ import androidx.leanback.widget.DividerRow;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
-import androidx.leanback.widget.VerticalGridView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.activities.FileBrowserActivity;
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.interfaces.BookProcessor;
+import com.example.bookreader.utility.EpubProcessor;
+import com.example.bookreader.utility.pdf.PdfProcessor;
+import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.CustomTitleView;
@@ -33,12 +41,16 @@ import com.example.bookreader.listeners.BrowserTransitionListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
+import java.io.IOException;
+import java.util.Objects;
+
 public class MainFragment extends BrowseSupportFragment {
    // private BackgroundManager mBackgroundManager;
   //  private Drawable mDefaultBackground;
   //  private DisplayMetrics mMetrics;
     private ArrayObjectAdapter rowsAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
+    private ActivityResultLauncher<Intent> filePickerLauncher;
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -50,6 +62,43 @@ public class MainFragment extends BrowseSupportFragment {
         setupUIElements();
         setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
+
+
+        filePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri selectedUri = result.getData().getData();
+                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedUri), "pdf")
+                                ? new PdfProcessor()
+                                : new EpubProcessor();
+
+
+                        try {
+                            bookProcessor.processFileAsync(getContext(), selectedUri).thenAccept((bookInfo) -> {
+                                requireActivity().runOnUiThread(() -> {
+                                    new android.app.AlertDialog.Builder(requireActivity())
+                                            .setMessage("Title - " + bookInfo.title + "\n" +
+                                                    "Author - " + bookInfo.author + "\n" +
+                                                    "Pages - " + bookInfo.pageCount + "\n" +
+                                                    "File - " + bookInfo.filePath + "\n" +
+                                                    "Preview - " + bookInfo.previewPath + "\n")
+                                            .setPositiveButton("Закрити", (dialog, which) -> {
+                                                dialog.dismiss(); // закриває діалог
+                                            })
+                                            .setCancelable(true) // можна закрити тапом поза вікном
+                                            .show();
+                                });
+
+
+                            });
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+        );
+
     }
 
     @Override
@@ -86,7 +135,6 @@ public class MainFragment extends BrowseSupportFragment {
 //        getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
 //    }
 
-
     private void setupEventListeners(){
         setBrowseTransitionListener(new BrowserTransitionListener());
         //Зміна заголовку відповідно до обраної категорії
@@ -96,8 +144,18 @@ public class MainFragment extends BrowseSupportFragment {
         }
 
         if(getTitleView() instanceof CustomTitleView customsView){
-            customsView.setOnButton1ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 1", Toast.LENGTH_SHORT).show());
-            customsView.setOnButton2ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 2", Toast.LENGTH_SHORT).show());
+            customsView.setOnButton1ClickListener((v)->{
+
+
+            });
+
+            customsView.setOnButton2ClickListener((v)->{
+                if(!(v.getContext() instanceof Activity vActivity)) return;
+                Intent intent = new Intent(vActivity, FileBrowserActivity.class);
+                vActivity.startActivity(intent);
+                vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
+            });
+
             customsView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
             customsView.setButton1Icon(R.drawable.books_stack);
         }

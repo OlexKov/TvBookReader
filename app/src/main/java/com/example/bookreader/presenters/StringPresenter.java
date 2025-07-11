@@ -4,10 +4,12 @@ import android.graphics.Color;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
 public class StringPresenter extends Presenter {
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         TextView textView = new TextView(parent.getContext());

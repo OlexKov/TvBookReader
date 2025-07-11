@@ -10,7 +10,9 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
-public class UriHelper {
+import java.io.File;
+
+public class FileHelper {
 
     public static String getPath(Context context, Uri uri) {
         if (uri == null) return null;
@@ -124,5 +126,21 @@ public class UriHelper {
             }
         }
         return result;
+    }
+
+    public static String getFileExtension(Context context, Uri uri) {
+        String fileName = getFileName(context, uri);
+        if (fileName != null && fileName.contains(".")) {
+            return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        }
+        return null;
+    }
+
+    public static String getFileExtension(Context context, File file) {
+        String fileName = file.getName();
+        if (fileName.contains(".")) {
+            return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        }
+        return null;
     }
 }

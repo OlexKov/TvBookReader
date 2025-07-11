@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.provider.Settings;
 
 import androidx.core.util.Consumer;
+import androidx.fragment.app.FragmentActivity;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -21,7 +22,7 @@ import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 
 @SuppressLint("CustomSplashScreen")
-public class StartSplashActivity extends Activity {
+public class StartSplashActivity extends FragmentActivity {
     private long splashStartTime;
     private final BookReaderApp app = BookReaderApp.getInstance();
 

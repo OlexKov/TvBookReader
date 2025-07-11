@@ -1,6 +1,6 @@
 [versions]
 activity = "1.10.1"
-agp = "8.11.0"
+agp = "8.11.1"
 androidPdfViewer = "3.2.0-beta.1"
 androidPdfViewerVersion = "3.2.0-beta.3"
 appcompat = "1.7.1"
@@ -9,6 +9,8 @@ githubPdfboxAndroid = "master-SNAPSHOT"
 leakcanaryAndroid = "2.14"
 leanback = "1.2.0"
 glide = "4.11.0"
+leanbackGrid = "1.0.0"
+leanbackPaging = "1.1.0"
 lombok = "1.18.30"
 lombokVersion = "1.18.38"
 pdfbox = "3.0.5"
@@ -22,12 +24,17 @@ roomRuntime = "2.6.1"
 slf4jAndroid = "1.7.25"
 tomRoushPdfboxAndroid = "2.0.27.0"
 tomRoushPdfboxAndroidVersion = "2.0.27.0"
+constraintlayout = "2.2.1"
 
 [libraries]
 android-pdf-viewer = { module = "com.github.barteksc:android-pdf-viewer", version.ref = "androidPdfViewer" }
 androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
+androidx-leanback-grid = { module = "androidx.leanback:leanback-grid", version.ref = "leanbackGrid" }
+androidx-leanback-paging = { module = "androidx.leanback:leanback-paging", version.ref = "leanbackPaging" }
+androidx-leanback-preference = { module = "androidx.leanback:leanback-preference", version.ref = "leanback" }
+androidx-leanback-tab = { module = "androidx.leanback:leanback-tab", version.ref = "leanbackPaging" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 androidx-room-compiler-v261 = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
@@ -45,6 +52,7 @@ pdfium-android = { module = "com.github.barteksc:pdfium-android", version.ref = 
 projectlombok-lombok = { module = "org.projectlombok:lombok" }
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
 tom-roush-pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "tomRoushPdfboxAndroidVersion" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
 
 [plugins]

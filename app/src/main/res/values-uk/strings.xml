@@ -17,4 +17,6 @@
     <string name="favorite">Улюблені</string>
     <string name="add_to_favorite">Додати до улюблений</string>
     <string name="remove_from_favorite">Видалити з улюблених</string>
+    <string name="main_storage">Основна пам\'ять</string>
+    <string name="storages">Сховища</string>
 </resources>

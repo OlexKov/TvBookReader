@@ -35,6 +35,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activities.FileBrowserActivity"
+            android:theme="@style/TransparentActivityTheme"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"/>
+
         <activity android:name=".activities.BookDetailsActivity"
             android:exported="true"
             android:theme="@style/Theme.BookReader"/>

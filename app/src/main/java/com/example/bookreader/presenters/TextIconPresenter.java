@@ -9,21 +9,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 import androidx.leanback.widget.Presenter;
-import androidx.leanback.widget.RowHeaderPresenter;
+
 
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.TextIcon;
-import com.example.bookreader.extentions.IconHeader;
+
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class TextIconPresenter extends Presenter {
+    @androidx.annotation.NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
@@ -34,7 +32,7 @@ public class TextIconPresenter extends Presenter {
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, @Nullable Object item) {
+    public void onBindViewHolder(@androidx.annotation.NonNull ViewHolder viewHolder, @Nullable Object item) {
         if(item instanceof TextIcon icon){
             View rootView = viewHolder.view;
             TextView view =  rootView.findViewById(R.id.header_label);

@@ -10,6 +10,7 @@ import androidx.room.Room;
 
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.MainCategoryInfo;
+import com.example.bookreader.customclassses.MainFolder;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -20,6 +21,7 @@ import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +61,10 @@ public class BookReaderApp  extends Application {
     private BookDto selectedItem = null;
 
     @Getter
+    @Setter
+    private MainFolder selectedFolder = null;
+
+    @Getter
     private GlobalEventListener globalEventListener;
 
     public boolean isDataBaseInit(){
@@ -80,6 +86,7 @@ public class BookReaderApp  extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        PDFBoxResourceLoader.init(getApplicationContext());
         globalEventListener = new GlobalEventListener();
         // Зберігаємо інстанс класу для глобального доступу
         instance = this;

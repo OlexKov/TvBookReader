@@ -49,6 +49,9 @@ android {
 dependencies {
     implementation (libs.androidx.activity)
     implementation(libs.androidx.leanback)
+    implementation(libs.androidx.leanback.paging)
+    implementation(libs.androidx.leanback.tab)
+    implementation(libs.androidx.leanback.preference)
     implementation(libs.glide)
     implementation (libs.androidx.appcompat)
 
@@ -61,7 +64,7 @@ dependencies {
     annotationProcessor (libs.lombok.v11838)
 
     //Pdf
-    implementation(libs.pdfbox)
+    implementation(libs.tom.roush.pdfbox.android)
     implementation(libs.mhiew.pdfium.android)
 
     //epublib
