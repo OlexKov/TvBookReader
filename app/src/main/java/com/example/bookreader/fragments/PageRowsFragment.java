@@ -505,7 +505,10 @@ public class PageRowsFragment extends RowsSupportFragment {
                             info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - booksCount);
                         }
                     }
-                    info.setLoading(false);
+                    getView().post(()->{
+                        info.setLoading(false);
+                    });
+
                     info.setLastFocusPosition(adapter.indexOf(selectedBook));
                 });
             }

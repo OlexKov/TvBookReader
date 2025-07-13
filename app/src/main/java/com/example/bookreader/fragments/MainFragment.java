@@ -2,9 +2,11 @@ package com.example.bookreader.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
+
 import android.os.Bundle;
+
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -13,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.core.util.Consumer;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
+import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DividerPresenter;
 import androidx.leanback.widget.DividerRow;
@@ -27,9 +30,9 @@ import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
+
 import com.example.bookreader.interfaces.BookProcessor;
 import com.example.bookreader.utility.EpubProcessor;
-import com.example.bookreader.utility.pdf.PdfProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -40,9 +43,14 @@ import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.BrowserTransitionListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
+import com.example.bookreader.utility.pdf.PdfProcessor;
 
+
+import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+
+
 
 public class MainFragment extends BrowseSupportFragment {
    // private BackgroundManager mBackgroundManager;
@@ -51,12 +59,19 @@ public class MainFragment extends BrowseSupportFragment {
     private ArrayObjectAdapter rowsAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
     private ActivityResultLauncher<Intent> filePickerLauncher;
+    private ProgressBarManager progressBarManager;
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
         setupEventListeners();
+        progressBarManager = new ProgressBarManager();
+        if(getView() instanceof  ViewGroup root){
+            progressBarManager.setRootView((ViewGroup) root.getRootView());
+            progressBarManager.setInitialDelay(0);
+            progressBarManager.hide();
+        }
 
          //  prepareBackgroundManager();
         setupUIElements();
@@ -68,15 +83,20 @@ public class MainFragment extends BrowseSupportFragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        Uri selectedUri = result.getData().getData();
-                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedUri), "pdf")
+                        String selectedFilePath = result.getData().getStringExtra("SELECTED_FILE_PATH");
+                        File selectedFile  = new File(selectedFilePath);
+                        if(!selectedFile.exists()) return;
+                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedFile), "pdf")
                                 ? new PdfProcessor()
                                 : new EpubProcessor();
 
 
                         try {
-                            bookProcessor.processFileAsync(getContext(), selectedUri).thenAccept((bookInfo) -> {
+
+                            progressBarManager.show();
+                            bookProcessor.processFileAsync(getContext(), selectedFile).thenAccept((bookInfo) -> {
                                 requireActivity().runOnUiThread(() -> {
+                                    progressBarManager.hide();
                                     new android.app.AlertDialog.Builder(requireActivity())
                                             .setMessage("Title - " + bookInfo.title + "\n" +
                                                     "Author - " + bookInfo.author + "\n" +
@@ -92,7 +112,7 @@ public class MainFragment extends BrowseSupportFragment {
 
 
                             });
-                        } catch (IOException e) {
+                        } catch (IOException  e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -108,6 +128,8 @@ public class MainFragment extends BrowseSupportFragment {
         app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_UPDATED,bookFavoriteUpdatedHandler);
         app.getGlobalEventListener().subscribe(GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler);
     }
+
+
 
     private void setupUIElements(){
         setHeadersState(HEADERS_ENABLED);
@@ -152,8 +174,9 @@ public class MainFragment extends BrowseSupportFragment {
             customsView.setOnButton2ClickListener((v)->{
                 if(!(v.getContext() instanceof Activity vActivity)) return;
                 Intent intent = new Intent(vActivity, FileBrowserActivity.class);
-                vActivity.startActivity(intent);
                 vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
+                filePickerLauncher.launch(intent);
+
             });
 
             customsView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());

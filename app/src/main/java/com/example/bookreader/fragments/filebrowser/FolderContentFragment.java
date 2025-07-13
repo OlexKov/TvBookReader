@@ -5,7 +5,9 @@ import static androidx.leanback.widget.FocusHighlight.ZOOM_FACTOR_LARGE;
 import static com.example.bookreader.utility.ViewHelper.isDescendant;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.DisplayMetrics;
@@ -77,6 +79,12 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
                         pathTextView.setText(currentFile.getAbsolutePath());
                         loadFiles();
                     }
+                    else{
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra("SELECTED_FILE_PATH", file.getAbsolutePath());
+                        requireActivity().setResult(Activity.RESULT_OK, resultIntent);
+                        requireActivity().finish();
+                    }
                 }
             }
         });
@@ -104,7 +112,7 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
             ViewGroup.LayoutParams params = gridView.getLayoutParams();
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
             gridView.setLayoutParams(params);
-            gridView.setPadding(95, 0, 0, 0); // або змінити як потрібно
+            gridView.setPadding(95, 0, 0, 0);
         }
 
         view.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {

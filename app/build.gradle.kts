@@ -39,6 +39,13 @@ android {
             )
         }
     }
+
+//    sourceSets {
+//        getByName("main") {
+//            jniLibs.srcDirs("src/main/jniLibs")
+//        }
+//    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -65,16 +72,16 @@ dependencies {
 
     //Pdf
     implementation(libs.tom.roush.pdfbox.android)
-    implementation(libs.mhiew.pdfium.android)
+    //implementation(libs.mhiew.pdfium.android)
+
 
     //epublib
     implementation("nl.siegmann.epublib:epublib-core:3.1") {
         exclude(group = "org.slf4j")
         exclude(group = "xmlpull")
     }
+
     implementation (libs.slf4j.android)
 
-
     debugImplementation (libs.leakcanary.android)
-
 }

@@ -31,7 +31,7 @@ public class PdfProcessor implements BookProcessor {
             Log.d("TIMER", "Start getBookInfo at " + (System.currentTimeMillis() - start));
             // 1. Метадані PDF
             BookInfo result = new BookInfo();
-            try (PDDocument document = PDDocument.load(bookFile, MemoryUsageSetting.setupTempFileOnly())) {
+            try (PDDocument document = PDDocument.load(bookFile,  null, null, null, MemoryUsageSetting.setupMainMemoryOnly())) {
                 PDDocumentInformation info = document.getDocumentInformation();
                 result.title = info.getTitle();
                 result.author = info.getAuthor();

@@ -36,6 +36,9 @@ public class BookReaderApp  extends Application {
     private  SharedPreferences prefs;
     private final List<CategoryDto> categoriesCash = new ArrayList<>();
 
+
+
+
     // Глобальний доступ до інстансу MyApp
     @Getter
     private static BookReaderApp instance;
