@@ -419,7 +419,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         if(rowAdapter.remove(book)){
                             info.setMaxElements(info.getMaxElements() - 1);
                             info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - 1);
-                            normalizeAdapterSize(info,rowAdapter,book);
+                            normalizeAdapterSize(info,rowAdapter);
                         }
                     }
                 }
@@ -441,52 +441,34 @@ public class PageRowsFragment extends RowsSupportFragment {
          paginateRow( data.getRow(),data.getBook(),rowsUploadInfo);
     };
 
-    private void normalizeAdapterSize(RowUploadInfo info,ArrayObjectAdapter adapter,BookDto selectedBook) {
+    private void normalizeAdapterSize(RowUploadInfo info,ArrayObjectAdapter adapter) {
         if(INIT_ADAPTER_SIZE <= info.getMaxElements() && adapter.size() < INIT_ADAPTER_SIZE ){
             boolean next = info.getLastUploadedElementDbIndex() < info.getMaxElements();
             int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
             int offset = next ? info.getLastUploadedElementDbIndex() : Math.max(0,firstUploadedElementDbIndex );
-            updateAdapter(selectedBook, adapter, info, next, offset, 1);
+            updateAdapter(adapter, info, next, offset, 1);
         }
     }
 
     private void paginateRow(ListRow selectedRow, BookDto selectedBook,ConcurrentHashMap<Long, RowUploadInfo> rowsUploadInfo){
-        if(selectedRow != null){
+        if(selectedRow != null && selectedRow.getAdapter() instanceof ArrayObjectAdapter adapter){
             RowUploadInfo info = rowsUploadInfo.get(selectedRow.getId());
-            if(info != null && !info.isLoading()){
-                if(!(selectedRow.getAdapter() instanceof ArrayObjectAdapter adapter) || info.getMaxElements() <= INIT_ADAPTER_SIZE) return;
-                boolean needUpload;
-                int upload_size;
-                int currentFocusPosition = adapter.indexOf(selectedBook);
-                if(currentFocusPosition == info.getLastFocusPosition()) return;
-                int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
-                boolean isNext = currentFocusPosition > info.getLastFocusPosition();
-                info.setLastFocusPosition(currentFocusPosition);
-
-                if(isNext){
-                    upload_size = UPLOAD_SIZE;
-                    int rightThresholdPosition = currentFocusPosition + UPLOAD_THRESHOLD;
-                    boolean canUploadNext = info.getLastUploadedElementDbIndex() < info.getMaxElements();
-                    needUpload = (rightThresholdPosition >= INIT_ADAPTER_SIZE - 1) && canUploadNext;
-                }
-                else{
-                    upload_size = Math.min(UPLOAD_SIZE, firstUploadedElementDbIndex);
-                    int leftThresholdPosition = currentFocusPosition - UPLOAD_THRESHOLD;
-                    needUpload = leftThresholdPosition <= 0 && firstUploadedElementDbIndex >= 1;
-                }
-
-                if(needUpload){
-                    int offset = isNext ?  info.getLastUploadedElementDbIndex() : Math.max(0, firstUploadedElementDbIndex - UPLOAD_SIZE);
-                    info.setLoading(true);
-                    updateAdapter(selectedBook, adapter, info, isNext,  offset, upload_size);
-                }
-                info.setLastFocusPosition(currentFocusPosition);
+            int currentFocusPosition = adapter.indexOf(selectedBook);
+            boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD >= INIT_ADAPTER_SIZE - 1;
+            if(info == null || info.getMaxElements() <= INIT_ADAPTER_SIZE || info.isLoading()
+                    || (!nextThreshold  && currentFocusPosition - UPLOAD_THRESHOLD > 0 )) return;
+            int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
+            int upload_size = nextThreshold ? UPLOAD_SIZE : Math.min(UPLOAD_SIZE, firstUploadedElementDbIndex);
+            boolean needUpload = nextThreshold ? info.getLastUploadedElementDbIndex() < info.getMaxElements() : firstUploadedElementDbIndex >= 1;
+            if(needUpload){
+                int offset = nextThreshold ?  info.getLastUploadedElementDbIndex() : Math.max(0, firstUploadedElementDbIndex - UPLOAD_SIZE);
+                info.setLoading(true);
+                updateAdapter( adapter, info, nextThreshold,  offset, upload_size);
             }
         }
     }
 
-    private void updateAdapter(BookDto selectedBook, ArrayObjectAdapter adapter,
-                               RowUploadInfo info, boolean next ,int offset, int upload_size){
+    private void updateAdapter(ArrayObjectAdapter adapter,RowUploadInfo info, boolean next ,int offset, int upload_size){
         loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId(),offset,upload_size).thenAccept(books->{
             if(!books.isEmpty()){
                 requireActivity().runOnUiThread(() -> {
@@ -508,8 +490,6 @@ public class PageRowsFragment extends RowsSupportFragment {
                     getView().post(()->{
                         info.setLoading(false);
                     });
-
-                    info.setLastFocusPosition(adapter.indexOf(selectedBook));
                 });
             }
         }).exceptionally(ex->{

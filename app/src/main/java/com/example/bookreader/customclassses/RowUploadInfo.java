@@ -11,9 +11,6 @@ public class RowUploadInfo {
     private boolean isLoading;
     private Long mainCategoryId;
     private Long rowCategoryId;
-    @Getter
-    private int lastFocusPosition;
-
     public RowUploadInfo(Long maxElements,int lastUploadedElementDbIndex,Long mainCategoryId,Long rowCategoryId){
         this.maxElements = maxElements;
         this.mainCategoryId = mainCategoryId;
@@ -24,8 +21,6 @@ public class RowUploadInfo {
     public void setLastUploadedElementDbIndex(int index){
         lastUploadedElementDbIndex = Math.toIntExact(Math.min(index, maxElements));
     }
-    public void setLastFocusPosition(int lastFocusPosition){
-        this.lastFocusPosition = Math.max(0,lastFocusPosition);
-    }
+
 
 }
