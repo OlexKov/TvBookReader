@@ -1,9 +1,6 @@
 package com.example.bookreader.fragments;
 
 import static com.example.bookreader.constants.Constants.INIT_ADAPTER_SIZE;
-import static com.example.bookreader.constants.Constants.UPLOAD_SIZE;
-import static com.example.bookreader.constants.Constants.UPLOAD_THRESHOLD;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +13,7 @@ import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
+import androidx.leanback.widget.VerticalGridView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -52,9 +50,11 @@ public class PageRowsFragment extends RowsSupportFragment {
     private ProgressBarManager progressBarManager;
     private ArrayObjectAdapter rowsAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
+    private  VerticalGridView gridView;
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        gridView = getVerticalGridView();
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
         progressBarManager = new ProgressBarManager();
         if(getView() instanceof  ViewGroup root){
@@ -91,7 +91,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         booksData.getData().size(),
                         Constants.FAVORITE_CATEGORY_ID,
                         Constants.FAVORITE_CATEGORY_ID);
-                ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info);
+                ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
                 adapter.addAll(0, books);
                 rows.add(new ListRow(new IconHeader(Constants.FAVORITE_CATEGORY_ID,
                         getString(R.string.favorite),R.drawable.books_stack),
@@ -123,7 +123,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 booksData.getData().size(),
                                 Constants.ALL_BOOKS_CATEGORY_ID,
                                 Constants.ALL_BOOKS_CATEGORY_ID);
-                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info);
+                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
                         adapter.addAll(0, books);
                         rows.add(new ListRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID,
                                 getString(R.string.all_category),R.drawable.books_stack),
@@ -143,7 +143,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 booksData.getData().size(),
                                 Constants.ALL_BOOKS_CATEGORY_ID,
                                 Constants.UNSORTED_BOOKS_CATEGORY_ID);
-                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info);
+                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
                         adapter.addAll(0, books);
                         rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
                     }
@@ -163,7 +163,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                             booksData.getData().size(),
                                             Constants.ALL_BOOKS_CATEGORY_ID,
                                             cat.id);
-                                    ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info);
+                                    ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
                                     adapter.addAll(0, books);
                                     return new ListRow(new HeaderItem(cat.id, cat.name), adapter);
                                 }
@@ -209,7 +209,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                     booksData.getData().size(),
                                     selectedCategory.id,
                                     Constants.ALL_BOOKS_CATEGORY_ID);
-                            ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info);
+                            ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
                             adapter.addAll(0, books);
                             rows.add(new ListRow(new HeaderItem(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category)), adapter));
                         }
@@ -226,7 +226,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                     booksData.getData().size(),
                                     selectedCategory.id,
                                     Constants.UNSORTED_BOOKS_CATEGORY_ID);
-                            ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info);
+                            ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
                             adapter.addAll(0, books);
                             rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
                         }
@@ -249,7 +249,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                                 booksData.getData().size(),
                                                 selectedCategory.id,
                                                 subCategory.id);
-                                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info);
+                                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
                                         adapter.addAll(0, books);
                                         return new ListRow(new HeaderItem(subCategory.id, subCategory.name), adapter);
                                     }

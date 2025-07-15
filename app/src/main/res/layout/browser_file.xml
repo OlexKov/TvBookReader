@@ -8,13 +8,24 @@
     android:clickable="true"
     android:focusable="true"
     android:focusableInTouchMode="true">
+   <FrameLayout
+       android:layout_width="64dp"
+       android:layout_height="86dp">
+       <ImageView
+           android:id="@+id/main_folder_icon"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:layout_gravity="center"
+           android:scaleType="fitCenter"/>
+       <ImageView
+           android:id="@+id/folder_check_icon"
+           android:layout_width="26dp"
+           android:layout_height="26dp"
+           android:layout_gravity="bottom|end"
+           android:src="@drawable/check"
+           android:visibility="gone"/>
+   </FrameLayout>
 
-    <ImageView
-        android:id="@+id/main_folder_icon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_gravity="center"
-        android:scaleType="centerCrop"/>
 
     <TextView
         android:id="@+id/main_folder_name"

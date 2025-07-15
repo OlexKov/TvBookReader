@@ -25,6 +25,7 @@ slf4jAndroid = "1.7.25"
 tomRoushPdfboxAndroid = "2.0.27.0"
 tomRoushPdfboxAndroidVersion = "2.0.27.0"
 constraintlayout = "2.2.1"
+fragment = "1.8.8"
 
 [libraries]
 android-pdf-viewer = { module = "com.github.barteksc:android-pdf-viewer", version.ref = "androidPdfViewer" }
@@ -53,6 +54,7 @@ projectlombok-lombok = { module = "org.projectlombok:lombok" }
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
 tom-roush-pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "tomRoushPdfboxAndroidVersion" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 
 
 [plugins]

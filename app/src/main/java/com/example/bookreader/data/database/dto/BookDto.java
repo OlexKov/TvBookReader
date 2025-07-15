@@ -1,5 +1,7 @@
 package com.example.bookreader.data.database.dto;
 
+import androidx.leanback.widget.DiffCallback;
+
 import com.example.bookreader.data.database.entity.Book;
 
 import java.io.Serializable;

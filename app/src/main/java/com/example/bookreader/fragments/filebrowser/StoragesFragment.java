@@ -14,10 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewParent;
-import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -26,7 +23,6 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DiffCallback;
 import androidx.leanback.widget.OnItemViewSelectedListener;
 import androidx.leanback.widget.VerticalGridView;
-import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
@@ -34,7 +30,8 @@ import androidx.leanback.widget.VerticalGridPresenter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.customclassses.MainFolder;
+import com.example.bookreader.customclassses.MainStorage;
+import com.example.bookreader.diffcallbacks.MainFolderDiffCallback;
 import com.example.bookreader.presenters.browserpresenters.MainFolderPresenter;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
@@ -45,6 +42,7 @@ import java.util.List;
 
 public class StoragesFragment extends VerticalGridSupportFragment {
     private final BookReaderApp app = BookReaderApp.getInstance();
+    private final DiffCallback<MainStorage> folderDiff = new MainFolderDiffCallback();
     private ArrayObjectAdapter folderRowAdapter;
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,7 +59,7 @@ public class StoragesFragment extends VerticalGridSupportFragment {
         setOnItemViewSelectedListener(new OnItemViewSelectedListener() {
             @Override
             public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-                if(item instanceof MainFolder folder){
+                if(item instanceof MainStorage folder){
                     app.getGlobalEventListener().sendEvent(GlobalEventType.FILEBROWSER_MAIN_FOLDER_SELECTION_CHANGE,folder);
                 }
             }
@@ -140,9 +138,9 @@ public class StoragesFragment extends VerticalGridSupportFragment {
         }
     };
 
-    private List<MainFolder> getStorages(){
-        List<MainFolder> storages = new ArrayList<>();
-        storages.add(new MainFolder( R.drawable.external_storage,getString(R.string.main_storage),Environment.getExternalStorageDirectory()) );
+    private List<MainStorage> getStorages(){
+        List<MainStorage> storages = new ArrayList<>();
+        storages.add(new MainStorage( R.drawable.external_storage,getString(R.string.main_storage),Environment.getExternalStorageDirectory()) );
         if(getContext() != null){
             StorageManager storageManager = (StorageManager) getContext().getSystemService(Context.STORAGE_SERVICE);
             List<StorageVolume> volumes = storageManager.getStorageVolumes();
@@ -160,25 +158,10 @@ public class StoragesFragment extends VerticalGridSupportFragment {
                     }
                     String description = volume.getDescription(getContext());
                     int drawableId = description.toLowerCase().contains("sd")?R.drawable.cd_card : R.drawable.usb_drive;
-                    storages.add(new MainFolder(drawableId, description, directory));
+                    storages.add(new MainStorage(drawableId, description, directory));
                 }
             }
         }
         return storages;
     }
-
-    private final DiffCallback<MainFolder> folderDiff = new DiffCallback<MainFolder>() {
-        @Override
-        public boolean areItemsTheSame(MainFolder oldItem, MainFolder newItem) {
-            // Чи це той самий об’єкт (для ID, шляху тощо)
-            return oldItem.getFile().getAbsolutePath().equals(newItem.getFile().getAbsolutePath());
-        }
-
-        @Override
-        public boolean areContentsTheSame(MainFolder oldItem, MainFolder newItem) {
-            // Чи вміст однаковий (наприклад, за датою модифікації)
-            return oldItem.getName().equals(newItem.getName());
-        }
-    };
-
 }

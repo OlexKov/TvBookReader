@@ -1,13 +1,12 @@
 package com.example.bookreader.fragments.filebrowser;
 
-import static androidx.leanback.widget.FocusHighlight.ZOOM_FACTOR_LARGE;
+import static androidx.leanback.widget.FocusHighlight.ZOOM_FACTOR_MEDIUM;
 
 import static com.example.bookreader.utility.ViewHelper.isDescendant;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
+
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.DisplayMetrics;
@@ -15,7 +14,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.TextView;
 
 
@@ -27,6 +25,7 @@ import androidx.leanback.app.VerticalGridSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 
 import androidx.leanback.widget.DiffCallback;
+import androidx.leanback.widget.GridLayoutManager;
 import androidx.leanback.widget.OnItemViewClickedListener;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
@@ -38,19 +37,24 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.customclassses.MainFolder;
-import com.example.bookreader.presenters.browserpresenters.FilePresenter;
+import com.example.bookreader.customclassses.BrowserFile;
+import com.example.bookreader.customclassses.MainStorage;
+import com.example.bookreader.diffcallbacks.BrowserFileDiffCallback;
+import com.example.bookreader.presenters.browserpresenters.BrowserFilePresenter;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class FolderContentFragment extends VerticalGridSupportFragment {
     private File mainParentFile =  Environment.getExternalStorageDirectory();
-    private File currentFile = mainParentFile;
+    private final DiffCallback<BrowserFile> fileDiff = new BrowserFileDiffCallback();
+    private BrowserFile currentFile = new BrowserFile(mainParentFile,false);
     private ArrayObjectAdapter rowAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
     private TextView pathTextView;
@@ -58,32 +62,34 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        VerticalGridPresenter gridPresenter = new VerticalGridPresenter(ZOOM_FACTOR_LARGE,false);
+        VerticalGridPresenter gridPresenter = new VerticalGridPresenter(ZOOM_FACTOR_MEDIUM,false);
         int columnCount = calculateSpanCount(requireContext(), 80);
 
         gridPresenter.setNumberOfColumns(columnCount);
         setGridPresenter(gridPresenter);
         gridPresenter.setShadowEnabled(false);
 
-        rowAdapter = new ArrayObjectAdapter(new FilePresenter());
+        rowAdapter = new ArrayObjectAdapter(new BrowserFilePresenter());
         loadFiles();
         setAdapter(rowAdapter);
 
         setOnItemViewClickedListener(new OnItemViewClickedListener() {
             @Override
             public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-                if(item instanceof File file){
-                    if(file.isDirectory()){
+                if(item instanceof BrowserFile file){
+                    if(file.getFile().isDirectory()){
                         currentFile = file;
-                        pathTextView.setText(currentFile.getAbsolutePath());
+                        pathTextView.setText(currentFile.getFile().getAbsolutePath());
                         loadFiles();
                     }
                     else{
-                        Intent resultIntent = new Intent();
-                        resultIntent.putExtra("SELECTED_FILE_PATH", file.getAbsolutePath());
-                        requireActivity().setResult(Activity.RESULT_OK, resultIntent);
-                        requireActivity().finish();
+                        file.setChecked(!file.isChecked());
+                        int index = rowAdapter.indexOf(file);
+                        rowAdapter.notifyItemRangeChanged(index,1);
+//                        Intent resultIntent = new Intent();
+//                        resultIntent.putExtra("SELECTED_FILE_PATH", file.getAbsolutePath());
+//                        requireActivity().setResult(Activity.RESULT_OK, resultIntent);
+//                        requireActivity().finish();
                     }
                 }
             }
@@ -95,13 +101,15 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
     }
 
 
+
     @SuppressLint("RestrictedApi")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         pathTextView = requireActivity().findViewById(R.id.file_browser_path);
         app.getGlobalEventListener().subscribe(GlobalEventType.FILEBROWSER_MAIN_FOLDER_SELECTION_CHANGE,mainFolderChangeHandler);
-        pathTextView.setText(currentFile.getAbsolutePath());
+        pathTextView.setText(currentFile.getFile().getAbsolutePath());
         VerticalGridView gridView =  view.findViewById(androidx.leanback.R.id.browse_grid);
         if (gridView != null) {
             RecyclerView.ItemAnimator animator = gridView.getItemAnimator();
@@ -113,7 +121,7 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
             gridView.setLayoutParams(params);
             gridView.setPadding(95, 0, 0, 0);
-        }
+         }
 
         view.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
             if (newFocus != null && isDescendant(newFocus, view)) {
@@ -124,6 +132,8 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
         });
    }
 
+
+
     @Override
     public void onStop() {
         super.onStop();
@@ -131,29 +141,29 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
     }
 
     private final Consumer<Object> mainFolderChangeHandler = (folder)->{
-        if(folder instanceof MainFolder changedFolder){
+        if(folder instanceof MainStorage changedFolder){
             if(mainParentFile.getAbsolutePath().equals(changedFolder.getFile().getAbsolutePath())) return;
             mainParentFile = changedFolder.getFile();
-            currentFile = mainParentFile;
-            pathTextView.setText(currentFile.getAbsolutePath());
+            currentFile.setFile(mainParentFile);
+            pathTextView.setText(currentFile.getFile().getAbsolutePath());
             loadFiles();
         }
     };
 
     private void loadFiles(){
-    if (currentFile != null && currentFile.isDirectory()) {
-        File[] files = currentFile.listFiles(filter);
-        if (files != null) {
-            Arrays.sort(files, (f1, f2) -> {
-                if (f1.isDirectory() && !f2.isDirectory()) return -1;
-                if (!f1.isDirectory() && f2.isDirectory()) return 1;
-                return f1.getName().compareToIgnoreCase(f2.getName());
+    if (currentFile != null && currentFile.getFile().isDirectory()) {
+        File[] files = currentFile.getFile().listFiles(filter);
+        if(files != null && files.length > 0){
+            List<BrowserFile> browserFiles = Arrays.stream(files).map(x->new BrowserFile(x,false)).collect(Collectors.toList());
+            browserFiles.sort((BrowserFile f1, BrowserFile f2) -> {
+                if (f1.getFile().isDirectory() && !f2.getFile().isDirectory()) return -1;
+                if (!f1.getFile().isDirectory() && f2.getFile().isDirectory()) return 1;
+                return f1.getFile().getName().compareToIgnoreCase(f2.getFile().getName());
             });
-            rowAdapter.clear();
-            rowAdapter.addAll(0,Arrays.asList(files));
-       }
+            rowAdapter.setItems(browserFiles,fileDiff);
+        }
     }
-}
+    }
 
     private  int calculateSpanCount(Context context, int itemWidthDp) {
     // Отримати ширину екрана в dp
@@ -170,28 +180,16 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
     return Math.max(spanCount, 1);
 }
 
-    private final DiffCallback<File> fileDiff = new DiffCallback<File>() {
-        @Override
-        public boolean areItemsTheSame(File oldItem, File newItem) {
-            // Чи це той самий об’єкт (для ID, шляху тощо)
-            return oldItem.getAbsolutePath().equals(newItem.getAbsolutePath());
-        }
 
-        @Override
-        public boolean areContentsTheSame(File oldItem, File newItem) {
-            // Чи вміст однаковий (наприклад, за датою модифікації)
-            return oldItem.lastModified() == newItem.lastModified();
-        }
-    };
 
     private final OnBackPressedCallback backCallback = new OnBackPressedCallback(false) {
         @Override
         public void handleOnBackPressed() {
-            if(currentFile != null && !currentFile.getAbsolutePath().equals(mainParentFile.getAbsolutePath())){
-                File parentFile = currentFile.getParentFile();
+            if(currentFile != null && !currentFile.getFile().getAbsolutePath().equals(mainParentFile.getAbsolutePath())){
+                File parentFile = currentFile.getFile().getParentFile();
                 if(parentFile != null){
-                    currentFile = parentFile;
-                    pathTextView.setText(currentFile.getAbsolutePath());
+                    currentFile.setFile(parentFile);
+                    pathTextView.setText(currentFile.getFile().getAbsolutePath());
                     loadFiles();
                 }
             }

@@ -7,7 +7,6 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/storage_folders"
         android:orientation="vertical"
         android:layout_width="250dp"
         android:layout_height="match_parent"
@@ -21,16 +20,21 @@
             android:layout_gravity="center"
             android:padding="30dp"
             android:text="@string/storages" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/storage_folders"
+            android:layout_width="250dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
     </LinearLayout>
 
+
     <LinearLayout
-        android:id="@+id/folder_content"
         android:orientation="vertical"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="match_parent"
         android:background="#AF494949">
-
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -64,7 +68,7 @@
                     android:textSize="16sp"
                     android:textColor="#FFFFFF"
                     android:gravity="center_vertical"
-                    android:paddingEnd="10dp"/>
+                    android:paddingHorizontal="10dp"/>
             </LinearLayout>
 
             <TextView
@@ -86,6 +90,41 @@
             android:layout_marginEnd="40dp"
             android:layout_marginBottom="20dp"/>
 
-  </LinearLayout>
 
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/folder_content"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <LinearLayout
+            style="?android:attr/buttonBarStyle"
+            android:id="@+id/file_browser_buttons"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible">
+            <Button
+                android:id="@+id/file_browser_confirm_button"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="40dp"
+                android:focusableInTouchMode="true"
+                android:focusable="true"
+                android:clickable="true"
+                android:text="Обрати"
+                android:textAllCaps="false"/>
+            <Button
+                android:id="@+id/file_browser_cancel_button"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="40dp"
+                android:focusableInTouchMode="true"
+                android:focusable="true"
+                android:text="Скасувати"
+                android:textAllCaps="false"/>
+
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

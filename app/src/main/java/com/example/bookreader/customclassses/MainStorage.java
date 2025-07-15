@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MainFolder {
+public class MainStorage {
     private int iconRId;
     private String name;
     private File file;

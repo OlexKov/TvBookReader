@@ -7,20 +7,19 @@ import lombok.Getter;
 public class RowUploadInfo {
     @Getter
     private int lastUploadedElementDbIndex;
-    private Long maxElements;
+    private Long maxElementsDb;
     private boolean isLoading;
     private Long mainCategoryId;
     private Long rowCategoryId;
-    public RowUploadInfo(Long maxElements,int lastUploadedElementDbIndex,Long mainCategoryId,Long rowCategoryId){
-        this.maxElements = maxElements;
+
+    public RowUploadInfo(Long maxElementsDb, int lastUploadedElementDbIndex, Long mainCategoryId, Long rowCategoryId){
+        this.maxElementsDb = maxElementsDb;
         this.mainCategoryId = mainCategoryId;
         this.rowCategoryId = rowCategoryId;
         this.lastUploadedElementDbIndex = lastUploadedElementDbIndex;
     }
 
     public void setLastUploadedElementDbIndex(int index){
-        lastUploadedElementDbIndex = Math.toIntExact(Math.min(index, maxElements));
+        lastUploadedElementDbIndex = Math.toIntExact(Math.min(index, maxElementsDb));
     }
-
-
 }

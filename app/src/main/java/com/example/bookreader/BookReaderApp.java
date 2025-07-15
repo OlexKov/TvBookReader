@@ -8,13 +8,11 @@ import android.util.Log;
 import androidx.leanback.widget.ListRow;
 import androidx.room.Room;
 
-import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.MainCategoryInfo;
-import com.example.bookreader.customclassses.MainFolder;
+import com.example.bookreader.customclassses.MainStorage;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
-import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.utility.eventlistener.GlobalEventListener;
 import com.example.bookreader.data.database.BookDb;
 import com.example.bookreader.data.database.dao.BookDao;
@@ -65,7 +63,7 @@ public class BookReaderApp  extends Application {
 
     @Getter
     @Setter
-    private MainFolder selectedFolder = null;
+    private MainStorage selectedFolder = null;
 
     @Getter
     private GlobalEventListener globalEventListener;

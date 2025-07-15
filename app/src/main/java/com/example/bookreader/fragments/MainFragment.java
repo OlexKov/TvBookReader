@@ -174,9 +174,8 @@ public class MainFragment extends BrowseSupportFragment {
             customsView.setOnButton2ClickListener((v)->{
                 if(!(v.getContext() instanceof Activity vActivity)) return;
                 Intent intent = new Intent(vActivity, FileBrowserActivity.class);
-                vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
                 filePickerLauncher.launch(intent);
-
+                vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
             });
 
             customsView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());

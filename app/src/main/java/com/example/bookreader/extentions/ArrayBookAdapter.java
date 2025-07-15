@@ -9,14 +9,15 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
+import androidx.leanback.widget.VerticalGridView;
 
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.RowUploadInfo;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.diffcallbacks.BookDtoDiffCallback;
 
 import org.jspecify.annotations.NonNull;
 
@@ -28,22 +29,25 @@ import java.util.concurrent.CompletableFuture;
 
 public class ArrayBookAdapter extends ArrayObjectAdapter {
     private final RowUploadInfo info;
+    private final BookDtoDiffCallback bookDiffCallback = new BookDtoDiffCallback();
+    private final VerticalGridView gridView;
 
-
-
-    public ArrayBookAdapter(@NonNull PresenterSelector presenterSelector,@NonNull RowUploadInfo info) {
+    public ArrayBookAdapter(@NonNull PresenterSelector presenterSelector,@NonNull RowUploadInfo info,VerticalGridView gridView) {
         super(presenterSelector);
         this.info = info;
+        this.gridView = gridView;
     }
 
-
-    public ArrayBookAdapter(@NonNull Presenter presenter,@NonNull RowUploadInfo info) {
+    public ArrayBookAdapter(@NonNull Presenter presenter,@NonNull RowUploadInfo info,VerticalGridView gridView) {
         super(presenter);
         this.info = info;
+        this.gridView = gridView;
     }
-    public ArrayBookAdapter(@NonNull RowUploadInfo info) {
+
+    public ArrayBookAdapter(@NonNull RowUploadInfo info,VerticalGridView gridView) {
         super();
         this.info = info;
+        this.gridView = gridView;
     }
 
     @Override
@@ -67,7 +71,9 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
 
     public boolean remove(@NonNull Object item) {
         boolean isRemoved = super.remove(item);
-        normalizeAdapterSize();
+        if(isRemoved){
+            normalizeAdapterSize();
+        }
         return  isRemoved;
     }
 
@@ -77,55 +83,48 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         return removedCount;
     }
 
-    public void paginateRow(BookDto selectedBook){
-
-        int currentFocusPosition = this.indexOf(selectedBook);
-        boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD >= INIT_ADAPTER_SIZE - 1;
-        if(info == null || info.getMaxElements() <= INIT_ADAPTER_SIZE || info.isLoading()
-                || (!nextThreshold  && currentFocusPosition - UPLOAD_THRESHOLD > 0 )) return;
-        int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
-        int upload_size = nextThreshold ? UPLOAD_SIZE : Math.min(UPLOAD_SIZE, firstUploadedElementDbIndex);
-        boolean needUpload = nextThreshold ? info.getLastUploadedElementDbIndex() < info.getMaxElements() : firstUploadedElementDbIndex >= 1;
-        if(needUpload){
-            int offset = nextThreshold ?  info.getLastUploadedElementDbIndex() : Math.max(0, firstUploadedElementDbIndex - UPLOAD_SIZE);
-            info.setLoading(true);
-            updateAdapter(nextThreshold,  offset, upload_size);
-        }
-    }
-
     private void normalizeAdapterSize() {
-        info.setMaxElements(info.getMaxElements() - 1);
-        info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - 1);
-        if(INIT_ADAPTER_SIZE <= info.getMaxElements() && this.size() < INIT_ADAPTER_SIZE ){
-            boolean next = info.getLastUploadedElementDbIndex() < info.getMaxElements();
-            int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
-            int offset = next ? info.getLastUploadedElementDbIndex() : Math.max(0,firstUploadedElementDbIndex  );
-            updateAdapter( next, offset, 1);
+        int count = INIT_ADAPTER_SIZE - size();
+        if(count == 0) return;
+        if(count < 0){
+            count  = Math.abs(count);
+            info.setMaxElementsDb(info.getMaxElementsDb() + count);
+        }
+        else{
+            if(INIT_ADAPTER_SIZE <= info.getMaxElementsDb()){
+                info.setMaxElementsDb(info.getMaxElementsDb() - count);
+                info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - count);
+                updateAdapter();
+            }
         }
     }
 
-    private void updateAdapter(boolean next , int offset, int upload_size){
-        loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId(),offset,upload_size).thenAccept(books->{
+
+    public void paginateRow(BookDto selectedBook){
+        int currentFocusPosition = this.indexOf(selectedBook);
+        boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD > INIT_ADAPTER_SIZE;
+        boolean prevThreshold = currentFocusPosition - UPLOAD_THRESHOLD < 0;
+        if(info == null || info.getMaxElementsDb() <= INIT_ADAPTER_SIZE || info.isLoading()
+                || (!nextThreshold  && !prevThreshold  )) return;
+        int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
+        boolean canUpload = nextThreshold ? info.getLastUploadedElementDbIndex() < info.getMaxElementsDb() : firstUploadedElementDbIndex >= 1;
+        if(canUpload){
+            info.setLastUploadedElementDbIndex(
+                    nextThreshold ? (int)Math.min(info.getMaxElementsDb(),info.getLastUploadedElementDbIndex() + UPLOAD_SIZE)
+                                  : Math.max(INIT_ADAPTER_SIZE,info.getLastUploadedElementDbIndex() - UPLOAD_SIZE ));
+            info.setLoading(true);
+            updateAdapter();
+        }
+    }
+
+    private void updateAdapter(){
+        loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId()).thenAccept(books->{
             if(!books.isEmpty()){
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    int booksCount = books.size();
-                    if(next){
-                        this.addAll(this.size(), books);
-                        if(this.size() > INIT_ADAPTER_SIZE){
-                            this.removeItems(0,booksCount);
-                        }
-                        info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() + booksCount);
-                    }
-                    else{
-                        this.addAll(0, books);
-                        if(this.size() > INIT_ADAPTER_SIZE){
-                            this.removeItems(this.size() - booksCount, booksCount);
-                            info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - booksCount);
-                        }
-                    }
-                    //view.post(()->{
+                    setItems(books,bookDiffCallback);
+                    gridView.post(() -> {
                         info.setLoading(false);
-                   // });
+                    });
                 });
             }
         }).exceptionally(ex->{
@@ -134,29 +133,9 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         });
     }
 
-    private CompletableFuture<List<BookDto>> loadRowBooks(Long mainCategoryId, Long rowCategoryId, int offset, int size) {
-        BookRepository bookRepository = new BookRepository();
-        if(mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID ){
-            return bookRepository.getRangeFavoriteBooksAsync(offset,size);
-        }
-        else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
-                return bookRepository.getRangeAllBooksAsync(offset,size);
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
-                return bookRepository.getRangeUnsortedBooksAsync(offset,size);
-            } else {
-                return bookRepository.getRangeAllBooksInCategoryIdAsync( rowCategoryId,offset,size);
-            }
-        }
-        else {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
-                return bookRepository.getRangeAllBooksInCategoryIdAsync( mainCategoryId,offset,size);
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
-                return bookRepository.getRageUnsortedBooksByCategoryIdAsync(mainCategoryId,offset,size);
-            } else {
-                return bookRepository.getRangeAllBooksInCategoryIdAsync( mainCategoryId,offset,size);
-            }
-        }
+    private CompletableFuture<List<BookDto>> loadRowBooks(Long mainCategoryId, Long rowCategoryId) {
+        int offset = Math.max(0, info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE);
+        return new BookRepository().loadRowBooks(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
     }
 
 }

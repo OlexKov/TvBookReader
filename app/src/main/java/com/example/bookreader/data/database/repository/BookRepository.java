@@ -6,6 +6,7 @@ import android.os.Looper;
 import androidx.core.util.Consumer;
 
 import com.example.bookreader.BookReaderApp;
+import com.example.bookreader.constants.Constants;
 import com.example.bookreader.data.database.paganation.PaginationResultData;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dto.BookDto;
@@ -153,8 +154,27 @@ public class BookRepository {
     }
 
 
-    //getBooksByCategoryId
-
+    public CompletableFuture<List<BookDto>> loadRowBooks(Long mainCategoryId, Long rowCategoryId,int offset,int limit ) {
+        if (mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID) {
+            return getRangeFavoriteBooksAsync(offset, limit);
+        } else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+                return getRangeAllBooksAsync(offset, limit);
+            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+                return getRangeUnsortedBooksAsync(offset, limit);
+            } else {
+                return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
+            }
+        } else {
+            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+                return getRangeAllBooksInCategoryIdAsync(mainCategoryId, offset, limit);
+            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+                return getRageUnsortedBooksByCategoryIdAsync(mainCategoryId, offset, limit);
+            } else {
+                return getRangeAllBooksInCategoryIdAsync(mainCategoryId, offset, limit);
+            }
+        }
+    }
 }
 
 

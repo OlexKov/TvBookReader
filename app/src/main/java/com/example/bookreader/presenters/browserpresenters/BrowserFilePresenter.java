@@ -1,5 +1,10 @@
 package com.example.bookreader.presenters.browserpresenters;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
+import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,9 +12,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.Presenter;
+import androidx.leanback.widget.Visibility;
 
 import com.example.bookreader.R;
+import com.example.bookreader.customclassses.BrowserFile;
 import com.example.bookreader.interfaces.BookProcessor;
 import com.example.bookreader.utility.EpubProcessor;
 import com.example.bookreader.utility.FileHelper;
@@ -21,27 +29,31 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 
-public class FilePresenter extends Presenter {
+public class BrowserFilePresenter extends Presenter {
     @Override
     public @NonNull ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.main_folder, parent, false);
+        View view = inflater.inflate(R.layout.browser_file, parent, false);
         return new Presenter.ViewHolder(view);
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
-        if (item instanceof File file) {
+        if (item instanceof BrowserFile file) {
             View rootView = viewHolder.view;
             TextView textView = rootView.findViewById(R.id.main_folder_name);
             ImageView iconView = rootView.findViewById(R.id.main_folder_icon);
+            ImageView checkedIcon = rootView.findViewById(R.id.folder_check_icon);
+            textView.setText(file.getFile().getName());
+            int visibility = file.isChecked() ? VISIBLE : GONE;
+            checkedIcon.setVisibility(visibility);
 
-            textView.setText(file.getName());
-            if(file.isDirectory()){
+            if(file.getFile().isDirectory()){
                 iconView.setImageResource(R.drawable.folder);
             }
             else {
-                String ext = FileHelper.getFileExtension(viewHolder.view.getContext(), file);
+                String ext = FileHelper.getFileExtension(viewHolder.view.getContext(), file.getFile());
                 BookProcessor bookProcessor;
                 if(ext != null){
                     if(ext.equals("pdf")){
@@ -51,7 +63,7 @@ public class FilePresenter extends Presenter {
                         bookProcessor = new EpubProcessor();
                     }
                     try {
-                        bookProcessor.getPreviewAsync(file,0,96,72 ).thenAccept((bitmap)->{
+                        bookProcessor.getPreviewAsync(file.getFile(),0,96,76 ).thenAccept((bitmap)->{
                             iconView.post(() -> {
                                 iconView.setImageDrawable(new BitmapDrawable(rootView.getResources(), bitmap));
                             });

@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.leanback.widget.Presenter;
 
 import com.example.bookreader.R;
-import com.example.bookreader.customclassses.MainFolder;
+import com.example.bookreader.customclassses.MainStorage;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -26,7 +26,7 @@ public class MainFolderPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
-        if (item instanceof MainFolder folder) {
+        if (item instanceof MainStorage folder) {
             View rootView = viewHolder.view;
             TextView textView = rootView.findViewById(R.id.main_folder_name);
             ImageView iconView = rootView.findViewById(R.id.main_folder_icon);

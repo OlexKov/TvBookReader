@@ -64,6 +64,7 @@ dependencies {
 
     // Room
     implementation (libs.androidx.room.runtime.v261)
+    implementation(libs.androidx.fragment)
     annotationProcessor (libs.androidx.room.compiler.v261)
 
     //Lombok
