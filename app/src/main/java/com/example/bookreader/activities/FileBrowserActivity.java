@@ -28,14 +28,11 @@ public class FileBrowserActivity extends FragmentActivity {
         FragmentManager fm = getSupportFragmentManager();
         setContentView(R.layout.file_browser_activity);
         VerticalGridSupportFragment rowsFragment = new StoragesFragment();
-        fm.beginTransaction()
-                .replace(R.id.storage_folders, rowsFragment,"STORAGES")
-                .commit();
         VerticalGridSupportFragment gridFragment = new FolderContentFragment();
         fm.beginTransaction()
-                .replace(R.id.folder_content, gridFragment,"FOLDER_CONTENT")
+                .add(R.id.storage_folders, rowsFragment,"STORAGES")
+                .add(R.id.folder_content, gridFragment,"FOLDER_CONTENT")
                 .commit();
-
     }
 
     @Override

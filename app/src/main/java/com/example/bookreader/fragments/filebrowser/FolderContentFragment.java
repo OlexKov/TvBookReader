@@ -108,7 +108,7 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
         super.onViewCreated(view, savedInstanceState);
 
         pathTextView = requireActivity().findViewById(R.id.file_browser_path);
-        app.getGlobalEventListener().subscribe(GlobalEventType.FILEBROWSER_MAIN_FOLDER_SELECTION_CHANGE,mainFolderChangeHandler);
+        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.FILEBROWSER_MAIN_FOLDER_SELECTION_CHANGE,mainFolderChangeHandler,MainStorage.class);
         pathTextView.setText(currentFile.getFile().getAbsolutePath());
         VerticalGridView gridView =  view.findViewById(androidx.leanback.R.id.browse_grid);
         if (gridView != null) {
@@ -121,7 +121,10 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
             gridView.setLayoutParams(params);
             gridView.setPadding(95, 0, 0, 0);
-         }
+            gridView.setFocusable(true);
+            gridView.setFocusableInTouchMode(true);
+            gridView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+        }
 
         view.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
             if (newFocus != null && isDescendant(newFocus, view)) {
@@ -132,22 +135,12 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
         });
    }
 
-
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.FILEBROWSER_MAIN_FOLDER_SELECTION_CHANGE,mainFolderChangeHandler);
-    }
-
-    private final Consumer<Object> mainFolderChangeHandler = (folder)->{
-        if(folder instanceof MainStorage changedFolder){
-            if(mainParentFile.getAbsolutePath().equals(changedFolder.getFile().getAbsolutePath())) return;
-            mainParentFile = changedFolder.getFile();
-            currentFile.setFile(mainParentFile);
-            pathTextView.setText(currentFile.getFile().getAbsolutePath());
-            loadFiles();
-        }
+    private final Consumer<MainStorage> mainFolderChangeHandler = (changedFolder)->{
+        if(mainParentFile.getAbsolutePath().equals(changedFolder.getFile().getAbsolutePath())) return;
+        mainParentFile = changedFolder.getFile();
+        currentFile.setFile(mainParentFile);
+        pathTextView.setText(currentFile.getFile().getAbsolutePath());
+        loadFiles();
     };
 
     private void loadFiles(){
@@ -179,7 +172,6 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
     // Гарантувати мінімум 1 колонку
     return Math.max(spanCount, 1);
 }
-
 
 
     private final OnBackPressedCallback backCallback = new OnBackPressedCallback(false) {

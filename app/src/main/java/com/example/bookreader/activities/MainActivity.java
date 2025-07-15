@@ -36,7 +36,7 @@ public class MainActivity extends FragmentActivity {
     private boolean backToMain = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final BookReaderApp app = BookReaderApp.getInstance();
-    private final Consumer<Object> menuChangeHandler = (menuOpen)-> backToMain = (boolean)menuOpen;
+    private final Consumer<Boolean> menuChangeHandler = (menuOpen)-> backToMain = menuOpen;
     private static final int REQUEST_STORAGE_PERMISSIONS = 100;
 
     @Override
@@ -75,7 +75,7 @@ public class MainActivity extends FragmentActivity {
                 }
             }
         });
-        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGED,menuChangeHandler);
+        app.getGlobalEventListener().subscribe(this, GlobalEventType.MENU_STATE_CHANGED,menuChangeHandler,boolean.class);
         checkStoragePermission();
     }
 
@@ -97,12 +97,6 @@ public class MainActivity extends FragmentActivity {
                 finishAffinity(); // ← Закриває всі активності
             }
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.MENU_STATE_CHANGED,menuChangeHandler);
     }
 
 

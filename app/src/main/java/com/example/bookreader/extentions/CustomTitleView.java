@@ -133,9 +133,9 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         btn3.setBackground(background);
     }
 
-    private final Consumer<Object> menuChangeButtonProcessorHandler = (isMenuStartOpen)->{
+    private final Consumer<Boolean> menuChangeButtonProcessorHandler = (isMenuStartOpen)->{
         int currentMainCategoryIndex = app.getSelectedMainCategoryInfo().getIndex();
-        if(currentMainCategoryIndex <= 1 || !(boolean) isMenuStartOpen){
+        if(currentMainCategoryIndex <= 1 || ! isMenuStartOpen){
             smoothDisplay(buttonContainer);
         }
         else{
@@ -143,9 +143,8 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         }
     };
 
-    private final Consumer<Object> categoryChangeButtonProcessorHandler = (categoryInfo)->{
-        if(!(categoryInfo instanceof MainCategoryInfo info)) return;
-        if(info.getIndex() <= 1 || !app.isMenuOpen()){
+    private final Consumer<MainCategoryInfo> categoryChangeButtonProcessorHandler = (categoryInfo)->{
+        if(categoryInfo.getIndex() <= 1 || !app.isMenuOpen()){
             smoothDisplay(buttonContainer);
         }
         else{
@@ -168,8 +167,8 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
             }
         });
 
-        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START, menuChangeButtonProcessorHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_SELECTION_CHANGED,categoryChangeButtonProcessorHandler);
+        app.getGlobalEventListener().subscribe(GlobalEventType.MENU_STATE_CHANGE_START, menuChangeButtonProcessorHandler,Boolean.class);
+        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_SELECTION_CHANGED,categoryChangeButtonProcessorHandler,MainCategoryInfo.class);
 
     }
     private void smoothHide(View view){

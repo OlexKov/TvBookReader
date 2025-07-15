@@ -22,6 +22,7 @@ import androidx.leanback.widget.DividerRow;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -121,16 +122,6 @@ public class MainFragment extends BrowseSupportFragment {
 
     }
 
-    @Override
-    public void onDestroyView(){
-        super.onDestroyView();
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_UPDATED,bookFavoriteUpdatedHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler);
-    }
-
-
-
     private void setupUIElements(){
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
@@ -181,14 +172,14 @@ public class MainFragment extends BrowseSupportFragment {
             customsView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
             customsView.setButton1Icon(R.drawable.books_stack);
         }
-        app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler);
+        LifecycleOwner owner = getViewLifecycleOwner();
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler, Object.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler,Long.class);
     }
 
-    private final Consumer<Object> categoryDeleteHandler = (categoryId)->{
-        if(!(categoryId instanceof  Long categoryToDeleteId)) return;
-        for (int i = 0; i < rowsAdapter.size(); i++) {
+    private final Consumer<Long> categoryDeleteHandler = (categoryToDeleteId)->{
+       for (int i = 0; i < rowsAdapter.size(); i++) {
             if(rowsAdapter.get(i) instanceof PageRow pageRow){
                 if(pageRow.getId() == categoryToDeleteId)
                 {
@@ -202,8 +193,7 @@ public class MainFragment extends BrowseSupportFragment {
         }
     };
 
-    private final Consumer<Object> bookFavoriteUpdatedHandler = (book)->{
-       if(!(book instanceof  BookDto favoriteBook)) return;
+    private final Consumer<BookDto> bookFavoriteUpdatedHandler = (favoriteBook)->{
        for (int i = 0; i < rowsAdapter.size(); i++) {
             if(rowsAdapter.get(i) instanceof PageRow pageRow){
                 if(pageRow.getId() == Constants.FAVORITE_CATEGORY_ID) return;

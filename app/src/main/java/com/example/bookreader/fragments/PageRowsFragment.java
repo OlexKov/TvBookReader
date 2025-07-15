@@ -14,6 +14,7 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.VerticalGridView;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -64,15 +65,6 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
         setupEventListeners();
         getPageRows();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.ITEM_SELECTED_CHANGE, itemSelectChangeListenerHandler);
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_DELETED, bookDeletedHandler);
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_UPDATED,bookUpdatedHandler);
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_FAVORITE_UPDATED, bookFavoriteUpdateHandler);
     }
 
     @Override
@@ -329,13 +321,14 @@ public class PageRowsFragment extends RowsSupportFragment {
     private void setupEventListeners(){
         setOnItemViewClickedListener(new ItemViewClickedListener(this));
         setOnItemViewSelectedListener(new RowItemSelectedListener());
-        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,bookDeletedHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_UPDATED,bookUpdatedHandler);
-        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_FAVORITE_UPDATED, bookFavoriteUpdateHandler);
+        LifecycleOwner  owner = getViewLifecycleOwner();
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_DELETED,bookDeletedHandler,RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler,RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_UPDATED,bookUpdatedHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_FAVORITE_UPDATED, bookFavoriteUpdateHandler,BookDto.class);
     }
 
-    private final Consumer<Object> bookFavoriteUpdateHandler = (book)->{
+    private final Consumer<BookDto> bookFavoriteUpdateHandler = (book)->{
 //        if(!(book instanceof BookDto updatedBook)) return;
 //        Long selectedCategoryId = app.getSelectedParentCategoryHeader().getId();
 //        if(selectedCategoryId == Constants.FAVORITE_CATEGORY_ID){
@@ -375,12 +368,11 @@ public class PageRowsFragment extends RowsSupportFragment {
 
    };
 
-    private final Consumer<Object> bookUpdatedHandler = (book)->{
-        if(!(book instanceof BookDto updatedBook)) return;
+    private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
         for (int i = 0; i < rowsAdapter.size(); i++){
             if(!(rowsAdapter.get(i) instanceof ListRow row)
                     || !(row.getAdapter() instanceof ArrayObjectAdapter adapter)) return;
-            int index = adapter.indexOf(book);
+            int index = adapter.indexOf(updatedBook);
             if(index > 0){
                 adapter.replace(index,updatedBook);
                 adapter.notifyArrayItemRangeChanged(index,1);
@@ -388,8 +380,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
     };
 
-    private final Consumer<Object> bookDeletedHandler = (rowBookData)->{
-        if(!(rowBookData instanceof RowItemData bookData)) return;
+    private final Consumer<RowItemData> bookDeletedHandler = (bookData)->{
         List<ListRow> rowsToDelete = new ArrayList<>();
         BookDto book = bookData.getBook();
         for (int i = 0; i < rowsAdapter.size(); i++) {
@@ -413,9 +404,9 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
     };
 
-    private final Consumer<Object> itemSelectChangeListenerHandler = (rowBookData)->{
-         if(!(rowBookData instanceof RowItemData data) || !(data.getRow().getAdapter() instanceof ArrayBookAdapter bookAdapter)) return;
-         bookAdapter.paginateRow(data.getBook());
+    private final Consumer<RowItemData> itemSelectChangeListenerHandler = (rowBookData)->{
+         if( !(rowBookData.getRow().getAdapter() instanceof ArrayBookAdapter bookAdapter)) return;
+         bookAdapter.paginateRow(rowBookData.getBook());
     };
 
 

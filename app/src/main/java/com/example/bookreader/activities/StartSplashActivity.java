@@ -18,9 +18,6 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
-
-
-
 @SuppressLint("CustomSplashScreen")
 public class StartSplashActivity extends FragmentActivity {
     private long splashStartTime;
@@ -32,19 +29,12 @@ public class StartSplashActivity extends FragmentActivity {
         setContentView(R.layout.start_splash);
         splashStartTime = System.currentTimeMillis();
         if (!app.isDataBaseInit()) {
-            app.getGlobalEventListener().subscribe(GlobalEventType.DATABASE_DONE, startMainActivityHandler);
+            app.getGlobalEventListener().subscribe(this,GlobalEventType.DATABASE_DONE, startMainActivityHandler, Object.class);
             app.DataBaseInit();
         } else {
             app.updateCategoryCash();
-            app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_CASH_UPDATED, startMainActivityHandler);
+            app.getGlobalEventListener().subscribe(this,GlobalEventType.CATEGORY_CASH_UPDATED, startMainActivityHandler, Object.class);
         }
-    }
-
-    @Override
-    public void onDestroy(){
-        super.onDestroy();
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.DATABASE_DONE, startMainActivityHandler);
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.CATEGORY_CASH_UPDATED, startMainActivityHandler);
     }
 
     private final Consumer<Object> startMainActivityHandler = (object)->runOnUiThread(this::tryStartMainActivity);
