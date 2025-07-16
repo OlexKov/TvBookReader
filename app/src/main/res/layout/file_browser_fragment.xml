@@ -34,7 +34,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:nextFocusRight="@+id/folder_grid"
-            android:nextFocusUp="@+id/storage_list"/>
+            android:nextFocusUp="@null"/>
     </LinearLayout>
 
 
@@ -109,7 +109,7 @@
             android:gravity="center"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusDown="@+id/file_browser_confirm_button"
+            android:nextFocusDown="@+id/file_browser_buttons"
             android:nextFocusLeft="@+id/storage_list"
             app:focusOutEnd="true"
             app:focusOutSideStart="true"/>
@@ -120,7 +120,11 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="visible">
+            android:visibility="gone"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:descendantFocusability="afterDescendants"
+            android:nextFocusUp="@+id/folder_grid">
             <Button
                 android:id="@+id/file_browser_confirm_button"
                 android:layout_width="0dp"
@@ -130,7 +134,8 @@
                 android:focusable="true"
                 android:clickable="true"
                 android:text="Обрати"
-                android:textAllCaps="false"/>
+                android:textAllCaps="false"
+                android:nextFocusUp="@+id/folder_grid"/>
             <Button
                 android:id="@+id/file_browser_cancel_button"
                 android:layout_width="0dp"
@@ -139,7 +144,8 @@
                 android:focusableInTouchMode="true"
                 android:focusable="true"
                 android:text="Скасувати"
-                android:textAllCaps="false"/>
+                android:textAllCaps="false"
+                android:nextFocusUp="@+id/folder_grid"/>
 
         </LinearLayout>
 

@@ -1,5 +1,8 @@
 package com.example.bookreader.fragments.filebrowser;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,11 +13,11 @@ import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,7 +28,7 @@ import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DiffCallback;
 import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
+
 import androidx.leanback.widget.VerticalGridView;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -55,14 +58,16 @@ public class BrowserFragment extends Fragment {
     private VerticalGridView folderGrid;
     private Button btnCancel;
     private Button btnConfirm;
+    private LinearLayout buttonsContainer;
     private TextView currentPathView;
     private File mainParentFile =  Environment.getExternalStorageDirectory();
     private final DiffCallback<BrowserFile> fileDiff = new BrowserFileDiffCallback();
     private BrowserFile currentFile = new BrowserFile(mainParentFile,false);
     private ArrayObjectAdapter storagesAdapter;
-    private ArrayObjectAdapter fordersGridAdapter;
+    private ArrayObjectAdapter folderGridAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
     private final DiffCallback<MainStorage> storagesDiff = new MainFolderDiffCallback();
+    private final List<BrowserFile> selectedFiles = new ArrayList<>();
 
     @Nullable
     @Override
@@ -72,6 +77,7 @@ public class BrowserFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        buttonsContainer = view.findViewById(R.id.file_browser_buttons);
         storageGrid = view.findViewById(R.id.storage_list);
         folderGrid = view.findViewById(R.id.folder_grid);
         btnCancel = view.findViewById(R.id.file_browser_cancel_button);
@@ -83,8 +89,8 @@ public class BrowserFragment extends Fragment {
         //folder grid settings
         int columnCount = calculateSpanCount(requireContext(), 80);
         folderGrid.setNumColumns(columnCount);
-        fordersGridAdapter = new ArrayObjectAdapter(new BrowserFilePresenter(folderClickListener));
-        folderGrid.setAdapter(new ItemBridgeAdapter(fordersGridAdapter));
+        folderGridAdapter = new ArrayObjectAdapter(new BrowserFilePresenter(folderClickListener));
+        folderGrid.setAdapter(new ItemBridgeAdapter(folderGridAdapter));
         RecyclerView.ItemAnimator animator = folderGrid.getItemAnimator();
         if (animator != null) {
             animator.setRemoveDuration(0);
@@ -123,7 +129,17 @@ public class BrowserFragment extends Fragment {
         }
 
 
-        btnCancel.setOnClickListener(v -> Toast.makeText(requireContext(), "Вибрано: bzck" , Toast.LENGTH_SHORT).show());
+        btnCancel.setOnClickListener(v -> {
+            for (BrowserFile file:selectedFiles){
+                file.setChecked(false);
+            }
+           // int focusablePosition = folderGrid.getSelectedPosition();
+            folderGridAdapter.notifyItemRangeChanged(0,folderGridAdapter.size());
+            selectedFiles.clear();
+            buttonsContainer.setVisibility(GONE);
+            folderGrid.setSelectedPosition(0);
+            folderGrid.requestFocus();
+        });
         btnConfirm.setOnClickListener(v -> {
             Toast.makeText(requireContext(), "Вибрано: ", Toast.LENGTH_SHORT).show();
         });
@@ -180,13 +196,18 @@ public class BrowserFragment extends Fragment {
         if (currentFile != null && currentFile.getFile().isDirectory()) {
             File[] files = currentFile.getFile().listFiles(filter);
             if (files != null) {
-                List<BrowserFile> browserFiles = Arrays.stream(files).map(x -> new BrowserFile(x, false))
-                        .sorted((BrowserFile f1, BrowserFile f2) -> {
-                            if (f1.getFile().isDirectory() && !f2.getFile().isDirectory()) return -1;
-                            if (!f1.getFile().isDirectory() && f2.getFile().isDirectory()) return 1;
-                            return f1.getFile().getName().compareToIgnoreCase(f2.getFile().getName());
-                        }).collect(Collectors.toList());
-                fordersGridAdapter.setItems(browserFiles, fileDiff);
+                List<BrowserFile> browserFiles = Arrays.stream(files).map(x ->{
+                    BrowserFile exist = selectedFiles.stream()
+                            .filter(selected->selected.getFile().getAbsolutePath().equals(x.getAbsolutePath()))
+                            .findFirst().orElse(null);
+                    if(exist != null) return exist;
+                    return  new BrowserFile(x, false);
+                }).sorted((BrowserFile f1, BrowserFile f2) -> {
+                    if (f1.getFile().isDirectory() && !f2.getFile().isDirectory()) return -1;
+                    if (!f1.getFile().isDirectory() && f2.getFile().isDirectory()) return 1;
+                    return f1.getFile().getName().compareToIgnoreCase(f2.getFile().getName());
+                }).collect(Collectors.toList());
+                folderGridAdapter.setItems(browserFiles, fileDiff);
             }
         }
     }
@@ -210,9 +231,26 @@ public class BrowserFragment extends Fragment {
                 loadFiles();
             }
             else{
-                file.setChecked(!file.isChecked());
-                int index = fordersGridAdapter.indexOf(file);
-                fordersGridAdapter.notifyItemRangeChanged(index,1);
+                boolean checked = !file.isChecked();
+                file.setChecked(checked);
+                int index = folderGridAdapter.indexOf(file);
+                folderGridAdapter.notifyItemRangeChanged(index,1);
+                if(checked){
+                    if(!selectedFiles.contains(file)){
+                        selectedFiles.add(file);
+                    }
+
+                    if(buttonsContainer.getVisibility() != VISIBLE){
+                        buttonsContainer.setVisibility(VISIBLE);
+                    }
+                }
+                else{
+                    selectedFiles.remove(file);
+                    if(selectedFiles.isEmpty() && buttonsContainer.getVisibility() == VISIBLE){
+                        buttonsContainer.setVisibility(GONE);
+                    }
+                }
+
 //                        Intent resultIntent = new Intent();
 //                        resultIntent.putExtra("SELECTED_FILE_PATH", file.getAbsolutePath());
 //                        requireActivity().setResult(Activity.RESULT_OK, resultIntent);
@@ -268,7 +306,7 @@ public class BrowserFragment extends Fragment {
                     currentFile.setFile(parentFile);
                     currentPathView.setText(currentFile.getFile().getAbsolutePath());
                     loadFiles();
-                    int lastOpenedFilePosition = fordersGridAdapter.indexOf(lastOpenedFile);
+                    int lastOpenedFilePosition = folderGridAdapter.indexOf(lastOpenedFile);
                     folderGrid.setSelectedPosition(lastOpenedFilePosition);
                 }
             }
