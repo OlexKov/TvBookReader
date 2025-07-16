@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/file_browser"
     android:baselineAligned="false"
     android:orientation="horizontal"
     android:layout_width="match_parent"
@@ -21,11 +23,18 @@
             android:padding="30dp"
             android:text="@string/storages" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/storage_folders"
-            android:layout_width="250dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+        <androidx.leanback.widget.VerticalGridView
+            android:id="@+id/storage_list"
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:layout_marginEnd="8dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:nextFocusRight="@+id/folder_grid"
+            android:nextFocusUp="@+id/storage_list"/>
     </LinearLayout>
 
 
@@ -91,12 +100,19 @@
             android:layout_marginBottom="20dp"/>
 
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/folder_content"
-            android:orientation="vertical"
+        <androidx.leanback.widget.VerticalGridView
+            android:id="@+id/folder_grid"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@+id/file_browser_confirm_button"
+            android:nextFocusLeft="@+id/storage_list"
+            app:focusOutEnd="true"
+            app:focusOutSideStart="true"/>
 
         <LinearLayout
             style="?android:attr/buttonBarStyle"

@@ -3,6 +3,7 @@ package com.example.bookreader.customclassses;
 import androidx.annotation.NonNull;
 
 import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.presenters.browserpresenters.BrowserFilePresenter;
 
 import java.io.File;
 
@@ -11,18 +12,13 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class BrowserFile implements Cloneable{
+public class BrowserFile{
     private File file;
     private boolean checked;
 
-    @NonNull
-    @Override
-    public BrowserFile clone() {
-        try {
-            return (BrowserFile) super.clone(); // поверхневе клонування
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+    public  BrowserFile(BrowserFile browserFile){
+        this.file = browserFile.file;
+        this.checked = browserFile.checked;;
     }
 
     @Override

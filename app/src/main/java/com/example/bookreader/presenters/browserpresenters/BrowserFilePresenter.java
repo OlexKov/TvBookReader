@@ -6,6 +6,7 @@ import static android.view.View.VISIBLE;
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +14,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Consumer;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Visibility;
 
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BrowserFile;
 import com.example.bookreader.interfaces.BookProcessor;
+import com.example.bookreader.listeners.HeaderButtonOnFocusListener;
+import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.EpubProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.pdf.PdfProcessor;
@@ -30,6 +34,14 @@ import java.io.File;
 import java.io.IOException;
 
 public class BrowserFilePresenter extends Presenter {
+
+    private final Consumer<Object> onClickListener;
+
+
+    public BrowserFilePresenter(Consumer<Object> clickListener) {
+        this.onClickListener = clickListener;
+    }
+
     @Override
     public @NonNull ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
@@ -72,8 +84,26 @@ public class BrowserFilePresenter extends Presenter {
                         throw new RuntimeException(e);
                     }
                 }
-
             }
+
+//            viewHolder.view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//                @Override
+//                public void onFocusChange(View v, boolean hasFocus) {
+//                    final View target = v;
+//                    target.post(() -> {
+//                        if (target.isAttachedToWindow()) {
+//                            AnimHelper.scale(target, 1.2f, hasFocus, 150);
+//                        }
+//                    });
+//                }
+//            });
+
+            viewHolder.view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickListener.accept(item);
+                }
+            });
         }
     }
 
