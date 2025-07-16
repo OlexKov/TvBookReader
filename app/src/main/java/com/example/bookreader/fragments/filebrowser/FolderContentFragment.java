@@ -101,7 +101,6 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
     }
 
 
-
     @SuppressLint("RestrictedApi")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -144,18 +143,18 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
     };
 
     private void loadFiles(){
-    if (currentFile != null && currentFile.getFile().isDirectory()) {
-        File[] files = currentFile.getFile().listFiles(filter);
-        if(files != null && files.length > 0){
-            List<BrowserFile> browserFiles = Arrays.stream(files).map(x->new BrowserFile(x,false)).collect(Collectors.toList());
-            browserFiles.sort((BrowserFile f1, BrowserFile f2) -> {
-                if (f1.getFile().isDirectory() && !f2.getFile().isDirectory()) return -1;
-                if (!f1.getFile().isDirectory() && f2.getFile().isDirectory()) return 1;
-                return f1.getFile().getName().compareToIgnoreCase(f2.getFile().getName());
-            });
-            rowAdapter.setItems(browserFiles,fileDiff);
+        if (currentFile != null && currentFile.getFile().isDirectory()) {
+            File[] files = currentFile.getFile().listFiles(filter);
+            if (files != null) {
+                List<BrowserFile> browserFiles = Arrays.stream(files).map(x -> new BrowserFile(x, false))
+                        .sorted((BrowserFile f1, BrowserFile f2) -> {
+                            if (f1.getFile().isDirectory() && !f2.getFile().isDirectory()) return -1;
+                            if (!f1.getFile().isDirectory() && f2.getFile().isDirectory()) return 1;
+                            return f1.getFile().getName().compareToIgnoreCase(f2.getFile().getName());
+                }).collect(Collectors.toList());
+                rowAdapter.setItems(browserFiles, fileDiff);
+            }
         }
-    }
     }
 
     private  int calculateSpanCount(Context context, int itemWidthDp) {
@@ -180,9 +179,12 @@ public class FolderContentFragment extends VerticalGridSupportFragment {
             if(currentFile != null && !currentFile.getFile().getAbsolutePath().equals(mainParentFile.getAbsolutePath())){
                 File parentFile = currentFile.getFile().getParentFile();
                 if(parentFile != null){
+                    BrowserFile lastOpenedFile = currentFile.clone();
                     currentFile.setFile(parentFile);
                     pathTextView.setText(currentFile.getFile().getAbsolutePath());
                     loadFiles();
+                    int lastOpenedFilePosition = rowAdapter.indexOf(lastOpenedFile);
+                    setSelectedPosition(lastOpenedFilePosition);
                 }
             }
             else{
