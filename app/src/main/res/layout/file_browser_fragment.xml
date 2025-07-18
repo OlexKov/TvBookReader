@@ -85,13 +85,12 @@
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/file_browser_text"
+                    android:id="@+id/file_browser_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="30sp"
                     android:textColor="#FFFFFF"
-                    android:gravity="center_vertical"
-                    android:text="Оберіть файли" />
+                    android:gravity="center_vertical" />
 
             </LinearLayout>
 

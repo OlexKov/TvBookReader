@@ -32,8 +32,7 @@ public class FileBrowserActivity extends FragmentActivity {
                 .replace(R.id.file_browser, new BrowserFragment())
                 .commit();
 
-
-    }
+   }
 
     @Override
     public void finish() {

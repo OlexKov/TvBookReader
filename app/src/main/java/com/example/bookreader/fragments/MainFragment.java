@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -32,6 +33,8 @@ import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 
+import com.example.bookreader.fragments.filebrowser.BrowserMode;
+import com.example.bookreader.fragments.filebrowser.BrowserResult;
 import com.example.bookreader.interfaces.BookProcessor;
 import com.example.bookreader.utility.EpubProcessor;
 import com.example.bookreader.utility.FileHelper;
@@ -49,6 +52,7 @@ import com.example.bookreader.utility.pdf.PdfProcessor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -84,38 +88,42 @@ public class MainFragment extends BrowseSupportFragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        String selectedFilePath = result.getData().getStringExtra("SELECTED_FILE_PATH");
-                        File selectedFile  = new File(selectedFilePath);
-                        if(!selectedFile.exists()) return;
-                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedFile), "pdf")
-                                ? new PdfProcessor()
-                                : new EpubProcessor();
-
-
-                        try {
-
-                            progressBarManager.show();
-                            bookProcessor.processFileAsync(getContext(), selectedFile).thenAccept((bookInfo) -> {
-                                requireActivity().runOnUiThread(() -> {
-                                    progressBarManager.hide();
-                                    new android.app.AlertDialog.Builder(requireActivity())
-                                            .setMessage("Title - " + bookInfo.title + "\n" +
-                                                    "Author - " + bookInfo.author + "\n" +
-                                                    "Pages - " + bookInfo.pageCount + "\n" +
-                                                    "File - " + bookInfo.filePath + "\n" +
-                                                    "Preview - " + bookInfo.previewPath + "\n")
-                                            .setPositiveButton("Закрити", (dialog, which) -> {
-                                                dialog.dismiss(); // закриває діалог
-                                            })
-                                            .setCancelable(true) // можна закрити тапом поза вікном
-                                            .show();
-                                });
-
-
-                            });
-                        } catch (IOException  e) {
-                            throw new RuntimeException(e);
+                        List<String> selectedFilePath = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
+                        for (String filePath:selectedFilePath){
+                            Log.d("BrowserResult",filePath);
                         }
+
+//                        File selectedFile  = new File(selectedFilePath);
+//                        if(!selectedFile.exists()) return;
+//                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedFile), "pdf")
+//                                ? new PdfProcessor()
+//                                : new EpubProcessor();
+//
+//
+//                        try {
+//
+//                            progressBarManager.show();
+//                            bookProcessor.processFileAsync(getContext(), selectedFile).thenAccept((bookInfo) -> {
+//                                requireActivity().runOnUiThread(() -> {
+//                                    progressBarManager.hide();
+//                                    new android.app.AlertDialog.Builder(requireActivity())
+//                                            .setMessage("Title - " + bookInfo.title + "\n" +
+//                                                    "Author - " + bookInfo.author + "\n" +
+//                                                    "Pages - " + bookInfo.pageCount + "\n" +
+//                                                    "File - " + bookInfo.filePath + "\n" +
+//                                                    "Preview - " + bookInfo.previewPath + "\n")
+//                                            .setPositiveButton("Закрити", (dialog, which) -> {
+//                                                dialog.dismiss(); // закриває діалог
+//                                            })
+//                                            .setCancelable(true) // можна закрити тапом поза вікном
+//                                            .show();
+//                                });
+//
+//
+//                            });
+//                        } catch (IOException  e) {
+//                            throw new RuntimeException(e);
+//                        }
                     }
                 }
         );
@@ -165,6 +173,7 @@ public class MainFragment extends BrowseSupportFragment {
             customsView.setOnButton2ClickListener((v)->{
                 if(!(v.getContext() instanceof Activity vActivity)) return;
                 Intent intent = new Intent(vActivity, FileBrowserActivity.class);
+                intent.putExtra("mode", BrowserMode.MULTIPLE_FILES);
                 filePickerLauncher.launch(intent);
                 vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
             });
