@@ -23,7 +23,7 @@
             android:focusableInTouchMode="true"
             android:padding="10dp"
             android:scaleType="centerInside"
-            android:src="@drawable/settings"
+            android:src="@drawable/search"
             android:visibility="invisible"
             android:layout_margin="8dp"/>
 
@@ -37,7 +37,7 @@
             android:focusableInTouchMode="true"
             android:padding="8dp"
             android:scaleType="centerInside"
-            android:src="@drawable/settings"
+            android:src="@drawable/add_book"
             android:visibility="invisible"
             android:layout_margin="8dp"/>
 
@@ -51,7 +51,7 @@
             android:focusableInTouchMode="true"
             android:padding="8dp"
             android:scaleType="centerInside"
-            android:src="@drawable/settings"
+            android:src="@drawable/add_folder"
             android:visibility="invisible"
             android:layout_margin="8dp"/>
     </LinearLayout>

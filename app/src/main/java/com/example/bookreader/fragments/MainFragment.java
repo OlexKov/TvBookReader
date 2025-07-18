@@ -179,7 +179,6 @@ public class MainFragment extends BrowseSupportFragment {
             });
 
             customsView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
-            customsView.setButton1Icon(R.drawable.books_stack);
         }
         LifecycleOwner owner = getViewLifecycleOwner();
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler, Object.class);
