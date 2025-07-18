@@ -6,6 +6,7 @@ import static android.view.View.VISIBLE;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,9 +25,11 @@ import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.ViewUtils;
 import androidx.core.util.Consumer;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
+import androidx.leanback.widget.BrowseFrameLayout;
 import androidx.leanback.widget.DiffCallback;
 import androidx.leanback.widget.ItemBridgeAdapter;
 
@@ -72,7 +76,22 @@ public class BrowserFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(  @NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState ) {
-        return inflater.inflate(R.layout.file_browser_fragment, container, false);
+        View view = inflater.inflate(R.layout.file_browser_fragment, container, false);
+        BrowseFrameLayout browseFrameLayout = (BrowseFrameLayout)view;
+        browseFrameLayout.setOnFocusSearchListener(new BrowseFrameLayout.OnFocusSearchListener () {
+            @Override
+            public @org.jspecify.annotations.Nullable View onFocusSearch(@org.jspecify.annotations.Nullable View focused, int direction) {
+                if(direction == View.FOCUS_RIGHT &&  storageGrid.indexOfChild(focused) != -1){
+                   return folderGrid;
+                }
+                else if(direction == View.FOCUS_DOWN &&  folderGrid.indexOfChild(focused) != -1){
+                    return btnConfirm;
+                }
+                return null;
+            }
+        });
+
+        return view;
     }
 
     @Override
@@ -85,6 +104,7 @@ public class BrowserFragment extends Fragment {
 
         currentPathView = view.findViewById(R.id.file_browser_path);
         currentPathView.setText(mainParentFile.getAbsolutePath());
+
 
         //folder grid settings
         int columnCount = calculateSpanCount(requireContext(), 80);
