@@ -86,18 +86,6 @@ public class BrowserFilePresenter extends Presenter {
                 }
             }
 
-//            viewHolder.view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-//                @Override
-//                public void onFocusChange(View v, boolean hasFocus) {
-//                    final View target = v;
-//                    target.post(() -> {
-//                        if (target.isAttachedToWindow()) {
-//                            AnimHelper.scale(target, 1.2f, hasFocus, 150);
-//                        }
-//                    });
-//                }
-//            });
-
             viewHolder.view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

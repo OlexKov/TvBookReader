@@ -65,6 +65,7 @@ public class MainFragment extends BrowseSupportFragment {
     private final BookReaderApp app = BookReaderApp.getInstance();
     private ActivityResultLauncher<Intent> filePickerLauncher;
     private ProgressBarManager progressBarManager;
+    private BrowserMode currentBrowserMode;
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -88,10 +89,29 @@ public class MainFragment extends BrowseSupportFragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        List<String> selectedFilePath = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
-                        for (String filePath:selectedFilePath){
-                            Log.d("BrowserResult",filePath);
+                        switch (currentBrowserMode){
+                            case FOLDER :
+                                String selectedFolderPath = result.getData().getStringExtra(BrowserResult.FOLDER_PATH.name());
+                                if(selectedFolderPath != null){
+                                    Log.d("BrowserResult",selectedFolderPath);
+                                }
+                                break;
+                            case MULTIPLE_FILES:
+                                List<String> selectedFilesPaths = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
+                                if(selectedFilesPaths != null){
+                                    for (String filePath:selectedFilesPaths){
+                                        Log.d("BrowserResult",filePath);
+                                    }
+                                }
+                                break;
+                            case SINGLE_FILE:
+                                String selectedFilePath = result.getData().getStringExtra(BrowserResult.SELECTED_FILE_PATH.name());
+                                if(selectedFilePath != null){
+                                    Log.d("BrowserResult",selectedFilePath);
+                                }
+                                break;
                         }
+
 
 //                        File selectedFile  = new File(selectedFilePath);
 //                        if(!selectedFile.exists()) return;
@@ -171,14 +191,14 @@ public class MainFragment extends BrowseSupportFragment {
             });
 
             customsView.setOnButton2ClickListener((v)->{
-                if(!(v.getContext() instanceof Activity vActivity)) return;
-                Intent intent = new Intent(vActivity, FileBrowserActivity.class);
-                intent.putExtra("mode", BrowserMode.MULTIPLE_FILES);
-                filePickerLauncher.launch(intent);
-                vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
+                currentBrowserMode = BrowserMode.MULTIPLE_FILES;
+                runFileBrowser(v,currentBrowserMode);
             });
 
-            customsView.setOnButton3ClickListener((v)->Toast.makeText(getContext(),"Натиснута кнопка 3", Toast.LENGTH_SHORT).show());
+            customsView.setOnButton3ClickListener((v)->{
+                currentBrowserMode = BrowserMode.FOLDER;
+                runFileBrowser(v,currentBrowserMode);
+            });
         }
         LifecycleOwner owner = getViewLifecycleOwner();
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler, Object.class);
@@ -257,5 +277,13 @@ public class MainFragment extends BrowseSupportFragment {
             setAdapter(rowsAdapter);
 
         });
+    }
+
+    private void runFileBrowser(View v,BrowserMode browserMode){
+        if(!(v.getContext() instanceof Activity vActivity)) return;
+        Intent intent = new Intent(vActivity, FileBrowserActivity.class);
+        intent.putExtra("mode",browserMode);
+        filePickerLauncher.launch(intent);
+        vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
     }
 }

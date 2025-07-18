@@ -144,7 +144,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
     };
 
     private final Consumer<MainCategoryInfo> categoryChangeButtonProcessorHandler = (categoryInfo)->{
-        if(categoryInfo.getIndex() <= 1 || !app.isMenuOpen()){
+        if(categoryInfo.getIndex() == 0 || !app.isMenuOpen()){
             smoothDisplay(buttonContainer);
         }
         else{

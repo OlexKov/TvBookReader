@@ -3,6 +3,8 @@ package com.example.bookreader.fragments.filebrowser;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import static com.example.bookreader.utility.ViewHelper.calculateSpanCount;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -51,43 +53,30 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BrowserFragment extends Fragment {
     private VerticalGridView storageGrid;
     private VerticalGridView folderGrid;
-    private Button btnCancel;
     private Button btnConfirm;
     private LinearLayout buttonsContainer;
     private TextView currentPathView;
-    private TextView title;
-    private File mainParentFile =  Environment.getExternalStorageDirectory();
-    private final DiffCallback<BrowserFile> fileDiff = new BrowserFileDiffCallback();
-    private BrowserFile currentFile = new BrowserFile(mainParentFile,false);
+    private File mainParentFile = Environment.getExternalStorageDirectory();
+    private BrowserMode browserMode;
+    private BrowserFile currentFile = new BrowserFile(mainParentFile, false);
     private ArrayObjectAdapter storagesAdapter;
     private ArrayObjectAdapter folderGridAdapter;
     private final DiffCallback<MainStorage> storagesDiff = new MainFolderDiffCallback();
     private final List<BrowserFile> selectedFiles = new ArrayList<>();
-    private  BrowserMode browserMode;
+    private final DiffCallback<BrowserFile> fileDiff = new BrowserFileDiffCallback();
 
     @Nullable
     @Override
-    public View onCreateView(  @NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState ) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.file_browser_fragment, container, false);
-        BrowseFrameLayout browseFrameLayout = (BrowseFrameLayout)view;
-        browseFrameLayout.setOnFocusSearchListener(new BrowseFrameLayout.OnFocusSearchListener () {
-            @Override
-            public @org.jspecify.annotations.Nullable View onFocusSearch(@org.jspecify.annotations.Nullable View focused, int direction) {
-                if(direction == View.FOCUS_RIGHT && storageGrid.indexOfChild(focused) != -1){
-                   return folderGrid;
-                }
-                else if(direction == View.FOCUS_DOWN && folderGrid.indexOfChild(focused) != -1){
-                    return btnConfirm;
-                }
-                return null;
-            }
-        });
-
+        BrowseFrameLayout browseFrameLayout = (BrowseFrameLayout) view;
+        browseFrameLayout.setOnFocusSearchListener(onFocusSearchListener);
         return view;
     }
 
@@ -96,110 +85,23 @@ public class BrowserFragment extends Fragment {
         buttonsContainer = view.findViewById(R.id.file_browser_buttons);
         storageGrid = view.findViewById(R.id.storage_list);
         folderGrid = view.findViewById(R.id.folder_grid);
-        btnCancel = view.findViewById(R.id.file_browser_cancel_button);
         btnConfirm = view.findViewById(R.id.file_browser_confirm_button);
-        title = view.findViewById(R.id.file_browser_title);
-
         currentPathView = view.findViewById(R.id.file_browser_path);
         currentPathView.setText(mainParentFile.getAbsolutePath());
-
-        browserMode = (BrowserMode)requireActivity().getIntent().getSerializableExtra("mode");
-        if(browserMode == null){
+        browserMode = (BrowserMode) requireActivity().getIntent().getSerializableExtra("mode");
+        if (browserMode == null) {
             browserMode = BrowserMode.SINGLE_FILE;
         }
-
-        switch (browserMode){
-            case FOLDER :
-                title.setText(getString(R.string.select_folder));
-                buttonsContainer.setVisibility(VISIBLE);
-                break;
-            case SINGLE_FILE:
-                 title.setText(getString(R.string.select_file));
-                 break;
-            case MULTIPLE_FILES :
-                title.setText(getString(R.string.select_files));
-                break;
-        }
-
-
-
-
-        //folder grid settings
-        int columnCount = calculateSpanCount(requireContext(), 80);
-        folderGrid.setNumColumns(columnCount);
-        folderGridAdapter = new ArrayObjectAdapter(new BrowserFilePresenter(folderClickListener));
-        folderGrid.setAdapter(new ItemBridgeAdapter(folderGridAdapter));
-        RecyclerView.ItemAnimator animator = folderGrid.getItemAnimator();
-        if (animator != null) {
-            animator.setRemoveDuration(0);
-            animator.setAddDuration(500);
-        }
-        folderGrid.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
-            @Override
-            public void onChildViewAttachedToWindow(@NonNull View view) {
-                view.setOnFocusChangeListener((v, hasFocus) -> {
-                    v.post(()->{
-                        AnimHelper.scale(v,1.2f,hasFocus,150);
-                    });
-                });
-            }
-
-            @Override
-            public void onChildViewDetachedFromWindow(@NonNull View view) {
-                view.animate().cancel();
-                view.setScaleX(1f);
-                view.setScaleY(1f);
-            }
-        });
-
-        loadFiles();
-
-        //storage grid settings
-        storageGrid.setNumColumns(1);
-        storagesAdapter = new ArrayObjectAdapter(new StorageFolderPresenter(storageSelectListener));
-        storagesAdapter.addAll(0,getStorages());
-        storageGrid.setAdapter(new ItemBridgeAdapter(storagesAdapter));
-        storageGrid.setVerticalSpacing(AnimHelper.convertToDp(getContext(),30));
-        RecyclerView.ItemAnimator storageListAnimator = storageGrid.getItemAnimator();
-        if (storageListAnimator != null) {
-            storageListAnimator.setRemoveDuration(0);
-            storageListAnimator.setAddDuration(500);
-        }
-
-
-        btnCancel.setOnClickListener(v -> {
-            if(browserMode == BrowserMode.FOLDER) requireActivity().finish();
-            for (BrowserFile file:selectedFiles){
-                file.setChecked(false);
-            }
-           // int focusablePosition = folderGrid.getSelectedPosition();
-            folderGridAdapter.notifyItemRangeChanged(0,folderGridAdapter.size());
-            selectedFiles.clear();
-            buttonsContainer.setVisibility(GONE);
-            folderGrid.setSelectedPosition(0);
-            folderGrid.requestFocus();
-        });
-
-        btnConfirm.setOnClickListener(v -> {
-            Intent result = new Intent();
-            if(browserMode == BrowserMode.FOLDER){
-                result.putExtra(BrowserResult.FOLDER_PATH.name(),currentFile.getFile().getAbsolutePath());
-                requireActivity().setResult(Activity.RESULT_OK, result);
-            }
-            else{
-                result.putStringArrayListExtra(BrowserResult.SELECTED_FILES.name(), selectedFiles.stream()
-                        .map(file->file.getFile().getAbsolutePath())
-                        .collect(Collectors.toCollection(ArrayList::new)));
-                requireActivity().setResult(Activity.RESULT_OK, result);
-            }
-            requireActivity().finish();
-        });
+        setTitle(view, browserMode);
+        setFolderGrid();
+        setStorageGrid();
+        setButtonsListeners(view);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        UsbHelper.registerUsbReceiver(requireContext(),usbReceiver);
+        UsbHelper.registerUsbReceiver(requireContext(), usbReceiver);
         requireActivity()
                 .getOnBackPressedDispatcher()
                 .addCallback(this, backCallback);
@@ -211,48 +113,16 @@ public class BrowserFragment extends Fragment {
         requireContext().unregisterReceiver(usbReceiver);
     }
 
-    private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Uri data = intent.getData();
-            if (action == null || data == null) return;
-            switch (action) {
-                case Intent.ACTION_MEDIA_MOUNTED:
-                case Intent.ACTION_MEDIA_UNMOUNTED:
-                case Intent.ACTION_MEDIA_REMOVED:
-                case Intent.ACTION_MEDIA_EJECT:
-                    storagesAdapter.setItems(getStorages(),storagesDiff);
-                    break;
-            }
-        }
-    };
-
-    private  int calculateSpanCount(Context context, int itemWidthDp) {
-        // Отримати ширину екрана в dp
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float screenWidthDp = displayMetrics.widthPixels / displayMetrics.density;
-
-        // Порахувати кількість колонок
-        int columnCount = (int) (screenWidthDp / itemWidthDp);
-        int totalSpacingDp = 30 * (columnCount - 1);
-        int availableDp = (int) screenWidthDp - totalSpacingDp;
-        int spanCount = availableDp / itemWidthDp;
-
-        // Гарантувати мінімум 1 колонку
-        return Math.max(spanCount, 1);
-    }
-
-    private void loadFiles(){
+    private void loadFiles() {
         if (currentFile != null && currentFile.getFile().isDirectory()) {
             File[] files = currentFile.getFile().listFiles(filter);
             if (files != null) {
-                List<BrowserFile>  browserFiles = Arrays.stream(files).map(x ->{
+                List<BrowserFile> browserFiles = Arrays.stream(files).map(x -> {
                     BrowserFile exist = selectedFiles.stream()
-                            .filter(selected->selected.getFile().getAbsolutePath().equals(x.getAbsolutePath()))
+                            .filter(selected -> selected.getFile().getAbsolutePath().equals(x.getAbsolutePath()))
                             .findFirst().orElse(null);
-                    if(exist != null) return exist;
-                    return  new BrowserFile(x, false);
+                    if (exist != null) return exist;
+                    return new BrowserFile(x, false);
                 }).sorted((BrowserFile f1, BrowserFile f2) -> {
                     if (f1.getFile().isDirectory() && !f2.getFile().isDirectory()) return -1;
                     if (!f1.getFile().isDirectory() && f2.getFile().isDirectory()) return 1;
@@ -263,70 +133,53 @@ public class BrowserFragment extends Fragment {
         }
     }
 
-    private final FileFilter filter = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            if(!pathname.isDirectory()){
-                String ext = FileHelper.getFileExtension(getContext(),pathname);
-                return ext != null && (ext.equals("pdf") || ext.equals("epub"));
-            }
-            return true;
+    private void setTitle(View view, BrowserMode browserMode) {
+        TextView title = view.findViewById(R.id.file_browser_title);
+        switch (browserMode) {
+            case FOLDER:
+                title.setText(getString(R.string.select_folder));
+                buttonsContainer.setVisibility(VISIBLE);
+                break;
+            case SINGLE_FILE:
+                title.setText(getString(R.string.select_file));
+                break;
+            case MULTIPLE_FILES:
+                title.setText(getString(R.string.select_files));
+                break;
         }
-    };
+    }
 
-    private final Consumer<Object> folderClickListener = (item)->{
-        if(item instanceof BrowserFile file){
-            if(file.getFile().isDirectory()){
-                    currentFile = file;
-                    currentPathView.setText(currentFile.getFile().getAbsolutePath());
-                    loadFiles();
-            }
-            else {
-                if(browserMode == BrowserMode.MULTIPLE_FILES ){
-                    boolean checked = !file.isChecked();
-                    file.setChecked(checked);
-                    int index = folderGridAdapter.indexOf(file);
-                    folderGridAdapter.notifyItemRangeChanged(index,1);
-                    if(checked){
-                        if(!selectedFiles.contains(file)){
-                            selectedFiles.add(file);
-                        }
-
-                        if(buttonsContainer.getVisibility() != VISIBLE){
-                            buttonsContainer.setVisibility(VISIBLE);
-                        }
-                    }
-                    else{
-                        selectedFiles.remove(file);
-                        if(selectedFiles.isEmpty() && buttonsContainer.getVisibility() == VISIBLE){
-                            buttonsContainer.setVisibility(GONE);
-                        }
-                    }
-                }
-                else if(browserMode == BrowserMode.SINGLE_FILE){
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra(BrowserResult.SELECTED_FILE_PATH.name(), file.getFile().getAbsolutePath());
-                    requireActivity().setResult(Activity.RESULT_OK, resultIntent);
-                    requireActivity().finish();
-                }
-            }
+    private void setFolderGrid() {
+        int columnCount = calculateSpanCount(requireContext(), 80);
+        folderGrid.setNumColumns(columnCount);
+        folderGridAdapter = new ArrayObjectAdapter(new BrowserFilePresenter(folderClickListener));
+        folderGrid.setAdapter(new ItemBridgeAdapter(folderGridAdapter));
+        RecyclerView.ItemAnimator animator = folderGrid.getItemAnimator();
+        if (animator != null) {
+            animator.setRemoveDuration(0);
+            animator.setAddDuration(500);
         }
-    };
+        folderGrid.addOnChildAttachStateChangeListener(onChildAttachStateChangeListener);
+        loadFiles();
+    }
 
-    private final Consumer<Object> storageSelectListener = (item)->{
-        if(item instanceof MainStorage folder){
-            if(mainParentFile.getAbsolutePath().equals(folder.getFile().getAbsolutePath())) return;
-            mainParentFile = folder.getFile();
-            currentFile.setFile(mainParentFile);
-            currentPathView.setText(currentFile.getFile().getAbsolutePath());
-            loadFiles();
+    private void setStorageGrid() {
+        storageGrid.setNumColumns(1);
+        storagesAdapter = new ArrayObjectAdapter(new StorageFolderPresenter(storageSelectListener));
+        storagesAdapter.addAll(0, getStorages());
+        storageGrid.setAdapter(new ItemBridgeAdapter(storagesAdapter));
+        storageGrid.setVerticalSpacing(AnimHelper.convertToDp(requireContext(), 30));
+        RecyclerView.ItemAnimator storageListAnimator = storageGrid.getItemAnimator();
+        if (storageListAnimator != null) {
+            storageListAnimator.setRemoveDuration(0);
+            storageListAnimator.setAddDuration(500);
         }
-    };
+    }
 
-    private List<MainStorage> getStorages(){
+    private List<MainStorage> getStorages() {
         List<MainStorage> storages = new ArrayList<>();
-        storages.add(new MainStorage( R.drawable.external_storage,getString(R.string.main_storage),Environment.getExternalStorageDirectory()) );
-        if(getContext() != null){
+        storages.add(new MainStorage(R.drawable.external_storage, getString(R.string.main_storage), Environment.getExternalStorageDirectory()));
+        if (getContext() != null) {
             StorageManager storageManager = (StorageManager) getContext().getSystemService(Context.STORAGE_SERVICE);
             List<StorageVolume> volumes = storageManager.getStorageVolumes();
 
@@ -342,7 +195,7 @@ public class BrowserFragment extends Fragment {
                         }
                     }
                     String description = volume.getDescription(getContext());
-                    int drawableId = description.toLowerCase().contains("sd")?R.drawable.cd_card : R.drawable.usb_drive;
+                    int drawableId = description.toLowerCase().contains("sd") ? R.drawable.cd_card : R.drawable.usb_drive;
                     storages.add(new MainStorage(drawableId, description, directory));
                 }
             }
@@ -350,12 +203,116 @@ public class BrowserFragment extends Fragment {
         return storages;
     }
 
+    private void setButtonsListeners(View view) {
+        Button btnCancel = view.findViewById(R.id.file_browser_cancel_button);
+        btnCancel.setOnClickListener(v -> {
+            if (browserMode == BrowserMode.FOLDER) requireActivity().finish();
+            for (BrowserFile file : selectedFiles) {
+                file.setChecked(false);
+            }
+            // int focusablePosition = folderGrid.getSelectedPosition();
+            folderGridAdapter.notifyItemRangeChanged(0, folderGridAdapter.size());
+            selectedFiles.clear();
+            buttonsContainer.setVisibility(GONE);
+            folderGrid.setSelectedPosition(0);
+            folderGrid.requestFocus();
+        });
+
+        btnConfirm.setOnClickListener(v -> {
+            Intent result = new Intent();
+            if (browserMode == BrowserMode.FOLDER) {
+                result.putExtra(BrowserResult.FOLDER_PATH.name(), currentFile.getFile().getAbsolutePath());
+                requireActivity().setResult(Activity.RESULT_OK, result);
+            } else {
+                result.putStringArrayListExtra(BrowserResult.SELECTED_FILES.name(), selectedFiles.stream()
+                        .map(file -> file.getFile().getAbsolutePath())
+                        .collect(Collectors.toCollection(ArrayList::new)));
+                requireActivity().setResult(Activity.RESULT_OK, result);
+            }
+            requireActivity().finish();
+        });
+    }
+
+    private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            Uri data = intent.getData();
+            if (action == null || data == null) return;
+            switch (action) {
+                case Intent.ACTION_MEDIA_MOUNTED:
+                case Intent.ACTION_MEDIA_UNMOUNTED:
+                case Intent.ACTION_MEDIA_REMOVED:
+                case Intent.ACTION_MEDIA_EJECT:
+                    storagesAdapter.setItems(getStorages(), storagesDiff);
+                    break;
+            }
+        }
+    };
+
+    private final FileFilter filter = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            if (!pathname.isDirectory()) {
+                String ext = FileHelper.getFileExtension(getContext(), pathname);
+                return ext != null && (ext.equals("pdf") || ext.equals("epub") || ext.equals("fb2"));
+            }
+            return true;
+        }
+    };
+
+    private final Consumer<Object> folderClickListener = (item) -> {
+        if (item instanceof BrowserFile file) {
+            if (file.getFile().isDirectory()) {
+                currentFile = file;
+                currentPathView.setText(currentFile.getFile().getAbsolutePath());
+                loadFiles();
+            } else {
+                if (browserMode == BrowserMode.MULTIPLE_FILES) {
+                    boolean checked = !file.isChecked();
+                    file.setChecked(checked);
+                    int index = folderGridAdapter.indexOf(file);
+                    folderGridAdapter.notifyItemRangeChanged(index, 1);
+                    if (checked) {
+                        if (!selectedFiles.contains(file)) {
+                            selectedFiles.add(file);
+                        }
+
+                        if (buttonsContainer.getVisibility() != VISIBLE) {
+                            buttonsContainer.setVisibility(VISIBLE);
+                        }
+                    } else {
+                        selectedFiles.remove(file);
+                        if (selectedFiles.isEmpty() && buttonsContainer.getVisibility() == VISIBLE) {
+                            buttonsContainer.setVisibility(GONE);
+                        }
+                    }
+                } else if (browserMode == BrowserMode.SINGLE_FILE) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra(BrowserResult.SELECTED_FILE_PATH.name(), file.getFile().getAbsolutePath());
+                    requireActivity().setResult(Activity.RESULT_OK, resultIntent);
+                    requireActivity().finish();
+                }
+            }
+        }
+    };
+
+    private final Consumer<Object> storageSelectListener = (item) -> {
+        if (item instanceof MainStorage folder) {
+            if (mainParentFile.getAbsolutePath().equals(folder.getFile().getAbsolutePath())) return;
+            mainParentFile = folder.getFile();
+            currentFile.setFile(mainParentFile);
+            currentPathView.setText(currentFile.getFile().getAbsolutePath());
+            loadFiles();
+        }
+    };
+
     private final OnBackPressedCallback backCallback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
-            if(currentFile != null && !currentFile.getFile().getAbsolutePath().equals(mainParentFile.getAbsolutePath())){
+            if (currentFile != null && !currentFile.getFile().getAbsolutePath().equals(mainParentFile.getAbsolutePath())) {
                 File parentFile = currentFile.getFile().getParentFile();
-                if(parentFile != null){
+                if (parentFile != null) {
                     BrowserFile lastOpenedFile = new BrowserFile(currentFile);
                     currentFile.setFile(parentFile);
                     currentPathView.setText(currentFile.getFile().getAbsolutePath());
@@ -363,15 +320,43 @@ public class BrowserFragment extends Fragment {
                     int lastOpenedFilePosition = folderGridAdapter.indexOf(lastOpenedFile);
                     folderGrid.setSelectedPosition(lastOpenedFilePosition);
                 }
-            }
-            else{
-                if(storageGrid.hasFocus()){
+            } else {
+                if (storageGrid.hasFocus()) {
                     requireActivity().finish();
-                }
-                else{
+                } else {
                     storageGrid.requestFocus();
                 }
             }
+        }
+    };
+
+    private final RecyclerView.OnChildAttachStateChangeListener onChildAttachStateChangeListener = new RecyclerView.OnChildAttachStateChangeListener() {
+        @Override
+        public void onChildViewAttachedToWindow(@NonNull View view) {
+            view.setOnFocusChangeListener((v, hasFocus) -> {
+                v.post(() -> {
+                    AnimHelper.scale(v, 1.15f, hasFocus, 150);
+                });
+            });
+        }
+
+        @Override
+        public void onChildViewDetachedFromWindow(@NonNull View view) {
+            view.animate().cancel();
+            view.setScaleX(1f);
+            view.setScaleY(1f);
+        }
+    };
+
+    private final BrowseFrameLayout.OnFocusSearchListener onFocusSearchListener = new BrowseFrameLayout.OnFocusSearchListener() {
+        @Override
+        public @org.jspecify.annotations.Nullable View onFocusSearch(@org.jspecify.annotations.Nullable View focused, int direction) {
+            if (direction == View.FOCUS_RIGHT && storageGrid.indexOfChild(focused) != -1) {
+                return folderGrid;
+            } else if (direction == View.FOCUS_DOWN && folderGrid.indexOfChild(focused) != -1) {
+                return btnConfirm;
+            }
+            return null;
         }
     };
 }
