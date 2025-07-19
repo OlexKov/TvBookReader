@@ -3,26 +3,19 @@ package com.example.bookreader.presenters.browserpresenters;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
-import android.annotation.SuppressLint;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.leanback.widget.Presenter;
-import androidx.leanback.widget.Visibility;
 
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BrowserFile;
 import com.example.bookreader.interfaces.BookProcessor;
-import com.example.bookreader.listeners.HeaderButtonOnFocusListener;
-import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.EpubProcessor;
 import com.example.bookreader.utility.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
@@ -31,7 +24,6 @@ import com.example.bookreader.utility.pdf.PdfProcessor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 
 public class BrowserFilePresenter extends Presenter {
@@ -55,7 +47,7 @@ public class BrowserFilePresenter extends Presenter {
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
         if (item instanceof BrowserFile file) {
             View rootView = viewHolder.view;
-            TextView textView = rootView.findViewById(R.id.main_folder_name);
+            TextView textView = rootView.findViewById(R.id.browser_file_name);
             ImageView iconView = rootView.findViewById(R.id.main_folder_icon);
             ImageView checkedIcon = rootView.findViewById(R.id.folder_check_icon);
             textView.setText(file.getFile().getName());
@@ -70,18 +62,19 @@ public class BrowserFilePresenter extends Presenter {
                 BookProcessor bookProcessor;
                 if(ext != null){
                     if(ext.equals("pdf")){
-                        bookProcessor = new PdfProcessor();
+                        bookProcessor = new PdfProcessor(viewHolder.view.getContext());
                     }
                     else  if(ext.equals("epub")){
-                        bookProcessor = new EpubProcessor();
+                        bookProcessor = new EpubProcessor(viewHolder.view.getContext());
                     }
                     else {
-                        bookProcessor = new Fb2Processor();
+                        bookProcessor = new Fb2Processor(viewHolder.view.getContext());
                     }
                     try {
-                        bookProcessor.getPreviewAsync(file.getFile(),0,96,76 ).thenAccept((bitmap)->{
-                            iconView.post(() -> {
-                                iconView.setImageDrawable(new BitmapDrawable(rootView.getResources(), bitmap));
+                        bookProcessor.getPreviewAsync(file.getFile(),0,96,70 ).thenAccept((bitmap)->{
+                            BitmapDrawable bitmapDrawable = new BitmapDrawable(rootView.getResources(), bitmap);
+                            viewHolder.view.post(() -> {
+                                iconView.setImageDrawable(bitmapDrawable);
                             });
                         });
                     } catch (IOException e) {

@@ -9,12 +9,14 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -47,6 +49,7 @@ import com.example.bookreader.presenters.browserpresenters.StorageFolderPresente
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.UsbHelper;
+import com.example.bookreader.utility.ViewHelper;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -339,6 +342,21 @@ public class BrowserFragment extends Fragment {
         @Override
         public void onChildViewAttachedToWindow(@NonNull View view) {
             view.setOnFocusChangeListener((v, hasFocus) -> {
+                TextView bookTitle = view.findViewById(R.id.browser_file_name);
+                if (hasFocus) {
+                    bookTitle.setMaxLines(Integer.MAX_VALUE);// розгортає весь текст
+                    bookTitle.setEllipsize( null);
+//                    ViewGroup.LayoutParams params = bookTitle.getLayoutParams();
+//                    params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+//                    bookTitle.setLayoutParams(params);
+
+                } else {
+                    bookTitle.setMaxLines(2);
+                    bookTitle.setEllipsize(TextUtils.TruncateAt.END);
+//                    ViewGroup.LayoutParams params = bookTitle.getLayoutParams();
+//                    params.width = AnimHelper.convertToPx(requireContext(),80);
+//                    bookTitle.setLayoutParams(params);
+                }
                 v.post(() -> {
                     AnimHelper.scale(v, 1.15f, hasFocus, 150);
                 });

@@ -36,7 +36,7 @@ public class StorageFolderPresenter extends Presenter {
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
         if (item instanceof MainStorage folder) {
             View rootView = viewHolder.view;
-            TextView textView = rootView.findViewById(R.id.main_folder_name);
+            TextView textView = rootView.findViewById(R.id.browser_file_name);
             ImageView iconView = rootView.findViewById(R.id.main_folder_icon);
 
             textView.setText(folder.getName());

@@ -22,9 +22,14 @@ import nl.siegmann.epublib.epub.EpubReader;
 import nl. siegmann. epublib. domain. Book;
 
 public class EpubProcessor implements BookProcessor {
+    private final Context context;
+
+    public EpubProcessor(Context context){
+        this.context = context;
+    }
 
     @Override
-    public CompletableFuture<BookInfo> processFileAsync(Context context, File bookFile) throws IOException{
+    public CompletableFuture<BookInfo> processFileAsync( File bookFile) throws IOException{
 
         CompletableFuture<BookInfo> getBookInfoFuture = CompletableFuture.supplyAsync(()->{
             BookInfo result = new BookInfo();
@@ -130,8 +135,8 @@ public class EpubProcessor implements BookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> processFileAsync(Context context, Uri bookUri) throws IOException {
+    public CompletableFuture<BookInfo> processFileAsync(Uri bookUri) throws IOException {
         File bookFile = new File(FileHelper.getPath(context,bookUri));
-        return processFileAsync(context,bookFile);
+        return processFileAsync(bookFile);
     }
 }

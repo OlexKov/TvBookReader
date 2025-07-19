@@ -73,12 +73,17 @@ dependencies {
 
     //Pdf
     implementation(libs.tom.roush.pdfbox.android)
-    //implementation(libs.mhiew.pdfium.android)
+    implementation(libs.mhiew.pdfium.android)
 
     //epublib
     implementation("nl.siegmann.epublib:epublib-core:3.1") {
         exclude(group = "org.slf4j")
         exclude(group = "xmlpull")
+    }
+
+    //fb2
+    dependencies {
+        implementation(files("libs/fb2parser.jar"))
     }
 
     implementation (libs.slf4j.android)

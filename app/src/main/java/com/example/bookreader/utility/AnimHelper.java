@@ -18,9 +18,10 @@ public class AnimHelper {
     }
 
     public  static int convertToDp(Context context, int px){
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                32,
-                context.getResources().getDisplayMetrics());
+        return (int) (px / context.getResources().getDisplayMetrics().density);
+    }
+
+    public  static int convertToPx(Context context, int dp){
+        return (int) (dp * context.getResources().getDisplayMetrics().density);
     }
 }

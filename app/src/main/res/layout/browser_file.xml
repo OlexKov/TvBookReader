@@ -20,7 +20,8 @@
            android:layout_height="match_parent"
            android:layout_gravity="center"
            android:gravity="center"
-           android:scaleType="fitCenter"/>
+           android:scaleType="fitCenter"
+           android:src="@drawable/e_book"/>
 
        <ImageView
            android:id="@+id/folder_check_icon"
@@ -35,7 +36,7 @@
 
 
     <TextView
-        android:id="@+id/main_folder_name"
+        android:id="@+id/browser_file_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -44,8 +45,7 @@
         android:gravity="center"
         android:maxLines="2"
         android:ellipsize="end"
-        android:lines="2"
-        android:breakStrategy="simple"
+        android:breakStrategy="high_quality"
         android:hyphenationFrequency="none"
         android:scrollHorizontally="false" />
 

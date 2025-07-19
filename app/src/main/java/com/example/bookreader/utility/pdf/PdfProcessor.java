@@ -1,6 +1,7 @@
 package com.example.bookreader.utility.pdf;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
@@ -11,21 +12,29 @@ import android.util.Log;
 import com.example.bookreader.customclassses.BookInfo;
 import com.example.bookreader.interfaces.BookProcessor;
 import com.example.bookreader.utility.FileHelper;
+import com.shockwave.pdfium.PdfDocument;
+import com.shockwave.pdfium.PdfiumCore;
 import com.tom_roush.pdfbox.io.MemoryUsageSetting;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDDocumentInformation;
 
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 
 public class PdfProcessor implements BookProcessor {
+    private final Context context;
+
+    public PdfProcessor(Context context){
+        this.context = context;
+    }
 
     @Override
-    public CompletableFuture<BookInfo> processFileAsync(Context context, File bookFile) throws IOException {
+    public CompletableFuture<BookInfo> processFileAsync(File bookFile) throws IOException {
         long start = System.currentTimeMillis();
         CompletableFuture<BookInfo> getBookInfoFuture = CompletableFuture.supplyAsync(()->{
             Log.d("TIMER", "Start getBookInfo at " + (System.currentTimeMillis() - start));
@@ -53,7 +62,7 @@ public class PdfProcessor implements BookProcessor {
             Log.d("TIMER", "Start getBookPreview at " + (System.currentTimeMillis() - start));
             // 2. Рендер першої сторінки
             BookInfo result = new BookInfo();
-            Bitmap bitmap = createPreview(bookFile, 0, 300, 400);
+            Bitmap bitmap = createPreview( bookFile, 0, 300, 400);
 
             // 3. Збереження прев’ю
             File previewDir = new File(context.getFilesDir(), "previews");
@@ -112,32 +121,40 @@ public class PdfProcessor implements BookProcessor {
 
 
     @Override
-    public CompletableFuture<BookInfo> processFileAsync(Context context, Uri bookUri) throws IOException {
+    public CompletableFuture<BookInfo> processFileAsync( Uri bookUri) throws IOException {
         File file = new File(FileHelper.getPath(context, bookUri));
-        return processFileAsync(context, file);
+        return processFileAsync(file);
     }
 
-    private Bitmap createPreview(File bookFile,int pageIndex, int height, int width){
-        Bitmap bitmap;
-        try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY);
-             PdfRenderer renderer = new PdfRenderer(fd)) {
-            PdfRenderer.Page page = renderer.openPage(pageIndex);
-            // Отримай реальний розмір сторінки
-            int pageWidth = page.getWidth();
-            int pageHeight = page.getHeight();
-            // Обрахунок масштабу по висоті або ширині (щоб помістити в бітмап з бажаними пропорціями)
-            float scale = Math.min((float) width / pageWidth, (float) height / pageHeight);
-            int bmpWidth = (int) (pageWidth * scale);
-            int bmpHeight = (int) (pageHeight * scale);
-            bitmap = Bitmap.createBitmap(bmpWidth,  bmpHeight, Bitmap.Config.ARGB_8888);
-            Matrix matrix = new Matrix();
-            matrix.setScale(scale, scale);
-            page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-            page.close();
+    private Bitmap createPreview(File bookFile, int pageIndex, int height, int width) {
+        PdfiumCore pdfiumCore = new PdfiumCore(context);
+        PdfDocument document = null;
+
+        try (FileInputStream inputStream = new FileInputStream(bookFile)) {
+            document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(inputStream.getFD()));
+            pdfiumCore.openPage(document, pageIndex);
+
+            int pageWidth = pdfiumCore.getPageWidthPoint(document, pageIndex);
+            int pageHeight = pdfiumCore.getPageHeightPoint(document, pageIndex);
+
+            // Створюємо зображення точного розміру без збереження пропорцій
+            Bitmap temp = Bitmap.createBitmap(pageWidth, pageHeight, Bitmap.Config.ARGB_8888);
+            temp.eraseColor(Color.WHITE);
+
+            pdfiumCore.renderPageBitmap(document, temp, pageIndex, 0, 0, pageWidth, pageHeight);
+
+            // Масштабуємо до потрібного розміру без збереження пропорцій
+            Bitmap result = Bitmap.createScaledBitmap(temp, width, height, true);
+
+            temp.recycle(); // звільняємо пам’ять
+            return result;
+
         } catch (Exception e) {
-            // Якщо хочеш, можна логувати тут
-            throw new RuntimeException(e); // винесемо в exceptionally
+            throw new RuntimeException("Error rendering PDF preview", e);
+        } finally {
+            if (document != null) {
+                pdfiumCore.closeDocument(document);
+            }
         }
-        return bitmap;
     }
 }
