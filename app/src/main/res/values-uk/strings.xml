@@ -23,4 +23,5 @@
     <string name="select_file">Оберіть файл</string>
     <string name="select_files">Оберіть файли</string>
     <string name="confirm">Підтвердити</string>
+    <string name="select">Обрати</string>
 </resources>

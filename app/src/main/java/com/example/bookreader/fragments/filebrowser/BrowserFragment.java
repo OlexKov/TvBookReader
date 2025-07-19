@@ -240,20 +240,17 @@ public class BrowserFragment extends Fragment {
             String action = intent.getAction();
             Uri data = intent.getData();
             if (action == null || data == null) return;
-            switch (action) {
-                case Intent.ACTION_MEDIA_MOUNTED:
-                case Intent.ACTION_MEDIA_UNMOUNTED:
-                case Intent.ACTION_MEDIA_REMOVED:
-                case Intent.ACTION_MEDIA_EJECT:
-                    if(!selectedFiles.isEmpty()){
-                        selectedFiles.removeIf(file -> !file.getFile().exists());
-                        if(selectedFiles.isEmpty()){
-                            buttonsContainer.setVisibility(GONE);
-                        }
-                    }
-                    storagesAdapter.setItems(getStorages(), storagesDiff);
-                    break;
+            if (!selectedFiles.isEmpty()
+                    && (action.equals(Intent.ACTION_MEDIA_UNMOUNTED)
+                    || action.equals(Intent.ACTION_MEDIA_REMOVED)
+                    || action.equals(Intent.ACTION_MEDIA_EJECT))) {
+
+                selectedFiles.removeIf(file -> !file.getFile().exists());
+                if (selectedFiles.isEmpty()) {
+                    buttonsContainer.setVisibility(GONE);
+                }
             }
+            storagesAdapter.setItems(getStorages(), storagesDiff);
         }
     };
 

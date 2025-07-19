@@ -116,6 +116,7 @@
                 android:layout_height="wrap_content"
                 android:visibility="gone">
                 <Button
+                    style="?android:attr/buttonBarButtonStyle"
                     android:id="@+id/file_browser_confirm_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
@@ -123,10 +124,11 @@
                     android:focusableInTouchMode="true"
                     android:focusable="true"
                     android:clickable="true"
-                    android:text="@string/confirm"
+                    android:text="@string/select"
                     android:textAllCaps="false"
                     android:nextFocusUp="@+id/folder_grid"/>
                 <Button
+                    style="?android:attr/buttonBarButtonStyle"
                     android:id="@+id/file_browser_cancel_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
