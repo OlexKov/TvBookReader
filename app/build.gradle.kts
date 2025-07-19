@@ -75,7 +75,6 @@ dependencies {
     implementation(libs.tom.roush.pdfbox.android)
     //implementation(libs.mhiew.pdfium.android)
 
-
     //epublib
     implementation("nl.siegmann.epublib:epublib-core:3.1") {
         exclude(group = "org.slf4j")

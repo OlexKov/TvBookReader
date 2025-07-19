@@ -30,6 +30,7 @@ import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.BrowseFrameLayout;
 import androidx.leanback.widget.DiffCallback;
+import androidx.leanback.widget.GridLayoutManager;
 import androidx.leanback.widget.ItemBridgeAdapter;
 
 import androidx.leanback.widget.VerticalGridView;
@@ -53,7 +54,6 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BrowserFragment extends Fragment {
@@ -67,6 +67,7 @@ public class BrowserFragment extends Fragment {
     private BrowserFile currentFile = new BrowserFile(mainParentFile, false);
     private ArrayObjectAdapter storagesAdapter;
     private ArrayObjectAdapter folderGridAdapter;
+    private int columnCount;
     private final DiffCallback<MainStorage> storagesDiff = new MainFolderDiffCallback();
     private final List<BrowserFile> selectedFiles = new ArrayList<>();
     private final DiffCallback<BrowserFile> fileDiff = new BrowserFileDiffCallback();
@@ -150,7 +151,7 @@ public class BrowserFragment extends Fragment {
     }
 
     private void setFolderGrid() {
-        int columnCount = calculateSpanCount(requireContext(), 80);
+        columnCount = calculateSpanCount(requireContext(), 80);
         folderGrid.setNumColumns(columnCount);
         folderGridAdapter = new ArrayObjectAdapter(new BrowserFilePresenter(folderClickListener));
         folderGrid.setAdapter(new ItemBridgeAdapter(folderGridAdapter));
@@ -244,6 +245,12 @@ public class BrowserFragment extends Fragment {
                 case Intent.ACTION_MEDIA_UNMOUNTED:
                 case Intent.ACTION_MEDIA_REMOVED:
                 case Intent.ACTION_MEDIA_EJECT:
+                    if(!selectedFiles.isEmpty()){
+                        selectedFiles.removeIf(file -> !file.getFile().exists());
+                        if(selectedFiles.isEmpty()){
+                            buttonsContainer.setVisibility(GONE);
+                        }
+                    }
                     storagesAdapter.setItems(getStorages(), storagesDiff);
                     break;
             }
@@ -353,8 +360,24 @@ public class BrowserFragment extends Fragment {
         public @org.jspecify.annotations.Nullable View onFocusSearch(@org.jspecify.annotations.Nullable View focused, int direction) {
             if (direction == View.FOCUS_RIGHT && storageGrid.indexOfChild(focused) != -1) {
                 return folderGrid;
-            } else if (direction == View.FOCUS_DOWN && folderGrid.indexOfChild(focused) != -1) {
-                return btnConfirm;
+            }
+            else if (direction == View.FOCUS_DOWN && folderGrid.indexOfChild(focused) != -1) {
+               if (focused != null && folderGrid.getLayoutManager() instanceof GridLayoutManager layoutManager ) {
+                    int position = folderGrid.getChildAdapterPosition(focused);
+                    int nextBottomPosition = position + columnCount;
+                    int adapterSize = folderGridAdapter.size();
+                    int rows = (int) Math.ceil((double) adapterSize / columnCount);
+                    int currentRow =  (int) Math.ceil((double) position / columnCount);
+                    if (nextBottomPosition >= adapterSize) {
+                        if (currentRow == rows && buttonsContainer.getVisibility() != View.GONE) {
+                            return btnConfirm;
+                        }
+                        else{
+                            return layoutManager.getChildAt(adapterSize - 1);
+                        }
+                    }
+                    return null;
+                }
             }
             return null;
         }

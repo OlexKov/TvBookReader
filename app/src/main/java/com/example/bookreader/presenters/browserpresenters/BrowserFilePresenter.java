@@ -24,6 +24,7 @@ import com.example.bookreader.interfaces.BookProcessor;
 import com.example.bookreader.listeners.HeaderButtonOnFocusListener;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.EpubProcessor;
+import com.example.bookreader.utility.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.pdf.PdfProcessor;
 
@@ -71,8 +72,11 @@ public class BrowserFilePresenter extends Presenter {
                     if(ext.equals("pdf")){
                         bookProcessor = new PdfProcessor();
                     }
-                    else{
+                    else  if(ext.equals("epub")){
                         bookProcessor = new EpubProcessor();
+                    }
+                    else {
+                        bookProcessor = new Fb2Processor();
                     }
                     try {
                         bookProcessor.getPreviewAsync(file.getFile(),0,96,76 ).thenAccept((bitmap)->{
