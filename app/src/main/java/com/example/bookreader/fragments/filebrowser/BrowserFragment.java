@@ -16,6 +16,7 @@ import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -363,15 +364,13 @@ public class BrowserFragment extends Fragment {
                     int position = folderGrid.getChildAdapterPosition(focused);
                     int nextBottomPosition = position + columnCount;
                     int adapterSize = folderGridAdapter.size();
-                    int rows = (int) Math.ceil((double) adapterSize / columnCount);
-                    int currentRow =  (int) Math.ceil((double) position / columnCount);
-                    if (nextBottomPosition >= adapterSize) {
-                        if (currentRow == rows && buttonsContainer.getVisibility() != View.GONE) {
-                            return btnConfirm;
-                        }
-                        else{
-                            return layoutManager.getChildAt(adapterSize - 1);
-                        }
+                    int rowsCount = (int) Math.ceil((double) adapterSize / columnCount);
+                    int currentRow = (int) Math.ceil((double) (position + 1) / columnCount);
+                    if (rowsCount == currentRow) {
+                        return  buttonsContainer.getVisibility() != View.GONE ? btnConfirm : folderGrid;
+                    }
+                    else if (nextBottomPosition >= adapterSize){
+                        return layoutManager.getChildAt(adapterSize - 1);
                     }
                     return null;
                 }
