@@ -3,6 +3,7 @@ package com.example.bookreader.presenters.browserpresenters;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.leanback.widget.Presenter;
 
@@ -53,27 +55,28 @@ public class BrowserFilePresenter extends Presenter {
             textView.setText(file.getFile().getName());
             int visibility = file.isChecked() ? VISIBLE : GONE;
             checkedIcon.setVisibility(visibility);
+            Context context = rootView.getContext();
 
             if(file.getFile().isDirectory()){
                 iconView.setImageResource(R.drawable.folder);
             }
             else {
-                String ext = FileHelper.getFileExtension(viewHolder.view.getContext(), file.getFile());
+                String ext = FileHelper.getFileExtension(context, file.getFile());
                 BookProcessor bookProcessor;
                 if(ext != null){
                     if(ext.equals("pdf")){
-                        bookProcessor = new PdfProcessor(viewHolder.view.getContext());
+                        bookProcessor = new PdfProcessor(context);
                     }
                     else  if(ext.equals("epub")){
-                        bookProcessor = new EpubProcessor(viewHolder.view.getContext());
+                        bookProcessor = new EpubProcessor(context);
                     }
                     else {
-                        bookProcessor = new Fb2Processor(viewHolder.view.getContext());
+                        bookProcessor = new Fb2Processor(context);
                     }
                     try {
                         bookProcessor.getPreviewAsync(file.getFile(),0,96,70 ).thenAccept((bitmap)->{
                             if(bitmap != null){
-                                viewHolder.view.post(() -> {
+                                rootView.post(() -> {
                                     iconView.setImageBitmap(bitmap);
                                 });
                             }
@@ -83,15 +86,15 @@ public class BrowserFilePresenter extends Presenter {
                     }
                 }
             }
-            viewHolder.view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            rootView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
-                    int color =  hasFocus ? Color.parseColor("#BB494949") : v.getResources().getColor(android.R.color.transparent);
+                    int color =  hasFocus ? Color.parseColor("#BB494949") : ContextCompat.getColor(context,android.R.color.transparent);
                     v.setBackgroundColor(color);
                 }
             });
 
-            viewHolder.view.setOnClickListener(new View.OnClickListener() {
+            rootView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     onClickListener.accept(item);

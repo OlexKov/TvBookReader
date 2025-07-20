@@ -163,13 +163,12 @@ public class Fb2Processor implements BookProcessor {
 
             String coverId = href.substring(1);
             Map<String, Binary> binaries = fb.getBinaries();
-            if (binaries == null) return null;
 
             Binary bin = binaries.get(coverId);
             if (bin == null) return null;
 
             String base64String = bin.getBinary();
-            if (base64String == null || base64String.isEmpty()) return null;
+            if (base64String.isEmpty()) return null;
 
             byte[] imageData = Base64.decode(base64String, Base64.DEFAULT);
 

@@ -49,8 +49,7 @@ public class PdfProcessor implements BookProcessor {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
                 out.flush();
             }catch (Exception e) {
-                // Якщо хочеш, можна логувати тут
-                throw new RuntimeException(e); // винесемо в exceptionally
+                 throw new RuntimeException(e);
             }
 
             // 4. Повернення даних
@@ -60,7 +59,7 @@ public class PdfProcessor implements BookProcessor {
             return result;
         }).exceptionally(throwable -> {
             throwable.printStackTrace(); // або Log.e(...)
-            return null; // або new BookInfo() з помилковим статусом
+            return null;
         });
     }
 
@@ -94,13 +93,12 @@ public class PdfProcessor implements BookProcessor {
                 }
             }
             catch (Exception e) {
-                // Якщо хочеш, можна логувати тут
-                throw new RuntimeException(e); // винесемо в exceptionally
+                 throw new RuntimeException(e);
             }
            return result;
         }).exceptionally(throwable -> {
             throwable.printStackTrace(); // або Log.e(...)
-            return null; // або new BookInfo() з помилковим статусом
+            return null;
         });
 
     }
@@ -110,8 +108,8 @@ public class PdfProcessor implements BookProcessor {
         return CompletableFuture.supplyAsync(()->{
             return createPreview(bookFile, pageIndex, height, width);
         }).exceptionally(throwable -> {
-            throwable.printStackTrace(); // або Log.e(...)
-            return null; // або new BookInfo() з помилковим статусом
+            throwable.printStackTrace();
+            return null;
         });
     }
 
