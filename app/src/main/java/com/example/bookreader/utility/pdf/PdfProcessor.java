@@ -2,8 +2,6 @@ package com.example.bookreader.utility.pdf;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
@@ -14,10 +12,6 @@ import com.example.bookreader.interfaces.BookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfiumCore;
-import com.tom_roush.pdfbox.io.MemoryUsageSetting;
-import com.tom_roush.pdfbox.pdmodel.PDDocument;
-import com.tom_roush.pdfbox.pdmodel.PDDocumentInformation;
-
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,11 +34,14 @@ public class PdfProcessor implements BookProcessor {
             Log.d("TIMER", "Start getBookInfo at " + (System.currentTimeMillis() - start));
             // 1. Метадані PDF
             BookInfo result = new BookInfo();
-            try (PDDocument document = PDDocument.load(bookFile,  null, null, null, MemoryUsageSetting.setupMainMemoryOnly())) {
-                PDDocumentInformation info = document.getDocumentInformation();
-                result.title = info.getTitle();
-                result.author = info.getAuthor();
-                result.pageCount = document.getNumberOfPages();
+            try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY)) {
+                PdfiumCore pdfiumCore = new PdfiumCore(context);
+                PdfDocument pdfDocument = pdfiumCore.newDocument(fd);
+                PdfDocument.Meta meta = pdfiumCore.getDocumentMeta(pdfDocument);
+                result.title = meta.getTitle();
+                result.author = meta.getAuthor();
+                result.description = meta.getSubject();
+                result.pageCount = pdfiumCore.getPageCount(pdfDocument);
             }
             catch (Exception e) {
                 // Якщо хочеш, можна логувати тут

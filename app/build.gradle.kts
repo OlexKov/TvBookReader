@@ -74,7 +74,7 @@ dependencies {
     //Pdf
     implementation(libs.tom.roush.pdfbox.android)
     implementation(libs.mhiew.pdfium.android)
-    implementation(libs.fitz)
+
 
     //epublib
     implementation("nl.siegmann.epublib:epublib-core:3.1") {

@@ -5,6 +5,7 @@ androidPdfViewer = "3.2.0-beta.1"
 androidPdfViewerVersion = "3.2.0-beta.3"
 appcompat = "1.7.1"
 djvulibre = "0.1.4"
+fitz = "1.24.9.2"
 githubPdfboxAndroid = "master-SNAPSHOT"
 leakcanaryAndroid = "2.14"
 leanback = "1.2.0"
@@ -41,6 +42,7 @@ androidx-room-compiler-v261 = { module = "androidx.room:room-compiler", version.
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
 androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 djvulibre = { module = "com.github.axet:djvulibre", version.ref = "djvulibre" }
+fitz = { module = "net.timelegend.mupdf:fitz", version.ref = "fitz" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
