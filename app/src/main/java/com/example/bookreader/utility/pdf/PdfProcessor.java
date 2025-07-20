@@ -30,10 +30,11 @@ public class PdfProcessor implements BookProcessor {
     @Override
     public CompletableFuture<BookInfo> processFileAsync(File bookFile) throws IOException {
         long start = System.currentTimeMillis();
-        CompletableFuture<BookInfo> getBookInfoFuture = CompletableFuture.supplyAsync(()->{
+        BookInfo result = new BookInfo();
+        CompletableFuture<Void> getBookInfoFuture = CompletableFuture.runAsync(()->{
             Log.d("TIMER", "Start getBookInfo at " + (System.currentTimeMillis() - start));
             // 1. Метадані PDF
-            BookInfo result = new BookInfo();
+
             try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY)) {
                 PdfiumCore pdfiumCore = new PdfiumCore(context);
                 PdfDocument pdfDocument = pdfiumCore.newDocument(fd);
@@ -48,17 +49,16 @@ public class PdfProcessor implements BookProcessor {
                 throw new RuntimeException(e); // винесемо в exceptionally
             }
             Log.d("TIMER", "End getBookInfo at " + (System.currentTimeMillis() - start));
-            return result;
         }).exceptionally(throwable -> {
             throwable.printStackTrace(); // або Log.e(...)
             return null; // або new BookInfo() з помилковим статусом
         });
 
 
-        CompletableFuture<BookInfo> getBookPreviewFuture = CompletableFuture.supplyAsync(()->{
+        CompletableFuture<Void> getBookPreviewFuture = CompletableFuture.runAsync(()->{
             Log.d("TIMER", "Start getBookPreview at " + (System.currentTimeMillis() - start));
             // 2. Рендер першої сторінки
-            BookInfo result = new BookInfo();
+
             Bitmap bitmap = createPreview( bookFile, 0, 300, 400);
 
             // 3. Збереження прев’ю
@@ -84,25 +84,20 @@ public class PdfProcessor implements BookProcessor {
             result.filePath = bookFile.getAbsolutePath();
             result.previewPath = previewFile.getAbsolutePath();
             Log.d("TIMER", "End getBookPreview at " + (System.currentTimeMillis() - start));
-            return result;
         }).exceptionally(throwable -> {
             throwable.printStackTrace(); // або Log.e(...)
             return null; // або new BookInfo() з помилковим статусом
         });
 
-
         return CompletableFuture.allOf(getBookInfoFuture, getBookPreviewFuture).thenApply(v -> {
-            BookInfo bookWithInfo = getBookInfoFuture.join();
-            BookInfo bookWithPaths = getBookPreviewFuture.join();
-            if (bookWithInfo.title == null || bookWithInfo.title.trim().isEmpty()) {
-                bookWithInfo.title = bookFile.getName().substring(0,bookFile.getName().length() - 4);
+
+            if (result.title == null || result.title.trim().isEmpty()) {
+                result.title = bookFile.getName().substring(0,bookFile.getName().length() - 4);
             }
-            if (bookWithInfo.author == null || bookWithInfo.author.trim().isEmpty()) {
-                bookWithInfo.author = "Unknown";
+            if (result.author == null || result.author.trim().isEmpty()) {
+                result.author = "Unknown";
             }
-            bookWithInfo.previewPath = bookWithPaths.previewPath;
-            bookWithInfo.filePath = bookWithPaths.filePath;
-            return bookWithInfo;
+            return result;
         });
     }
 

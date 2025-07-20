@@ -1,6 +1,7 @@
 package com.example.bookreader.fragments;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 
 import android.os.Bundle;
@@ -101,22 +102,22 @@ public class MainFragment extends BrowseSupportFragment {
                                 List<String> selectedFilesPaths = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
                                 if(selectedFilesPaths != null){
                                     for (String filePath:selectedFilesPaths){
-
-
-                                 File selectedFile  = new File(filePath);
+                                       File selectedFile  = new File(filePath);
                         if(!selectedFile.exists()) return;
-                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedFile), "pdf")
-                                ? new PdfProcessor(requireContext())
-                                : new Fb2Processor(requireContext());
-
-
+                        String ext = FileHelper.getFileExtension(getContext(), selectedFile);
+                        BookProcessor bookProcessor = switch (ext){
+                            case "pdf" -> new PdfProcessor(requireContext());
+                            case "epub" -> new EpubProcessor(requireContext());
+                            case "fb2" -> new Fb2Processor(requireContext());
+                            default -> throw new IllegalStateException("Unexpected value: " + ext);
+                        };
                         try {
 
                             progressBarManager.show();
                             bookProcessor.processFileAsync(selectedFile).thenAccept((bookInfo) -> {
                                 requireActivity().runOnUiThread(() -> {
                                     progressBarManager.hide();
-                                    new android.app.AlertDialog.Builder(requireActivity())
+                                    new AlertDialog.Builder(requireActivity())
                                             .setMessage("Title - " + bookInfo.title + "\n" +
                                                        "Author - " + bookInfo.author + "\n" +
                                                         "Year- " + bookInfo.year + "\n" +

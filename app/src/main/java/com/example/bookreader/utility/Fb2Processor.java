@@ -38,112 +38,101 @@ public class Fb2Processor implements BookProcessor {
     @Override
     public CompletableFuture<BookInfo> processFileAsync(File bookFile) {
         long start = System.currentTimeMillis();
-
-        CompletableFuture<BookInfo> getBookInfoFuture = CompletableFuture.supplyAsync(() -> {
+        BookInfo result = new BookInfo();
+        FictionBook fb;
+        try  {
+            fb = new FictionBook(bookFile);
+        }
+        catch (Exception e) {
+            Log.e(TAG, "Error reading book info", e);
+            throw new RuntimeException(e);
+        }
+        CompletableFuture<Void> getBookInfoFuture = CompletableFuture.runAsync(() -> {
             Log.d(TAG, "Start getBookInfo at " + (System.currentTimeMillis() - start));
-            BookInfo result = new BookInfo();
-            try  {
-                FictionBook fb = new FictionBook(bookFile);
-                result.title = fb.getTitle();
-                result.author =  Optional.ofNullable(fb)
-                        .map(FictionBook::getDescription)
-                        .map(Description::getTitleInfo)
-                        .map(TitleInfo::getAuthors)
-                        .filter((ArrayList<Person> list) -> !list.isEmpty())
-                        .map(list -> list.get(0).getFullName())
-                        .orElse("Unknown");
 
-                result.description = Optional.ofNullable(fb)
-                        .map(FictionBook::getDescription)
-                        .map(Description::getTitleInfo)
-                        .map(TitleInfo::getAnnotation)
-                        .map(Annotation::getElements)
-                        .filter((ArrayList<Element> list) -> !list.isEmpty())
-                        .map(list -> list.get(0).getText())
-                        .orElse("Unknown");
+               // FictionBook fb = new FictionBook(bookFile);
+            result.title = fb.getTitle();
+            result.author =  Optional.of(fb)
+                    .map(FictionBook::getDescription)
+                    .map(Description::getTitleInfo)
+                    .map(TitleInfo::getAuthors)
+                    .filter((ArrayList<Person> list) -> !list.isEmpty())
+                    .map(list -> list.get(0).getFullName())
+                    .orElse("Unknown");
 
-                result.year = Optional.ofNullable(fb)
-                        .map(FictionBook::getDescription)
-                        .map(Description::getPublishInfo)
-                        .map(PublishInfo::getYear)
-                        .orElse("Unknown");
+            result.description = Optional.of(fb)
+                    .map(FictionBook::getDescription)
+                    .map(Description::getTitleInfo)
+                    .map(TitleInfo::getAnnotation)
+                    .map(Annotation::getElements)
+                    .filter((ArrayList<Element> list) -> !list.isEmpty())
+                    .map(list -> list.get(0).getText())
+                    .orElse("Unknown");
 
+            result.year = Optional.of(fb)
+                    .map(FictionBook::getDescription)
+                    .map(Description::getPublishInfo)
+                    .map(PublishInfo::getYear)
+                    .orElse("Unknown");
 
-            } catch (Exception e) {
-                Log.e(TAG, "Error reading book info", e);
-                throw new RuntimeException(e);
-            }
             Log.d(TAG, "End getBookInfo at " + (System.currentTimeMillis() - start));
-            return result;
         }).exceptionally(throwable -> {
             throwable.printStackTrace();
             return null;
         });
 
-        CompletableFuture<BookInfo> getBookPreviewFuture = CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Void> getBookPreviewFuture = CompletableFuture.runAsync(() -> {
             Log.d(TAG, "Start getBookPreview at " + (System.currentTimeMillis() - start));
-            BookInfo result = new BookInfo();
-            try {
-                FictionBook fb = new FictionBook(bookFile);
-                Bitmap cover = extractCoverPreview(fb, 300, 400);
-                if (cover == null) {
-                    Log.d(TAG, "Cover image not found");
-                    return result;
-                }
 
-                // Збереження прев’ю
-                File previewDir = new File(context.getFilesDir(), "previews");
-                if (!previewDir.exists()) previewDir.mkdirs();
+               // FictionBook fb = new FictionBook(bookFile);
+            Bitmap cover = extractCoverPreview(fb, 300, 400);
+            if (cover == null) {
+                Log.d(TAG, "Cover image not found");
+                return ;
+            }
 
-                String baseName = bookFile.getName();
-                if (baseName.toLowerCase().endsWith(".fb2")) {
-                    baseName = baseName.substring(0, baseName.length() - 4);
-                }
+            // Збереження прев’ю
+            File previewDir = new File(context.getFilesDir(), "previews");
+            if (!previewDir.exists()) previewDir.mkdirs();
 
-                File previewFile = new File(previewDir, baseName + "_preview.png");
-                try (FileOutputStream out = new FileOutputStream(previewFile)) {
-                    cover.compress(Bitmap.CompressFormat.PNG, 100, out);
-                    out.flush();
-                }
+            String baseName = bookFile.getName();
+            if (baseName.toLowerCase().endsWith(".fb2")) {
+                baseName = baseName.substring(0, baseName.length() - 4);
+            }
 
-                result.filePath = bookFile.getAbsolutePath();
-                result.previewPath = previewFile.getAbsolutePath();
-
-            } catch (Exception e) {
-                Log.e(TAG, "Error generating preview", e);
+            File previewFile = new File(previewDir, baseName + "_preview.png");
+            try (FileOutputStream out = new FileOutputStream(previewFile)) {
+                cover.compress(Bitmap.CompressFormat.PNG, 100, out);
+                out.flush();
+            }catch (Exception e) {
+                Log.e(TAG, "Error reading book info", e);
                 throw new RuntimeException(e);
             }
+
+            result.filePath = bookFile.getAbsolutePath();
+            result.previewPath = previewFile.getAbsolutePath();
+
+
             Log.d(TAG, "End getBookPreview at " + (System.currentTimeMillis() - start));
-            return result;
         }).exceptionally(throwable -> {
             throwable.printStackTrace();
             return null;
         });
 
         return CompletableFuture.allOf(getBookInfoFuture, getBookPreviewFuture).thenApply(v -> {
-            BookInfo bookWithInfo = getBookInfoFuture.join();
-            BookInfo bookWithPaths = getBookPreviewFuture.join();
-
-            if (bookWithInfo == null) bookWithInfo = new BookInfo();
-            if (bookWithPaths == null) bookWithPaths = new BookInfo();
-
-            if (bookWithInfo.title == null || bookWithInfo.title.trim().isEmpty()) {
-                bookWithInfo.title = bookFile.getName().substring(0,bookFile.getName().length() - 4);
+            if (result.title == null || result.title.trim().isEmpty()) {
+                result.title = bookFile.getName().substring(0,bookFile.getName().length() - 4);
             }
-            if (bookWithInfo.author == null || bookWithInfo.author.trim().isEmpty()) {
-                bookWithInfo.author = "Unknown";
+            if (result.author == null || result.author.trim().isEmpty()) {
+                result.author = "Unknown";
             }
-            if (bookWithInfo.year == null || bookWithInfo.year.trim().isEmpty()) {
-                bookWithInfo.year = "Unknown";
+            if (result.year == null || result.year.trim().isEmpty()) {
+                result.year = "Unknown";
             }
-            if (bookWithInfo.description == null || bookWithInfo.description.trim().isEmpty()) {
-                bookWithInfo.description = "Unknown";
+            if (result.description == null || result.description.trim().isEmpty()) {
+                result.description = "Unknown";
             }
-
-            bookWithInfo.previewPath = bookWithPaths.previewPath;
-            bookWithInfo.filePath = bookWithPaths.filePath;
-
-            return bookWithInfo;
+            return result;
         });
     }
 

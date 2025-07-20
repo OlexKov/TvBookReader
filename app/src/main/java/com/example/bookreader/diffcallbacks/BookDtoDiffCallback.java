@@ -14,7 +14,7 @@ public class BookDtoDiffCallback extends DiffCallback<BookDto> {
 
     @Override
     public boolean areContentsTheSame(BookDto oldItem, BookDto newItem) {
-        return oldItem.title.equals(newItem.title)
+        return  Objects.equals(oldItem.title,newItem.title)
                 && Objects.equals(oldItem.year,newItem.year)
                 && Objects.equals(oldItem.categoryId,newItem.categoryId)
                 && Objects.equals(oldItem.author,newItem.author)
