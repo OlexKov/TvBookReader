@@ -1,6 +1,5 @@
 package com.example.bookreader.presenters.browserpresenters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +37,7 @@ public class StorageFolderPresenter extends Presenter {
         View rootView = viewHolder.view;
         if (item instanceof MainStorage folder) {
             TextView textView = rootView.findViewById(R.id.browser_file_name);
-            ImageView iconView = rootView.findViewById(R.id.main_folder_icon);
+            ImageView iconView = rootView.findViewById(R.id.browser_file_icon);
 
             textView.setText(folder.getName());
             iconView.setImageResource(folder.getIconRId());

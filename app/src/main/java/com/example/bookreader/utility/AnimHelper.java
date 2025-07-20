@@ -8,7 +8,6 @@ import android.view.animation.DecelerateInterpolator;
 public class AnimHelper {
     public static void scale(View view,float scaleFactor,boolean isScale,int scaleDuration){
         float target = isScale ? scaleFactor : 1f;
-
         view.animate()
                 .scaleX(target)
                 .scaleY(target)

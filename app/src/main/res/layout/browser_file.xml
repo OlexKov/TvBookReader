@@ -1,49 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="80dp"
-    android:layout_height="117dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:background="#00000000"
-    android:padding="7dp"
     android:clickable="true"
     android:focusable="true"
     android:focusableInTouchMode="true">
 
-   <FrameLayout
-       android:layout_width="74dp"
-       android:layout_height="74dp"
-       android:layout_gravity="center">
-
-       <ImageView
-           android:id="@+id/main_folder_icon"
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
-           android:layout_gravity="center"
-           android:gravity="center"
-           android:scaleType="fitCenter"
-           android:src="@drawable/e_book"/>
-
-       <ImageView
-           android:id="@+id/folder_check_icon"
-           android:layout_width="20dp"
-           android:layout_height="20dp"
-           android:layout_gravity="bottom|end"
-           android:src="@drawable/check"
-           android:visibility="gone"
-           android:layout_marginEnd="5dp"/>
-
-   </FrameLayout>
-
-
-    <TextView
-        android:id="@+id/browser_file_name"
+    <LinearLayout
+        android:id="@+id/browser_file_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textSize="13sp"
-        android:textColor="#FFFFFF"
-        android:gravity="center"
-        android:maxLines="2"
-        android:ellipsize="end" />
+        android:orientation="horizontal"
+        android:paddingHorizontal="40dp"
+        android:paddingVertical="5dp">
 
+        <FrameLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="10dp">
+
+            <ImageView
+                android:id="@+id/browser_file_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:scaleType="fitCenter"
+                android:src="@drawable/e_book"/>
+
+            <ImageView
+                android:id="@+id/browser_file_check_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="bottom|end"
+                android:src="@drawable/check"
+                android:visibility="gone"/>
+        </FrameLayout>
+
+
+        <TextView
+            android:id="@+id/browser_file_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:lines="1"
+            android:ellipsize="end"
+            android:gravity="start"/>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="?android:attr/listDivider"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"/>
 </LinearLayout>

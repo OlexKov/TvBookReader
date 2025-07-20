@@ -2,11 +2,11 @@ package com.example.bookreader.fragments.filebrowser;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static com.example.bookreader.utility.ViewHelper.calculateSpanCount;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.core.util.Consumer;
 import androidx.fragment.app.Fragment;
@@ -145,17 +146,14 @@ public class BrowserFragment extends Fragment {
     }
 
     private void setFolderGrid() {
-        columnCount = calculateSpanCount(requireContext(), 80);
-        folderGrid.setNumColumns(columnCount);
+        folderGrid.setNumColumns(1);
         folderGridAdapter = new ArrayObjectAdapter(new BrowserFilePresenter(folderClickListener));
         folderGrid.setAdapter(new ItemBridgeAdapter(folderGridAdapter));
-        folderGrid.setVerticalSpacing(0);
         RecyclerView.ItemAnimator animator = folderGrid.getItemAnimator();
         if (animator != null) {
             animator.setRemoveDuration(0);
             animator.setAddDuration(500);
         }
-        folderGrid.addOnChildAttachStateChangeListener(onChildAttachStateChangeListener);
         loadFiles();
     }
 
@@ -331,24 +329,6 @@ public class BrowserFragment extends Fragment {
         }
     };
 
-    private final RecyclerView.OnChildAttachStateChangeListener onChildAttachStateChangeListener = new RecyclerView.OnChildAttachStateChangeListener() {
-        @Override
-        public void onChildViewAttachedToWindow(@NonNull View view) {
-            view.setOnFocusChangeListener((v, hasFocus) -> {
-                v.post(() -> {
-                    AnimHelper.scale(v, 1.15f, hasFocus, 150);
-                });
-            });
-        }
-
-        @Override
-        public void onChildViewDetachedFromWindow(@NonNull View view) {
-            view.animate().cancel();
-            view.setScaleX(1f);
-            view.setScaleY(1f);
-        }
-    };
-
     private final BrowseFrameLayout.OnFocusSearchListener onFocusSearchListener = new BrowseFrameLayout.OnFocusSearchListener() {
         @Override
         public @org.jspecify.annotations.Nullable View onFocusSearch(@org.jspecify.annotations.Nullable View focused, int direction) {
@@ -356,20 +336,7 @@ public class BrowserFragment extends Fragment {
                 return folderGrid;
             }
             else if (direction == View.FOCUS_DOWN && folderGrid.indexOfChild(focused) != -1) {
-               if (focused != null && folderGrid.getLayoutManager() instanceof GridLayoutManager layoutManager ) {
-                    int position = folderGrid.getChildAdapterPosition(focused);
-                    int nextBottomPosition = position + columnCount;
-                    int adapterSize = folderGridAdapter.size();
-                    int rowsCount = (int) Math.ceil((double) adapterSize / columnCount);
-                    int currentRow = (int) Math.ceil((double) (position + 1) / columnCount);
-                    if (rowsCount == currentRow) {
-                        return  buttonsContainer.getVisibility() != View.GONE ? btnConfirm : folderGrid;
-                    }
-                    else if (nextBottomPosition >= adapterSize){
-                        return layoutManager.getChildAt(adapterSize - 1);
-                    }
-                    return null;
-                }
+                 return  buttonsContainer.getVisibility() != View.GONE ? btnConfirm : folderGrid;
             }
             return null;
         }

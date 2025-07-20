@@ -3,7 +3,7 @@ package com.example.bookreader.presenters.browserpresenters;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +13,6 @@ import android.widget.TextView;
 import androidx.core.util.Consumer;
 import androidx.leanback.widget.Presenter;
 
-import com.bumptech.glide.Glide;
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BrowserFile;
 import com.example.bookreader.interfaces.BookProcessor;
@@ -49,8 +48,8 @@ public class BrowserFilePresenter extends Presenter {
         if (item instanceof BrowserFile file) {
             View rootView = viewHolder.view;
             TextView textView = rootView.findViewById(R.id.browser_file_name);
-            ImageView iconView = rootView.findViewById(R.id.main_folder_icon);
-            ImageView checkedIcon = rootView.findViewById(R.id.folder_check_icon);
+            ImageView iconView = rootView.findViewById(R.id.browser_file_icon);
+            ImageView checkedIcon = rootView.findViewById(R.id.browser_file_check_icon);
             textView.setText(file.getFile().getName());
             int visibility = file.isChecked() ? VISIBLE : GONE;
             checkedIcon.setVisibility(visibility);
@@ -84,6 +83,13 @@ public class BrowserFilePresenter extends Presenter {
                     }
                 }
             }
+            viewHolder.view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    int color =  hasFocus ? Color.parseColor("#BB494949") : v.getResources().getColor(android.R.color.transparent);
+                    v.setBackgroundColor(color);
+                }
+            });
 
             viewHolder.view.setOnClickListener(new View.OnClickListener() {
                 @Override
