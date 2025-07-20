@@ -15,11 +15,11 @@ import androidx.leanback.widget.Presenter;
 
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BrowserFile;
-import com.example.bookreader.interfaces.BookProcessor;
-import com.example.bookreader.utility.EpubProcessor;
-import com.example.bookreader.utility.Fb2Processor;
+import com.example.bookreader.utility.bookutils.interfaces.BookProcessor;
+import com.example.bookreader.utility.bookutils.EpubProcessor;
+import com.example.bookreader.utility.bookutils.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
-import com.example.bookreader.utility.pdf.PdfProcessor;
+import com.example.bookreader.utility.bookutils.pdf.PdfProcessor;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;

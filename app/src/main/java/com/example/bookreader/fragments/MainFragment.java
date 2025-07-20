@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -36,9 +35,9 @@ import com.example.bookreader.data.database.repository.BookRepository;
 
 import com.example.bookreader.fragments.filebrowser.BrowserMode;
 import com.example.bookreader.fragments.filebrowser.BrowserResult;
-import com.example.bookreader.interfaces.BookProcessor;
-import com.example.bookreader.utility.EpubProcessor;
-import com.example.bookreader.utility.Fb2Processor;
+import com.example.bookreader.utility.bookutils.interfaces.BookProcessor;
+import com.example.bookreader.utility.bookutils.EpubProcessor;
+import com.example.bookreader.utility.bookutils.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -49,14 +48,12 @@ import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.BrowserTransitionListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
-import com.example.bookreader.utility.pdf.PdfProcessor;
+import com.example.bookreader.utility.bookutils.pdf.PdfProcessor;
 
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
-
 
 
 public class MainFragment extends BrowseSupportFragment {
@@ -105,6 +102,7 @@ public class MainFragment extends BrowseSupportFragment {
                                        File selectedFile  = new File(filePath);
                         if(!selectedFile.exists()) return;
                         String ext = FileHelper.getFileExtension(getContext(), selectedFile);
+                        if(ext == null) throw new IllegalStateException(" File extension is not exist");
                         BookProcessor bookProcessor = switch (ext){
                             case "pdf" -> new PdfProcessor(requireContext());
                             case "epub" -> new EpubProcessor(requireContext());
@@ -114,7 +112,7 @@ public class MainFragment extends BrowseSupportFragment {
                         try {
 
                             progressBarManager.show();
-                            bookProcessor.processFileAsync(selectedFile).thenAccept((bookInfo) -> {
+                            bookProcessor.getInfoAsync(selectedFile).thenAccept((bookInfo) -> {
                                 requireActivity().runOnUiThread(() -> {
                                     progressBarManager.hide();
                                     new AlertDialog.Builder(requireActivity())
@@ -122,9 +120,7 @@ public class MainFragment extends BrowseSupportFragment {
                                                        "Author - " + bookInfo.author + "\n" +
                                                         "Year- " + bookInfo.year + "\n" +
                                                         "Pages - " + bookInfo.pageCount + "\n" +
-                                                       "File - " + bookInfo.filePath + "\n" +
-                                                       "Preview - " + bookInfo.previewPath + "\n"+
-                                                       "Desc- " + bookInfo.description + "\n" )
+                                                        "Desc- " + bookInfo.description + "\n" )
 
                                             .setPositiveButton("Закрити", (dialog, which) -> {
                                                 dialog.dismiss(); // закриває діалог
