@@ -37,6 +37,7 @@ import com.example.bookreader.fragments.filebrowser.BrowserMode;
 import com.example.bookreader.fragments.filebrowser.BrowserResult;
 import com.example.bookreader.interfaces.BookProcessor;
 import com.example.bookreader.utility.EpubProcessor;
+import com.example.bookreader.utility.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -100,7 +101,42 @@ public class MainFragment extends BrowseSupportFragment {
                                 List<String> selectedFilesPaths = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
                                 if(selectedFilesPaths != null){
                                     for (String filePath:selectedFilesPaths){
-                                        Log.d("BrowserResult",filePath);
+
+
+                                 File selectedFile  = new File(filePath);
+                        if(!selectedFile.exists()) return;
+                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedFile), "pdf")
+                                ? new PdfProcessor(requireContext())
+                                : new Fb2Processor(requireContext());
+
+
+                        try {
+
+                            progressBarManager.show();
+                            bookProcessor.processFileAsync(selectedFile).thenAccept((bookInfo) -> {
+                                requireActivity().runOnUiThread(() -> {
+                                    progressBarManager.hide();
+                                    new android.app.AlertDialog.Builder(requireActivity())
+                                            .setMessage("Title - " + bookInfo.title + "\n" +
+                                                       "Author - " + bookInfo.author + "\n" +
+                                                        "Year- " + bookInfo.year + "\n" +
+                                                        "Pages - " + bookInfo.pageCount + "\n" +
+                                                       "File - " + bookInfo.filePath + "\n" +
+                                                       "Preview - " + bookInfo.previewPath + "\n"+
+                                                       "Desc- " + bookInfo.description + "\n" )
+
+                                            .setPositiveButton("Закрити", (dialog, which) -> {
+                                                dialog.dismiss(); // закриває діалог
+                                            })
+                                            .setCancelable(true) // можна закрити тапом поза вікном
+                                            .show();
+                                });
+
+
+                            });
+                        } catch (IOException  e) {
+                            throw new RuntimeException(e);
+                        }
                                     }
                                 }
                                 break;
@@ -113,37 +149,7 @@ public class MainFragment extends BrowseSupportFragment {
                         }
 
 
-//                        File selectedFile  = new File(selectedFilePath);
-//                        if(!selectedFile.exists()) return;
-//                        BookProcessor bookProcessor = Objects.equals(FileHelper.getFileExtension(getContext(), selectedFile), "pdf")
-//                                ? new PdfProcessor()
-//                                : new EpubProcessor();
-//
-//
-//                        try {
-//
-//                            progressBarManager.show();
-//                            bookProcessor.processFileAsync(getContext(), selectedFile).thenAccept((bookInfo) -> {
-//                                requireActivity().runOnUiThread(() -> {
-//                                    progressBarManager.hide();
-//                                    new android.app.AlertDialog.Builder(requireActivity())
-//                                            .setMessage("Title - " + bookInfo.title + "\n" +
-//                                                    "Author - " + bookInfo.author + "\n" +
-//                                                    "Pages - " + bookInfo.pageCount + "\n" +
-//                                                    "File - " + bookInfo.filePath + "\n" +
-//                                                    "Preview - " + bookInfo.previewPath + "\n")
-//                                            .setPositiveButton("Закрити", (dialog, which) -> {
-//                                                dialog.dismiss(); // закриває діалог
-//                                            })
-//                                            .setCancelable(true) // можна закрити тапом поза вікном
-//                                            .show();
-//                                });
-//
-//
-//                            });
-//                        } catch (IOException  e) {
-//                            throw new RuntimeException(e);
-//                        }
+
                     }
                 }
         );

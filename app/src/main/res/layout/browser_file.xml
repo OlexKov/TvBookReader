@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="80dp"
-    android:layout_height="wrap_content"
+    android:layout_height="117dp"
     android:background="#00000000"
     android:padding="7dp"
     android:clickable="true"
@@ -44,9 +44,6 @@
         android:textColor="#FFFFFF"
         android:gravity="center"
         android:maxLines="2"
-        android:ellipsize="end"
-        android:breakStrategy="high_quality"
-        android:hyphenationFrequency="none"
-        android:scrollHorizontally="false" />
+        android:ellipsize="end" />
 
 </LinearLayout>

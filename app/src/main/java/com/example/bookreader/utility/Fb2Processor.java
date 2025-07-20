@@ -9,14 +9,22 @@ import android.util.Log;
 
 import com.example.bookreader.customclassses.BookInfo;
 import com.example.bookreader.interfaces.BookProcessor;
-import com.kursx.parser.fb2.Binary;
-import com.kursx.parser.fb2.FictionBook;
-import com.kursx.parser.fb2.Image;
+import com.example.bookreader.utility.fb2parser.Annotation;
+import com.example.bookreader.utility.fb2parser.Binary;
+import com.example.bookreader.utility.fb2parser.Description;
+import com.example.bookreader.utility.fb2parser.Element;
+import com.example.bookreader.utility.fb2parser.FictionBook;
+import com.example.bookreader.utility.fb2parser.Image;
+import com.example.bookreader.utility.fb2parser.Person;
+import com.example.bookreader.utility.fb2parser.PublishInfo;
+import com.example.bookreader.utility.fb2parser.TitleInfo;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
+
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class Fb2Processor implements BookProcessor {
@@ -37,7 +45,30 @@ public class Fb2Processor implements BookProcessor {
             try  {
                 FictionBook fb = new FictionBook(bookFile);
                 result.title = fb.getTitle();
-                result.author = fb.getAuthors().get(0).getFullName();
+                result.author =  Optional.ofNullable(fb)
+                        .map(FictionBook::getDescription)
+                        .map(Description::getTitleInfo)
+                        .map(TitleInfo::getAuthors)
+                        .filter((ArrayList<Person> list) -> !list.isEmpty())
+                        .map(list -> list.get(0).getFullName())
+                        .orElse("Unknown");
+
+                result.description = Optional.ofNullable(fb)
+                        .map(FictionBook::getDescription)
+                        .map(Description::getTitleInfo)
+                        .map(TitleInfo::getAnnotation)
+                        .map(Annotation::getElements)
+                        .filter((ArrayList<Element> list) -> !list.isEmpty())
+                        .map(list -> list.get(0).getText())
+                        .orElse("Unknown");
+
+                result.year = Optional.ofNullable(fb)
+                        .map(FictionBook::getDescription)
+                        .map(Description::getPublishInfo)
+                        .map(PublishInfo::getYear)
+                        .orElse("Unknown");
+
+
             } catch (Exception e) {
                 Log.e(TAG, "Error reading book info", e);
                 throw new RuntimeException(e);
@@ -97,11 +128,18 @@ public class Fb2Processor implements BookProcessor {
             if (bookWithPaths == null) bookWithPaths = new BookInfo();
 
             if (bookWithInfo.title == null || bookWithInfo.title.trim().isEmpty()) {
-                bookWithInfo.title = bookFile.getName();
+                bookWithInfo.title = "Unknown";// bookFile.getName();
             }
             if (bookWithInfo.author == null || bookWithInfo.author.trim().isEmpty()) {
                 bookWithInfo.author = "Unknown";
             }
+            if (bookWithInfo.year == null || bookWithInfo.year.trim().isEmpty()) {
+                bookWithInfo.year = "Unknown";
+            }
+            if (bookWithInfo.description == null || bookWithInfo.description.trim().isEmpty()) {
+                bookWithInfo.description = "Unknown";
+            }
+
             bookWithInfo.previewPath = bookWithPaths.previewPath;
             bookWithInfo.filePath = bookWithPaths.filePath;
 

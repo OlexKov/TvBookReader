@@ -31,7 +31,7 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
       //  Drawable drawable = new BitmapDrawable(getResources(), bitmap);
         return new GuidanceStylist.Guidance(
                 getString(R.string.q_delete_book),
-                book.name,
+                book.title,
                 getString(R.string.confirmation),
                 ContextCompat.getDrawable(requireContext(), R.drawable.settings)
         );
@@ -58,7 +58,7 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
                     if (deletedRowsCount != 0) {
                         app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED, null);
                         app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED, new RowItemData(app.getSelectedRow(), book));
-                        Toast.makeText(requireContext(), getString(R.string.book_deleted, book.name), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), getString(R.string.book_deleted, book.title), Toast.LENGTH_SHORT).show();
                         requireActivity().finish();
                     } else {
                         requireActivity().getSupportFragmentManager().popBackStack();

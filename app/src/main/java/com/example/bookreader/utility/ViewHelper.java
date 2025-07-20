@@ -1,9 +1,16 @@
 package com.example.bookreader.utility;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.widget.TextView;
 
 public class ViewHelper {
 

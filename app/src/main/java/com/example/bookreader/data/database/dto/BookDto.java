@@ -9,7 +9,13 @@ import java.util.Date;
 
 public class BookDto implements Serializable {
     public long id;
-    public String name;
+    public String author;
+    public int pageCount;
+    public String filePath;
+    public String previewPath;
+    public String title;
+    public String description;
+    public String year;
     public Long categoryId = null;
     public boolean isFavorite = false;
     public Date creationDate;

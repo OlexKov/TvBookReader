@@ -13,7 +13,7 @@ public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
     @Override
     protected void onBindDescription(@NonNull ViewHolder viewHolder, @NonNull Object item) {
         if(!(item instanceof BookDto book)) return;
-        viewHolder.getTitle().setText(book.name);
+        viewHolder.getTitle().setText(book.title);
         viewHolder.getSubtitle().setText( " sdf sdf sdf sdf sdf sdf sdf s");
         viewHolder.getBody().setText(" sdfsfsd fsdf sdf sdfs df sdfs df");
     }

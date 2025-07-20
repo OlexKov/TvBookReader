@@ -54,7 +54,7 @@ public class BookPreviewPresenter extends Presenter {
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, @Nullable Object item) {
         if(!(item instanceof BookDto book) || !(viewHolder.view instanceof ImageCardView cardView)) return;
-        cardView.setTitleText(book.name);
+        cardView.setTitleText(book.title);
         cardView.setContentText("author");
         cardView.setMainImageScaleType(ImageView.ScaleType.CENTER_INSIDE);
         // cardView.setMainImageAdjustViewBounds(true);

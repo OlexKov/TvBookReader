@@ -1,5 +1,6 @@
 package com.example.bookreader.presenters.browserpresenters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,16 +35,15 @@ public class StorageFolderPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
+        View rootView = viewHolder.view;
         if (item instanceof MainStorage folder) {
-            View rootView = viewHolder.view;
             TextView textView = rootView.findViewById(R.id.browser_file_name);
             ImageView iconView = rootView.findViewById(R.id.main_folder_icon);
 
             textView.setText(folder.getName());
             iconView.setImageResource(folder.getIconRId());
-
         }
-        viewHolder.view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        rootView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 AnimHelper.scale(v,1.2f,hasFocus,150);
@@ -52,6 +52,14 @@ public class StorageFolderPresenter extends Presenter {
                 }
             }
         });
+
+        rootView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSelectListener.accept(null);
+            }
+        });
+
     }
 
     @Override

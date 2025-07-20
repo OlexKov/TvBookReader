@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.core.util.Consumer;
 import androidx.leanback.widget.Presenter;
 
+import com.bumptech.glide.Glide;
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BrowserFile;
 import com.example.bookreader.interfaces.BookProcessor;
@@ -72,10 +73,11 @@ public class BrowserFilePresenter extends Presenter {
                     }
                     try {
                         bookProcessor.getPreviewAsync(file.getFile(),0,96,70 ).thenAccept((bitmap)->{
-                            BitmapDrawable bitmapDrawable = new BitmapDrawable(rootView.getResources(), bitmap);
-                            viewHolder.view.post(() -> {
-                                iconView.setImageDrawable(bitmapDrawable);
-                            });
+                            if(bitmap != null){
+                                viewHolder.view.post(() -> {
+                                    iconView.setImageBitmap(bitmap);
+                                });
+                            }
                         });
                     } catch (IOException e) {
                         throw new RuntimeException(e);

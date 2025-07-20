@@ -21,6 +21,7 @@ import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -108,7 +109,7 @@ public class BookReaderApp  extends Application {
 
                 for (int i = 0; i < 10;i++){
                      bdao.insert( Book.builder()
-                            .name("книга - " + i)
+                            .title("книга - " + i)
                             .isFavorite(i%2==0)
                             .categoryId(null)
                             .build());
@@ -124,7 +125,7 @@ public class BookReaderApp  extends Application {
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
-                            .name("Категорія 1 - Субкатегорія 1 - книга - " + i)
+                            .title("Категорія 1 - Субкатегорія 1 - книга - " + i)
                             .isFavorite(i%2==0)
                             .categoryId(subcategoryId)
                             .build());
@@ -136,7 +137,7 @@ public class BookReaderApp  extends Application {
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
-                            .name("Категорія 1 - Субкатегорія 2 - книга - " + i)
+                            .title("Категорія 1 - Субкатегорія 2 - книга - " + i)
                             .categoryId(subcategoryId)
                             .isFavorite(i%2==0)
                             .build());
@@ -144,7 +145,7 @@ public class BookReaderApp  extends Application {
 
                 for (int i = 0; i < 7;i++){
                     bdao.insert( Book.builder()
-                            .name("Категорія 1 - книга - " + i)
+                            .title("Категорія 1 - книга - " + i)
                             .categoryId(categoryId)
                             .isFavorite(i%2==0)
                             .build());
@@ -164,7 +165,7 @@ public class BookReaderApp  extends Application {
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
-                            .name("Категорія 2 - Субкатегорія 1 - книга - " + i)
+                            .title("Категорія 2 - Субкатегорія 1 - книга - " + i)
                             .categoryId(subcategoryId)
                             .build());
                 }
@@ -174,13 +175,13 @@ public class BookReaderApp  extends Application {
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
-                            .name("Категорія 2 - Субкатегорія 2 - книга - " + i)
+                            .title("Категорія 2 - Субкатегорія 2 - книга - " + i)
                             .categoryId(subcategoryId)
                             .build());
                 }
                 for (int i = 0; i < 7;i++){
                     bdao.insert( Book.builder()
-                            .name("Категорія 2 - книга - " + i)
+                            .title("Категорія 2 - книга - " + i)
                             .categoryId(categoryId)
                             .build());
                 }
