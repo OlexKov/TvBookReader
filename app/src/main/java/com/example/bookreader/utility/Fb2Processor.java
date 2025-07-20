@@ -128,7 +128,7 @@ public class Fb2Processor implements BookProcessor {
             if (bookWithPaths == null) bookWithPaths = new BookInfo();
 
             if (bookWithInfo.title == null || bookWithInfo.title.trim().isEmpty()) {
-                bookWithInfo.title = "Unknown";// bookFile.getName();
+                bookWithInfo.title = bookFile.getName().substring(0,bookFile.getName().length() - 4);
             }
             if (bookWithInfo.author == null || bookWithInfo.author.trim().isEmpty()) {
                 bookWithInfo.author = "Unknown";

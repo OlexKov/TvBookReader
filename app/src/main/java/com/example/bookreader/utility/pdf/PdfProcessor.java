@@ -95,7 +95,7 @@ public class PdfProcessor implements BookProcessor {
             BookInfo bookWithInfo = getBookInfoFuture.join();
             BookInfo bookWithPaths = getBookPreviewFuture.join();
             if (bookWithInfo.title == null || bookWithInfo.title.trim().isEmpty()) {
-                bookWithInfo.title = bookFile.getName();
+                bookWithInfo.title = bookFile.getName().substring(0,bookFile.getName().length() - 4);
             }
             if (bookWithInfo.author == null || bookWithInfo.author.trim().isEmpty()) {
                 bookWithInfo.author = "Unknown";

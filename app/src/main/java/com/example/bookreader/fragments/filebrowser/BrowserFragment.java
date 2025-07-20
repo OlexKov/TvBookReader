@@ -149,6 +149,7 @@ public class BrowserFragment extends Fragment {
         folderGrid.setNumColumns(columnCount);
         folderGridAdapter = new ArrayObjectAdapter(new BrowserFilePresenter(folderClickListener));
         folderGrid.setAdapter(new ItemBridgeAdapter(folderGridAdapter));
+        folderGrid.setVerticalSpacing(0);
         RecyclerView.ItemAnimator animator = folderGrid.getItemAnimator();
         if (animator != null) {
             animator.setRemoveDuration(0);
