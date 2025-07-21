@@ -6,4 +6,5 @@ public  class BookInfo {
     public String title;
     public String description;
     public String year;
+    public int hash;
 }

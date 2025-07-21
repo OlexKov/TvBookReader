@@ -62,6 +62,9 @@ dependencies {
     implementation(libs.glide)
     implementation (libs.androidx.appcompat)
 
+    // https://mvnrepository.com/artifact/net.jpountz.lz4/lz4
+    implementation(libs.lz4)
+
     // Room
     implementation (libs.androidx.room.runtime.v261)
     implementation(libs.androidx.fragment)
@@ -89,5 +92,5 @@ dependencies {
 
     implementation (libs.slf4j.android)
 
-    debugImplementation (libs.leakcanary.android)
+    //debugImplementation (libs.leakcanary.android)
 }

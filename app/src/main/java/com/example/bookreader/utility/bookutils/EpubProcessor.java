@@ -8,7 +8,7 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-import com.example.bookreader.utility.bookutils.interfaces.BookProcessor;
+import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 
 import java.io.File;
@@ -27,7 +27,7 @@ import nl.siegmann.epublib.domain.Book;
 import nl.siegmann.epublib.domain.Metadata;
 
 
-public class EpubProcessor implements BookProcessor {
+public class EpubProcessor implements IBookProcessor {
     private final Context context;
 
     public EpubProcessor(Context context){

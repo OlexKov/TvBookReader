@@ -27,7 +27,6 @@ import androidx.fragment.app.Fragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.BrowseFrameLayout;
 import androidx.leanback.widget.DiffCallback;
-import androidx.leanback.widget.GridLayoutManager;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.recyclerview.widget.RecyclerView;

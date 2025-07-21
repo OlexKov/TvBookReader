@@ -10,7 +10,11 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
+import net.jpountz.xxhash.XXHashFactory;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 public class FileHelper {
 
@@ -101,8 +105,6 @@ public class FileHelper {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
-
-
     public static String getFileName(Context context, Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
@@ -142,5 +144,24 @@ public class FileHelper {
             return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
         }
         return null;
+    }
+
+    public static int getFileHash(File file) throws Exception {
+        InputStream stream = new FileInputStream(file);
+        int hash = getFileHash(stream);
+        stream.close();
+        return hash;
+    }
+
+    public static int getFileHash(InputStream stream) throws Exception {
+        XXHashFactory factory = XXHashFactory.fastestInstance();
+        byte[] buffer = new byte[8192];
+        int hash = 0x9747b28c;
+        int len;
+
+        while ((len = stream.read(buffer)) != -1) {
+            hash = factory.hash32().hash(buffer, 0, len, hash);
+        }
+        return hash;
     }
 }

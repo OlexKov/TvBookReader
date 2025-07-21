@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
-public interface BookProcessor {
+public interface IBookProcessor {
     CompletableFuture<BookPaths> savePreviewAsync(File bookFile) throws IOException;
     CompletableFuture<BookInfo> getInfoAsync(Uri bookUri) throws IOException;
     CompletableFuture<BookInfo> getInfoAsync(File bookFile) throws IOException;

@@ -14,6 +14,7 @@ leanbackGrid = "1.0.0"
 leanbackPaging = "1.1.0"
 lombok = "1.18.30"
 lombokVersion = "1.18.38"
+lz4 = "1.3.0"
 pdfbox = "3.0.5"
 pdfboxAndroid = "2.0.27.0"
 pdfboxAndroidVersion = "2.0.27.0"
@@ -47,6 +48,7 @@ glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "gl
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-v11838 = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }
+lz4 = { module = "net.jpountz.lz4:lz4", version.ref = "lz4" }
 mhiew-android-pdf-viewer = { module = "com.github.mhiew:android-pdf-viewer", version.ref = "androidPdfViewerVersion" }
 mhiew-pdfium-android = { module = "com.github.mhiew:pdfium-android", version.ref = "pdfiumAndroidVersion" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }

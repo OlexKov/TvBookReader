@@ -31,6 +31,7 @@ public class Book {
     public String title;
     public String description;
     public String year;
+    public int fileHash;
     public Long categoryId = null;
     public boolean isFavorite = false;
     public Date creationDate = new Date();

@@ -4,12 +4,11 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
 
 
 import com.example.bookreader.utility.bookutils.BookInfo;
 import com.example.bookreader.utility.bookutils.BookPaths;
-import com.example.bookreader.utility.bookutils.interfaces.BookProcessor;
+import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfiumCore;
@@ -21,7 +20,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 
-public class PdfProcessor implements BookProcessor {
+public class PdfProcessor implements IBookProcessor {
     private final Context context;
 
     public PdfProcessor(Context context){

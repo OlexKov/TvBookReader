@@ -6,9 +6,11 @@ import android.content.Intent;
 
 import android.os.Bundle;
 
+import android.os.FileUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -29,13 +31,15 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.activities.FileBrowserActivity;
 import com.example.bookreader.constants.Constants;
+import com.example.bookreader.customclassses.FileData;
 import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 
 import com.example.bookreader.fragments.filebrowser.BrowserMode;
 import com.example.bookreader.fragments.filebrowser.BrowserResult;
-import com.example.bookreader.utility.bookutils.interfaces.BookProcessor;
+import com.example.bookreader.utility.bookutils.BookProcessor;
+import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.bookutils.EpubProcessor;
 import com.example.bookreader.utility.bookutils.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
@@ -54,6 +58,8 @@ import com.example.bookreader.utility.bookutils.pdf.PdfProcessor;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 
 public class MainFragment extends BrowseSupportFragment {
@@ -97,45 +103,43 @@ public class MainFragment extends BrowseSupportFragment {
                                 break;
                             case MULTIPLE_FILES:
                                 List<String> selectedFilesPaths = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
-                                if(selectedFilesPaths != null){
-                                    for (String filePath:selectedFilesPaths){
-                                       File selectedFile  = new File(filePath);
-                        if(!selectedFile.exists()) return;
-                        String ext = FileHelper.getFileExtension(getContext(), selectedFile);
-                        if(ext == null) throw new IllegalStateException(" File extension is not exist");
-                        BookProcessor bookProcessor = switch (ext){
-                            case "pdf" -> new PdfProcessor(requireContext());
-                            case "epub" -> new EpubProcessor(requireContext());
-                            case "fb2" -> new Fb2Processor(requireContext());
-                            default -> throw new IllegalStateException("Unexpected value: " + ext);
-                        };
-                        try {
+                                checkFilesAsync(selectedFilesPaths).thenAccept((filesData)->{
+                                    for (FileData fileData:filesData){
+                                        BookProcessor bookProcessor = new BookProcessor(requireContext(), fileData.file);
 
-                            progressBarManager.show();
-                            bookProcessor.getInfoAsync(selectedFile).thenAccept((bookInfo) -> {
-                                requireActivity().runOnUiThread(() -> {
-                                    progressBarManager.hide();
-                                    new AlertDialog.Builder(requireActivity())
-                                            .setMessage("Title - " + bookInfo.title + "\n" +
-                                                       "Author - " + bookInfo.author + "\n" +
-                                                        "Year- " + bookInfo.year + "\n" +
-                                                        "Pages - " + bookInfo.pageCount + "\n" +
-                                                        "Desc- " + bookInfo.description + "\n" )
+                                        try {
 
-                                            .setPositiveButton("Закрити", (dialog, which) -> {
-                                                dialog.dismiss(); // закриває діалог
-                                            })
-                                            .setCancelable(true) // можна закрити тапом поза вікном
-                                            .show();
+                                            progressBarManager.show();
+                                            bookProcessor.getInfoAsync().thenAccept((bookInfo) -> {
+                                                if (bookInfo == null) {
+                                                    Toast.makeText(requireContext(), "Error open file " + fileData.file.getName(), Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    requireActivity().runOnUiThread(() -> {
+                                                        progressBarManager.hide();
+                                                        new AlertDialog.Builder(requireActivity())
+                                                                .setMessage("Title - " + bookInfo.title + "\n" +
+                                                                        "Author - " + bookInfo.author + "\n" +
+                                                                        "Year- " + bookInfo.year + "\n" +
+                                                                        "Pages - " + bookInfo.pageCount + "\n" +
+                                                                        "Hash - " + fileData.hash + "\n" +
+                                                                        "Desc- " + bookInfo.description + "\n")
+
+                                                                .setPositiveButton("Закрити", (dialog, which) -> {
+                                                                    dialog.dismiss(); // закриває діалог
+                                                                })
+                                                                .setCancelable(true) // можна закрити тапом поза вікном
+                                                                .show();
+                                                    });
+                                                }
+
+
+                                            });
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    }
                                 });
 
-
-                            });
-                        } catch (IOException  e) {
-                            throw new RuntimeException(e);
-                        }
-                                    }
-                                }
                                 break;
                             case SINGLE_FILE:
                                 String selectedFilePath = result.getData().getStringExtra(BrowserResult.SELECTED_FILE_PATH.name());
@@ -288,5 +292,38 @@ public class MainFragment extends BrowseSupportFragment {
         intent.putExtra("mode",browserMode);
         filePickerLauncher.launch(intent);
         vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
+    }
+
+    private CompletableFuture<List<FileData>> checkFilesAsync(List<String> paths) {
+        return CompletableFuture.supplyAsync(() ->
+                paths.parallelStream().map(path -> {
+                            FileData data = new FileData(0, new File(path));
+                            try {
+                                if (data.file.exists()) {
+                                    data.hash = FileHelper.getFileHash(data.file);
+                                }
+                            } catch (Exception e) {
+                                data.hash = 0;
+                            } finally {
+                                if (data.hash == 0) {
+                                    requireActivity().runOnUiThread(() -> {
+                                        Toast.makeText(requireContext(), "File error - " + data.file.getName(), Toast.LENGTH_SHORT).show();
+                                    });
+                                }
+                            }
+                            return data;
+                        }).filter(data -> data.hash != 0)
+                        .distinct().collect(Collectors.toList())
+        ).thenCompose((filesData)-> {
+            BookRepository bookRepository = new BookRepository();
+            List<Integer> hashes = filesData.stream().map(x -> x.hash).collect(Collectors.toList());
+            return bookRepository.getBooksByHashesAsync(hashes).thenApply((dbHashes) ->
+            {
+                if (dbHashes.isEmpty()) {
+                    return filesData;
+                }
+                return filesData.stream().filter(data -> !dbHashes.contains(data.hash)).collect(Collectors.toList());
+            });
+        });
     }
 }

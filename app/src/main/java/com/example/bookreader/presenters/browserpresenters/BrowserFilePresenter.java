@@ -17,7 +17,8 @@ import androidx.leanback.widget.Presenter;
 
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BrowserFile;
-import com.example.bookreader.utility.bookutils.interfaces.BookProcessor;
+import com.example.bookreader.utility.bookutils.BookProcessor;
+import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.bookutils.EpubProcessor;
 import com.example.bookreader.utility.bookutils.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
@@ -32,7 +33,6 @@ public class BrowserFilePresenter extends Presenter {
 
     private final Consumer<Object> onClickListener;
 
-
     public BrowserFilePresenter(Consumer<Object> clickListener) {
         this.onClickListener = clickListener;
     }
@@ -43,7 +43,6 @@ public class BrowserFilePresenter extends Presenter {
         View view = inflater.inflate(R.layout.browser_file, parent, false);
         return new Presenter.ViewHolder(view);
     }
-
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
@@ -57,35 +56,27 @@ public class BrowserFilePresenter extends Presenter {
             checkedIcon.setVisibility(visibility);
             Context context = rootView.getContext();
 
-            if(file.getFile().isDirectory()){
-                iconView.setImageResource(R.drawable.folder);
-            }
-            else {
-                String ext = FileHelper.getFileExtension(context, file.getFile());
-                BookProcessor bookProcessor;
-                if(ext != null){
-                    if(ext.equals("pdf")){
-                        bookProcessor = new PdfProcessor(context);
-                    }
-                    else  if(ext.equals("epub")){
-                        bookProcessor = new EpubProcessor(context);
-                    }
-                    else {
-                        bookProcessor = new Fb2Processor(context);
-                    }
-                    try {
-                        bookProcessor.getPreviewAsync(file.getFile(),0,96,70 ).thenAccept((bitmap)->{
+            if(!file.getFile().isDirectory()) {
+                BookProcessor bookProcessor = new BookProcessor(context,file.getFile());
+                try {
+                    bookProcessor.getPreviewAsync(0,96,70 ).thenAccept((bitmap)->{
+                        rootView.post(() -> {
                             if(bitmap != null){
-                                rootView.post(() -> {
-                                    iconView.setImageBitmap(bitmap);
-                                });
+                                iconView.setImageBitmap(bitmap);
+                            }
+                            else{
+                                iconView.setImageResource(R.drawable.e_book);
                             }
                         });
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    });
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
+            else{
+                iconView.setImageResource(R.drawable.folder);
+            }
+
             rootView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {

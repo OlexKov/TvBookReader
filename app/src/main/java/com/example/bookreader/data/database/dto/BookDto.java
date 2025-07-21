@@ -9,6 +9,7 @@ import java.util.Date;
 
 public class BookDto implements Serializable {
     public long id;
+    public int fileHash;
     public String author;
     public int pageCount;
     public String filePath;

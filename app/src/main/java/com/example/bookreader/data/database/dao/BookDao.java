@@ -19,6 +19,9 @@ public interface BookDao {
     @Query("DELETE FROM books WHERE id = :bookId")
     int deleteById(long bookId);
 
+    @Query("SELECT fileHash FROM books WHERE fileHash IN (:hashes)")
+    List<Integer> getByHash(List<Integer> hashes);
+
     @Query("SELECT * FROM books")
     List<BookDto> getAllRange();
 

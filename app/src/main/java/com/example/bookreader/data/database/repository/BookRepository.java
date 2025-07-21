@@ -35,6 +35,11 @@ public class BookRepository {
         });
     }
 
+    public CompletableFuture<List<Integer>> getBooksByHashesAsync(List<Integer> hashes){
+        return CompletableFuture.supplyAsync(() -> bookDao.getByHash(hashes));
+    }
+
+
     ///  toggle favorites
 
     public CompletableFuture<PaginationResultData<BookDto>> getPageDataFavoriteBooksAsync(int page, int size){

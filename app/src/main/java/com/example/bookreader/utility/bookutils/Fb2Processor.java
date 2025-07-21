@@ -7,7 +7,7 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
-import com.example.bookreader.utility.bookutils.interfaces.BookProcessor;
+import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.fb2parser.Annotation;
 import com.example.bookreader.utility.bookutils.fb2parser.Binary;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class Fb2Processor implements BookProcessor {
+public class Fb2Processor implements IBookProcessor {
     private static final String TAG = "Fb2Processor";
     private final Context context;
 
