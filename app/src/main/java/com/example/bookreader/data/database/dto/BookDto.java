@@ -13,6 +13,7 @@ public class BookDto implements Serializable {
     public String author;
     public int pageCount;
     public String filePath;
+    public String zipPath;
     public String previewPath;
     public String title;
     public String description;

@@ -250,7 +250,7 @@ public class BrowserFragment extends Fragment {
         @Override
         public boolean accept(File pathname) {
             if (!pathname.isDirectory()) {
-                String ext = FileHelper.getFileExtension(getContext(), pathname);
+                String ext = FileHelper.getFileExtension(pathname);
                 return ext != null && (ext.equals("pdf") || ext.equals("epub") || ext.equals("fb2"));
             }
             return true;

@@ -138,7 +138,7 @@ public class FileHelper {
         return null;
     }
 
-    public static String getFileExtension(Context context, File file) {
+    public static String getFileExtension(File file) {
         String fileName = file.getName();
         if (fileName.contains(".")) {
             return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();

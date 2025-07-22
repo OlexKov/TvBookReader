@@ -41,6 +41,12 @@
             android:launchMode="singleTop"
             android:excludeFromRecents="true"/>
 
+        <activity
+            android:name=".activities.NewFilesActivity"
+            android:theme="@style/TransparentActivityTheme"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"/>
+
         <activity android:name=".activities.BookDetailsActivity"
             android:exported="true"
             android:theme="@style/Theme.BookReader"/>

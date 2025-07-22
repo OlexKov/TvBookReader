@@ -7,6 +7,7 @@ appcompat = "1.7.1"
 djvulibre = "0.1.4"
 fitz = "1.24.9.2"
 githubPdfboxAndroid = "master-SNAPSHOT"
+junrar = "7.5.5"
 leakcanaryAndroid = "2.14"
 leanback = "1.2.0"
 glide = "4.11.0"
@@ -45,6 +46,7 @@ androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.re
 djvulibre = { module = "com.github.axet:djvulibre", version.ref = "djvulibre" }
 fitz = { module = "net.timelegend.mupdf:fitz", version.ref = "fitz" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+junrar = { module = "com.github.junrar:junrar", version.ref = "junrar" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 lombok-v11838 = { module = "org.projectlombok:lombok", version.ref = "lombokVersion" }

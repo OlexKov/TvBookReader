@@ -85,6 +85,9 @@ dependencies {
         exclude(group = "xmlpull")
     }
 
+    //RAR
+    implementation(libs.junrar)
+
 
 //    dependencies {
 //        implementation(files("libs/pdfbox-app-3.0.5.jar"))
