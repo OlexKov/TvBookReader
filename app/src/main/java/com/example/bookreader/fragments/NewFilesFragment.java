@@ -2,6 +2,7 @@ package com.example.bookreader.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -16,8 +17,10 @@ import androidx.leanback.widget.VerticalGridPresenter;
 import com.example.bookreader.customclassses.FileData;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.presenters.BookInfoPresenter;
+import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.BookProcessor;
+import com.github.junrar.exception.RarException;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +38,60 @@ public class NewFilesFragment extends VerticalGridSupportFragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view,savedInstanceState);
         view.setBackgroundColor(Color.parseColor("#AF494949"));
+        progressBarManager = new ProgressBarManager();
+        if(getView() instanceof  ViewGroup root){
+            progressBarManager.setRootView((ViewGroup) root.getRootView());
+            progressBarManager.setInitialDelay(0);
+            progressBarManager.hide();
+        }
+        List<String> filePaths = requireActivity().getIntent().getStringArrayListExtra("data");
+        if(filePaths != null){
+            List<String> archives = filePaths.stream()
+                    .filter(path->{
+                        String ext = FileHelper.getPathFileExtension(path);
+                        return ext != null && (ext.equals("zip") || ext.equals("rar"));
+                    })
+                    .collect(Collectors.toList());
+            filePaths.removeAll(archives);
+            for (String archivePath:archives){
+                try(BooksArchiveReader reader = new BooksArchiveReader( archivePath)){
+                    filePaths.addAll(reader.fileBooksPaths());
+                }
+                catch (RarException | IOException e){
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        progressBarManager.show();
+        checkFilesAsync(filePaths).thenAccept((filesData)->{
+            AtomicInteger filesCount = new AtomicInteger(filesData.size());
+            for (FileData fileData:filesData){
+                try {
+                    new BookProcessor(requireContext(),fileData.path).getInfoAsync().thenAccept((bookInfo) -> {
+                        if (bookInfo == null) {
+                            Toast.makeText(requireContext(), "Error open file " + fileData.path, Toast.LENGTH_SHORT).show();
+                        } else {
+                             adapter.add(bookInfo);
+                        }
+                        if (filesCount.decrementAndGet() == 0) {
+                            requireActivity().runOnUiThread(()->{
+                                progressBarManager.hide();
+                            });
+                        }
+                    }).exceptionally(ex -> {
+                        Log.e("BookProcessor", "Exception during processing file: " + fileData.path, ex);
+                        if (filesCount.decrementAndGet() == 0) {
+                            requireActivity().runOnUiThread(()->{
+                                progressBarManager.hide();
+                            });
+                        }
+                        return null;
+                    });
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     @Override
@@ -44,56 +101,23 @@ public class NewFilesFragment extends VerticalGridSupportFragment {
         VerticalGridPresenter gridPresenter = new VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_XSMALL);
         gridPresenter.setNumberOfColumns(1);
         gridPresenter.setShadowEnabled(false);
-
         setGridPresenter(gridPresenter);
         adapter = new ArrayObjectAdapter(new BookInfoPresenter());
-        List<String> filePaths = requireActivity().getIntent().getStringArrayListExtra("data");
-        progressBarManager = new ProgressBarManager();
-        if(getView() instanceof  ViewGroup root){
-            progressBarManager.setRootView((ViewGroup) root.getRootView());
-            progressBarManager.setInitialDelay(0);
-            progressBarManager.hide();
-        }
-        progressBarManager.show();
-        checkFilesAsync(filePaths).thenAccept((filesData)->{
-            AtomicInteger filesCount = new AtomicInteger(filesData.size());
-            for (FileData fileData:filesData){
-                BookProcessor bookProcessor = new BookProcessor(requireContext(), fileData.file);
-                try {
-                    bookProcessor.getInfoAsync().thenAccept((bookInfo) -> {
-                        if (bookInfo == null) {
-                            Toast.makeText(requireContext(), "Error open file " + fileData.file.getName(), Toast.LENGTH_SHORT).show();
-                        } else {
-                            adapter.add(bookInfo);
-                            filesCount.getAndDecrement();
-                            if(filesCount.get() == 0){
-                                progressBarManager.hide();
-                            }
-                        }
-                    });
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-        });
         setAdapter(adapter);
     }
 
     private CompletableFuture<List<FileData>> checkFilesAsync(List<String> paths) {
         return CompletableFuture.supplyAsync(() ->
                 paths.parallelStream().map(path -> {
-                            FileData data = new FileData(0, new File(path));
+                            FileData data = new FileData(0, path);
                             try {
-                                if (data.file.exists()) {
-                                    data.hash = FileHelper.getFileHash(data.file);
-                                }
+                                data.hash = FileHelper.getFileHash(data.path);
                             } catch (Exception e) {
                                 data.hash = 0;
                             } finally {
                                 if (data.hash == 0) {
                                     requireActivity().runOnUiThread(() -> {
-                                        Toast.makeText(requireContext(), "File error - " + data.file.getName(), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(requireContext(), "File error - " + data.path, Toast.LENGTH_SHORT).show();
                                     });
                                 }
                             }

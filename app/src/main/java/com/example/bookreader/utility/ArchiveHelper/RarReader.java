@@ -42,7 +42,6 @@ public class RarReader implements IArchiveReader{
     public InputStream openFile(String path) throws IOException, RarException {
         FileHeader header = fileMap.get(path);
         if (header == null) throw new FileNotFoundException(path);
-
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         archive.extractFile(header, baos);
         return new ByteArrayInputStream(baos.toByteArray());

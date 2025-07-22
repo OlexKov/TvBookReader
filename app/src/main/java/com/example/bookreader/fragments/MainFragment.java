@@ -100,28 +100,6 @@ public class MainFragment extends BrowseSupportFragment {
                                     requireActivity().overridePendingTransition(R.anim.slide_in_top,0);
                                 }
 
-//                                checkFilesAsync(selectedFilesPaths).thenAccept((filesData)->{
-//                                    for (FileData fileData:filesData){
-//                                        BookProcessor bookProcessor = new BookProcessor(requireContext(), fileData.file);
-//
-//                                        try {
-//
-//                                            progressBarManager.show();
-//                                            bookProcessor.getInfoAsync().thenAccept((bookInfo) -> {
-//                                                if (bookInfo == null) {
-//                                                    Toast.makeText(requireContext(), "Error open file " + fileData.file.getName(), Toast.LENGTH_SHORT).show();
-//                                                } else {
-//
-//                                                }
-//
-//
-//                                            });
-//                                        } catch (IOException e) {
-//                                            throw new RuntimeException(e);
-//                                        }
-//                                    }
-//                                });
-
                                 break;
                             case SINGLE_FILE:
                                 String selectedFilePath = result.getData().getStringExtra(BrowserResult.SELECTED_FILE_PATH.name());

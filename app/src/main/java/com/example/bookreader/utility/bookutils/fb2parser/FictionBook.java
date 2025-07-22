@@ -26,57 +26,34 @@ public class FictionBook {
 
     public FictionBook() {}
 
-    public FictionBook(File file) throws ParserConfigurationException, IOException, SAXException, OutOfMemoryError {
+    public FictionBook(InputStream inputStream) throws ParserConfigurationException, IOException, SAXException, OutOfMemoryError{
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
-        InputStream inputStream = new FileInputStream(file);
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        boolean foundIllegalCharacters = false;
-        try {
-            String line = br.readLine().trim();
-            if (!line.startsWith("<")) {
-                foundIllegalCharacters = true;
-            }
-            while (!line.endsWith("?>")) {
-                line += "\n" + br.readLine().trim();
-            }
-            int start = line.indexOf("encoding") + 8;
-            String substring = line.substring(start);
-            substring = substring.substring(substring.indexOf("\"") + 1);
-            encoding = substring.substring(0, substring.indexOf("\"")).toLowerCase();
-            br.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Document doc;
-        if (foundIllegalCharacters) {
-            StringBuilder text = new StringBuilder();
-            br = new BufferedReader(new FileReader(file));
-            String line = br.readLine();
-            if (line != null && line.contains("<")) {
-                line = line.substring(line.indexOf("<"));
-            }
-            while (line != null) {
-                text.append(line);
-                line = br.readLine();
-            }
-            br.close();
-            doc = db.parse(new InputSource(new StringReader(text.toString())));
-        } else {
-            doc = db.parse(new InputSource(new InputStreamReader(inputStream, encoding)));
-        }
+
+        // Безпосередньо парсимо вхідний потік — парсер сам визначить кодування з XML prolog
+        Document doc = db.parse(inputStream);
+
         initXmlns(doc);
         description = new Description(doc);
+
         NodeList bodyNodes = doc.getElementsByTagName("body");
-        for (int item = 0; item < bodyNodes.getLength(); item++) {
-            bodies.add(new Body(bodyNodes.item(item)));
+        for (int i = 0; i < bodyNodes.getLength(); i++) {
+            bodies.add(new Body(bodyNodes.item(i)));
         }
-        NodeList binary = doc.getElementsByTagName("binary");
-        for (int item = 0; item < binary.getLength(); item++) {
-            if (binaries == null) binaries = new HashMap<>();
-            Binary binary1 = new Binary(binary.item(item));
-            binaries.put(binary1.getId().replace("#", ""), binary1);
+
+        NodeList binaryNodes = doc.getElementsByTagName("binary");
+        if (binaryNodes.getLength() > 0) {
+            binaries = new HashMap<>();
+            for (int i = 0; i < binaryNodes.getLength(); i++) {
+                Binary binary = new Binary(binaryNodes.item(i));
+                binaries.put(binary.getId().replace("#", ""), binary);
+            }
         }
+    }
+
+
+    public FictionBook(File file) throws ParserConfigurationException, IOException, SAXException, OutOfMemoryError {
+        this(new FileInputStream(file));
     }
 
     protected void setXmlns(ArrayList<Node> nodeList) {

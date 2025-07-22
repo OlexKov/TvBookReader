@@ -4,6 +4,7 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 public class BrowserFilePresenter extends Presenter {
 
@@ -57,19 +59,31 @@ public class BrowserFilePresenter extends Presenter {
             Context context = rootView.getContext();
 
             if(!file.getFile().isDirectory()) {
-                BookProcessor bookProcessor = new BookProcessor(context,file.getFile());
+
+                String fileExt = FileHelper.getFileExtension(file.getFile());
                 try {
-                    bookProcessor.getPreviewAsync(0,96,70 ).thenAccept((bitmap)->{
-                        rootView.post(() -> {
-                            if(bitmap != null){
-                                iconView.setImageBitmap(bitmap);
-                            }
-                            else{
-                                iconView.setImageResource(R.drawable.e_book);
-                            }
-                        });
-                    });
-                } catch (IOException e) {
+                    if(fileExt == null) throw new NullPointerException();
+                    switch (fileExt){
+                        case "zip":
+                            iconView.setImageResource(R.drawable.zip_file);
+                            break;
+                        case "rar":
+                            iconView.setImageResource(R.drawable.rar_file);
+                            break;
+                        default:
+                            // exceptionally
+                            new BookProcessor(context,file.getFile()).getPreviewAsync(0,96,70 ).thenAccept((bitmap)->{
+                                rootView.post(() -> {
+                                    if (bitmap != null) {
+                                        iconView.setImageBitmap(bitmap);
+                                    } else {
+                                        iconView.setImageResource(R.drawable.e_book);
+                                    }
+                                });
+                            });
+                    }
+
+                } catch (IOException | NullPointerException e) {
                     throw new RuntimeException(e);
                 }
             }

@@ -1,9 +1,11 @@
 package com.example.bookreader.utility.ArchiveHelper;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -15,11 +17,11 @@ import java.util.zip.ZipFile;
 
 public class ZipReader implements IArchiveReader{
 
-    private ZipFile zipFile;
-    private Map<String, ZipEntry> entryMap = new HashMap<>();
+    private final ZipFile zipFile;
+    private final Map<String, ZipEntry> entryMap = new HashMap<>();
 
     public ZipReader(File zipFile) throws IOException {
-        this.zipFile = new ZipFile(zipFile);
+        this.zipFile = new ZipFile(zipFile, Charset.forName("CP866"));
         Enumeration<? extends ZipEntry> entries = this.zipFile.entries();
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();

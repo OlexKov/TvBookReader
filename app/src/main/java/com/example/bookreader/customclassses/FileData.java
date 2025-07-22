@@ -1,15 +1,11 @@
 package com.example.bookreader.customclassses;
 
-import com.example.bookreader.data.database.dto.BookDto;
-
-import java.io.File;
-
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class FileData {
     public int hash;
-    public File file;
+    public String path;
 
     @Override
     public boolean equals(Object o) {

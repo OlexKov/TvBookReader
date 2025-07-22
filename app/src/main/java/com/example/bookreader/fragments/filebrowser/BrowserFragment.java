@@ -65,6 +65,7 @@ public class BrowserFragment extends Fragment {
     private final DiffCallback<MainStorage> storagesDiff = new MainFolderDiffCallback();
     private final List<BrowserFile> selectedFiles = new ArrayList<>();
     private final DiffCallback<BrowserFile> fileDiff = new BrowserFileDiffCallback();
+    public final List<String> filesExt = Arrays.asList(new String[]{"pdf", "epub", "fb2","zip","rar"});
 
     @Nullable
     @Override
@@ -251,7 +252,7 @@ public class BrowserFragment extends Fragment {
         public boolean accept(File pathname) {
             if (!pathname.isDirectory()) {
                 String ext = FileHelper.getFileExtension(pathname);
-                return ext != null && (ext.equals("pdf") || ext.equals("epub") || ext.equals("fb2"));
+                return ext != null && filesExt.contains(ext);
             }
             return true;
         }

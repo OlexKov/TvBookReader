@@ -10,6 +10,9 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
+import com.example.bookreader.utility.ArchiveHelper.ArchivePathHelper;
+import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
+
 import net.jpountz.xxhash.XXHashFactory;
 
 import java.io.File;
@@ -130,10 +133,26 @@ public class FileHelper {
         return result;
     }
 
+    public static String getFileName(String path){
+        int index = path.lastIndexOf('/');
+        if(index != -1 && index < path.length() - 1 && getPathFileExtension(path) != null){
+            return path.substring(index + 1);
+        }
+        return null;
+    }
+
     public static String getFileExtension(Context context, Uri uri) {
         String fileName = getFileName(context, uri);
         if (fileName != null && fileName.contains(".")) {
             return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        }
+        return null;
+    }
+
+    public static String getPathFileExtension(String path) {
+        int dotIndex = path.lastIndexOf('.');
+        if (dotIndex != -1 && dotIndex < path.length() - 1) {
+            return path.substring(dotIndex + 1);
         }
         return null;
     }
@@ -144,6 +163,22 @@ public class FileHelper {
             return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
         }
         return null;
+    }
+
+    public static int getFileHash(String path) throws Exception {
+        InputStream stream;
+        if(ArchivePathHelper.isArchivePath(path)){
+            try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(path))){
+                stream = reader.openFile(ArchivePathHelper.internalPath(path));
+                return getFileHash(stream);
+            }
+        }
+        else{
+            stream = new FileInputStream(new File(path));
+            int hash = getFileHash(stream);
+            stream.close();
+            return hash;
+        }
     }
 
     public static int getFileHash(File file) throws Exception {
@@ -164,4 +199,5 @@ public class FileHelper {
         }
         return hash;
     }
+
 }
