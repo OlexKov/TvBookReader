@@ -8,15 +8,12 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-import com.example.bookreader.utility.ArchiveHelper.ArchivePathHelper;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
-import com.example.bookreader.utility.bookutils.fb2parser.FictionBook;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +33,7 @@ public class EpubProcessor implements IBookProcessor {
 
     private final Context context;
     private static final String TAG = "EpubProcessor";
+    private final BooksArchiveReader reader = new BooksArchiveReader();
 
     public EpubProcessor(Context context){
         this.context = context;
@@ -43,10 +41,10 @@ public class EpubProcessor implements IBookProcessor {
 
     @Override
     public CompletableFuture<BookPaths> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     return  savePreview(stream,FileHelper.getFileName(bookPath),bookPath,300,400);
                 }
                 catch (Exception e) {
@@ -80,7 +78,10 @@ public class EpubProcessor implements IBookProcessor {
        return   CompletableFuture.supplyAsync(() -> {
             try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY)) {
                 InputStream stream = new FileInputStream(fd.getFileDescriptor());
-                return getInfo(stream, bookFile.getName());
+                BookInfo result = getInfo(stream, bookFile.getName());
+                result.fileSize = bookFile.length();
+                result.filePath = bookFile.getAbsolutePath();
+                return result;
             } catch (Exception e) {
                 Log.e("EpubProcessor", "Error reading book info", e);
                 throw new RuntimeException(e);
@@ -90,10 +91,10 @@ public class EpubProcessor implements IBookProcessor {
 
     @Override
     public CompletableFuture<BookInfo> getInfoAsync(String bookPath) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     return  getInfo(stream, FileHelper.getFileName(bookPath));
                 }
                 catch (Exception e) {
@@ -127,10 +128,10 @@ public class EpubProcessor implements IBookProcessor {
 
     @Override
     public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     return extractCoverPreview(stream, wight, height);
                 }
                 catch (Exception e) {

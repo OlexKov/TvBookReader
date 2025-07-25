@@ -16,6 +16,7 @@ leanbackPaging = "1.1.0"
 lombok = "1.18.30"
 lombokVersion = "1.18.38"
 lz4 = "1.3.0"
+openpdf = "2.2.4"
 pdfbox = "3.0.5"
 pdfboxAndroid = "2.0.27.0"
 pdfboxAndroidVersion = "2.0.27.0"
@@ -53,6 +54,7 @@ lombok-v11838 = { module = "org.projectlombok:lombok", version.ref = "lombokVers
 lz4 = { module = "net.jpountz.lz4:lz4", version.ref = "lz4" }
 mhiew-android-pdf-viewer = { module = "com.github.mhiew:android-pdf-viewer", version.ref = "androidPdfViewerVersion" }
 mhiew-pdfium-android = { module = "com.github.mhiew:pdfium-android", version.ref = "pdfiumAndroidVersion" }
+openpdf = { module = "com.github.librepdf:openpdf", version.ref = "openpdf" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 pdfbox-android = { module = "org.apache.pdfbox:pdfbox-android", version.ref = "pdfboxAndroid" }
 pdfium-android = { module = "com.github.barteksc:pdfium-android", version.ref = "pdfiumAndroid" }

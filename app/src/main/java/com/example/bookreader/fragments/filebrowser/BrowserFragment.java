@@ -2,6 +2,8 @@ package com.example.bookreader.fragments.filebrowser;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,7 +22,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.core.util.Consumer;
 import androidx.fragment.app.Fragment;
@@ -258,6 +259,7 @@ public class BrowserFragment extends Fragment {
         }
     };
 
+    @SuppressLint("SetTextI18n")
     private final Consumer<Object> folderClickListener = (item) -> {
         if (item instanceof BrowserFile file) {
             if (file.getFile().isDirectory()) {
@@ -273,6 +275,7 @@ public class BrowserFragment extends Fragment {
                     if (checked) {
                         if (!selectedFiles.contains(file)) {
                             selectedFiles.add(file);
+                            btnConfirm.setText(getString(R.string.select) + "  (" + selectedFiles.size() + ")");
                         }
 
                         if (buttonsContainer.getVisibility() != VISIBLE) {
@@ -280,6 +283,7 @@ public class BrowserFragment extends Fragment {
                         }
                     } else {
                         selectedFiles.remove(file);
+                        btnConfirm.setText(getString(R.string.select) + "  (" + selectedFiles.size() + ")");
                         if (selectedFiles.isEmpty() && buttonsContainer.getVisibility() == VISIBLE) {
                             buttonsContainer.setVisibility(GONE);
                         }

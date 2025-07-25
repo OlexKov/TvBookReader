@@ -10,14 +10,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
-import com.example.bookreader.utility.ArchiveHelper.ArchivePathHelper;
-import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
-
-import net.jpountz.xxhash.XXHashFactory;
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 
 public class FileHelper {
 
@@ -165,39 +158,5 @@ public class FileHelper {
         return null;
     }
 
-    public static int getFileHash(String path) throws Exception {
-        InputStream stream;
-        if(ArchivePathHelper.isArchivePath(path)){
-            try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(path))){
-                stream = reader.openFile(ArchivePathHelper.internalPath(path));
-                return getFileHash(stream);
-            }
-        }
-        else{
-            stream = new FileInputStream(new File(path));
-            int hash = getFileHash(stream);
-            stream.close();
-            return hash;
-        }
-    }
-
-    public static int getFileHash(File file) throws Exception {
-        InputStream stream = new FileInputStream(file);
-        int hash = getFileHash(stream);
-        stream.close();
-        return hash;
-    }
-
-    public static int getFileHash(InputStream stream) throws Exception {
-        XXHashFactory factory = XXHashFactory.fastestInstance();
-        byte[] buffer = new byte[8192];
-        int hash = 0x9747b28c;
-        int len;
-
-        while ((len = stream.read(buffer)) != -1) {
-            hash = factory.hash32().hash(buffer, 0, len, hash);
-        }
-        return hash;
-    }
 
 }

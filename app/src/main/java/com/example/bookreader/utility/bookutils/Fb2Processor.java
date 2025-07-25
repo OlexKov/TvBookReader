@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
-import com.example.bookreader.utility.ArchiveHelper.ArchivePathHelper;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
@@ -34,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 public class Fb2Processor implements IBookProcessor {
     private static final String TAG = "Fb2Processor";
     private final Context context;
+    private final BooksArchiveReader reader = new BooksArchiveReader();
 
     public Fb2Processor(Context context){
         this.context = context;
@@ -41,10 +41,10 @@ public class Fb2Processor implements IBookProcessor {
 
     @Override
     public CompletableFuture<BookPaths> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
-       if(ArchivePathHelper.isArchivePath(bookPath)){
+       if(BooksArchiveReader.isArchivePath(bookPath)){
            return  CompletableFuture.supplyAsync(() -> {
-               try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                   InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+               try {
+                   InputStream stream = reader.openFile(bookPath);
                    FictionBook fb = new FictionBook(stream);
                    return  savePreview(fb,FileHelper.getFileName(bookPath),bookPath,height,wight);
                }
@@ -92,10 +92,10 @@ public class Fb2Processor implements IBookProcessor {
 
     @Override
     public CompletableFuture<BookInfo> getInfoAsync(String bookPath) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     FictionBook fb = new FictionBook(stream);
                     return  getBookInfo(fb,FileHelper.getFileName(bookPath));
                 }
@@ -131,10 +131,10 @@ public class Fb2Processor implements IBookProcessor {
 
     @Override
     public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     FictionBook fb = new FictionBook(stream);
                     return extractCoverPreview(fb, wight, height);
                 }

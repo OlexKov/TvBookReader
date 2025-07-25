@@ -67,8 +67,17 @@ public class BrowserFilePresenter extends Presenter {
                         case "zip":
                             iconView.setImageResource(R.drawable.zip_file);
                             break;
-                        case "rar":
-                            iconView.setImageResource(R.drawable.rar_file);
+                        case "tar":
+                            iconView.setImageResource(R.drawable.tar_file);
+                            break;
+                        case "gzip":
+                            iconView.setImageResource(R.drawable.gzip_file);
+                            break;
+                        case "bzip2":
+                            iconView.setImageResource(R.drawable.bzip2_file);
+                            break;
+                        case "xz":
+                            iconView.setImageResource(R.drawable.xz_file);
                             break;
                         default:
                             // exceptionally
@@ -88,7 +97,15 @@ public class BrowserFilePresenter extends Presenter {
                 }
             }
             else{
-                iconView.setImageResource(R.drawable.folder);
+                var files = file.getFile().listFiles();
+                if(files != null && files.length > 0)
+                {
+                    iconView.setImageResource(R.drawable.not_empty_folder);
+                }
+                else{
+                    iconView.setImageResource(R.drawable.folder);
+                }
+
             }
 
             rootView.setOnFocusChangeListener(new View.OnFocusChangeListener() {

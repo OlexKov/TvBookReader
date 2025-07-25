@@ -34,13 +34,7 @@ public class BookProcessor {
     }
 
     public CompletableFuture<BookInfo> getInfoAsync() throws IOException {
-        CompletableFuture<BookInfo> infoFuture = bookProcessor.getInfoAsync(bookPath);
-        CompletableFuture<Bitmap> previewFuture =  bookProcessor.getPreviewAsync(bookPath,0,400,300);
-        return CompletableFuture.allOf(infoFuture,previewFuture).thenApply(v->{
-            BookInfo info = infoFuture.join();
-            info.preview = previewFuture.join();
-            return info;
-        });
+        return  bookProcessor.getInfoAsync(bookPath);
     }
 
     public CompletableFuture<Bitmap> getPreviewAsync( int pageIndex, int height, int wight) throws IOException{

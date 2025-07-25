@@ -36,6 +36,7 @@ public class BookInfoPresenter extends Presenter {
             year.setText(info.year);
             title.setText(info.title);
             pages.setText(info.pageCount + " ст.");
+
         }
     }
 

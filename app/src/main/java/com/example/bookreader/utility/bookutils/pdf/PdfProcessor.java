@@ -7,11 +7,9 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 
-import com.example.bookreader.utility.ArchiveHelper.ArchivePathHelper;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.bookutils.BookInfo;
 import com.example.bookreader.utility.bookutils.BookPaths;
-import com.example.bookreader.utility.bookutils.fb2parser.FictionBook;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.shockwave.pdfium.PdfDocument;
@@ -19,7 +17,6 @@ import com.shockwave.pdfium.PdfiumCore;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 public class PdfProcessor implements IBookProcessor {
     private static final String TAG = "PdfProcessor";
     private final Context context;
+    private final BooksArchiveReader reader = new BooksArchiveReader();
 
     public PdfProcessor(Context context){
         this.context = context;
@@ -36,10 +34,10 @@ public class PdfProcessor implements IBookProcessor {
 
     @Override
     public CompletableFuture<BookPaths> savePreviewAsync(String bookPath, int height, int wight) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     return savePreview(stream,FileHelper.getFileName(bookPath), bookPath, height,wight);
                 }
                 catch (Exception e) {
@@ -81,10 +79,10 @@ public class PdfProcessor implements IBookProcessor {
 
     @Override
     public CompletableFuture<BookInfo> getInfoAsync(String bookPath) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     return  getInfo((FileInputStream) stream,FileHelper.getFileName(bookPath));
                 }
                 catch (Exception e) {
@@ -113,10 +111,10 @@ public class PdfProcessor implements IBookProcessor {
 
     @Override
     public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) throws IOException {
-        if(ArchivePathHelper.isArchivePath(bookPath)){
+        if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try (BooksArchiveReader reader = new BooksArchiveReader(ArchivePathHelper.archivePath(bookPath))){
-                    InputStream stream = reader.openFile(ArchivePathHelper.internalPath(bookPath));
+                try {
+                    InputStream stream = reader.openFile(bookPath);
                     return createPreview((FileInputStream) stream, pageIndex, height,wight);
                 }
                 catch (Exception e) {

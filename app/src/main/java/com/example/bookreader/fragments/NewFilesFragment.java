@@ -19,10 +19,9 @@ import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.presenters.BookInfoPresenter;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.FileHelper;
+import com.example.bookreader.utility.HashHelper;
 import com.example.bookreader.utility.bookutils.BookProcessor;
-import com.github.junrar.exception.RarException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -49,29 +48,25 @@ public class NewFilesFragment extends VerticalGridSupportFragment {
             List<String> archives = filePaths.stream()
                     .filter(path->{
                         String ext = FileHelper.getPathFileExtension(path);
-                        return ext != null && (ext.equals("zip") || ext.equals("rar"));
+                        return ext != null && (ext.equals("zip"));
                     })
                     .collect(Collectors.toList());
             filePaths.removeAll(archives);
+            BooksArchiveReader reader = new BooksArchiveReader();
             for (String archivePath:archives){
-                try(BooksArchiveReader reader = new BooksArchiveReader( archivePath)){
-                    filePaths.addAll(reader.fileBooksPaths());
-                }
-                catch (RarException | IOException e){
-                    throw new RuntimeException(e);
-                }
+                filePaths.addAll(reader.fileBooksPaths(archivePath));
             }
-        }
-        progressBarManager.show();
-        checkFilesAsync(filePaths).thenAccept((filesData)->{
-            AtomicInteger filesCount = new AtomicInteger(filesData.size());
-            for (FileData fileData:filesData){
+            progressBarManager.show();
+            AtomicInteger filesCount = new AtomicInteger(filePaths.size());
+            for (String filePath:filePaths){
                 try {
-                    new BookProcessor(requireContext(),fileData.path).getInfoAsync().thenAccept((bookInfo) -> {
+                    new BookProcessor(requireContext(),filePath).getInfoAsync().thenAccept((bookInfo) -> {
                         if (bookInfo == null) {
-                            Toast.makeText(requireContext(), "Error open file " + fileData.path, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Error open file " + filePath, Toast.LENGTH_SHORT).show();
                         } else {
-                             adapter.add(bookInfo);
+                            bookInfo.filePath = filePath;
+                            bookInfo.hash = bookInfo.getHash();
+                            adapter.add(bookInfo);
                         }
                         if (filesCount.decrementAndGet() == 0) {
                             requireActivity().runOnUiThread(()->{
@@ -79,7 +74,7 @@ public class NewFilesFragment extends VerticalGridSupportFragment {
                             });
                         }
                     }).exceptionally(ex -> {
-                        Log.e("BookProcessor", "Exception during processing file: " + fileData.path, ex);
+                        Log.e("BookProcessor", "Exception during processing file: " + filePath, ex);
                         if (filesCount.decrementAndGet() == 0) {
                             requireActivity().runOnUiThread(()->{
                                 progressBarManager.hide();
@@ -91,7 +86,8 @@ public class NewFilesFragment extends VerticalGridSupportFragment {
                     throw new RuntimeException(e);
                 }
             }
-        });
+
+        }
     }
 
     @Override
@@ -111,7 +107,7 @@ public class NewFilesFragment extends VerticalGridSupportFragment {
                 paths.parallelStream().map(path -> {
                             FileData data = new FileData(0, path);
                             try {
-                                data.hash = FileHelper.getFileHash(data.path);
+                                data.hash = HashHelper.getStringHash(data.path);
                             } catch (Exception e) {
                                 data.hash = 0;
                             } finally {

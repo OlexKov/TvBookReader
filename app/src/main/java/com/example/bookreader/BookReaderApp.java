@@ -19,7 +19,7 @@ import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.entity.Category;
-import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
+//import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
 
 import java.util.ArrayList;
@@ -88,7 +88,7 @@ public class BookReaderApp  extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        PDFBoxResourceLoader.init(getApplicationContext());
+       // PDFBoxResourceLoader.init(getApplicationContext());
         globalEventListener = new GlobalEventListener();
         // Зберігаємо інстанс класу для глобального доступу
         instance = this;

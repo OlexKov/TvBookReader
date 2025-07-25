@@ -79,14 +79,27 @@ dependencies {
     implementation(libs.mhiew.pdfium.android)
 
 
+
     //epublib
     implementation("nl.siegmann.epublib:epublib-core:3.1") {
         exclude(group = "org.slf4j")
         exclude(group = "xmlpull")
     }
 
-    //RAR
-    implementation(libs.junrar)
+    // https://mvnrepository.com/artifact/net.java.truevfs/truevfs-access
+    implementation("net.java.truevfs:truevfs-profile-default:0.14.0") {
+        exclude(group = "com.google.code.findbugs", module = "annotations")
+        exclude(group = "com.google.code.findbugs", module = "jsr305")
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+    }
+    implementation("net.java.truevfs:truevfs-driver-zip-raes:0.14.0") {
+        exclude(group = "com.google.code.findbugs", module = "annotations")
+        exclude(group = "com.google.code.findbugs", module = "jsr305")
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+    }
+
+//    //RAR
+//    implementation(libs.junrar)
 
 
 //    dependencies {
