@@ -1,5 +1,6 @@
 package com.example.bookreader.presenters;
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
@@ -13,19 +14,68 @@ import androidx.leanback.widget.Presenter;
 import com.bumptech.glide.Glide;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.data.database.entity.Book;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class BookPreviewPresenter extends Presenter {
-    private static final int WIDTH_ITEM = 300;
-    private static final int HEIGHT_ITEM = 400;
 
-    @androidx.annotation.NonNull
+    private static class ViewSize {
+       public int width;
+       public int height;
+    }
+
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
+        return new ViewHolder(setCardView(parent));
+    }
 
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
+        if(!(item instanceof BookDto book) || !(viewHolder.view instanceof ImageCardView cardView)) return;
+        Context context = cardView.getContext();
+        cardView.setTitleText(book.title);
+        cardView.setContentText(book.author);
+        TextView titleView = cardView.findViewById(androidx.leanback.R.id.title_text);
+        if (titleView != null) {
+            titleView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            titleView.setMarqueeRepeatLimit(-1);
+            titleView.setSingleLine(true);
+            titleView.setHorizontallyScrolling(true);
+        }
+        cardView.setInfoAreaBackgroundColor(
+                ContextCompat.getColor(context, android.R.color.transparent)
+        );
+        ImageView imageView = cardView.getMainImageView();
+        if(imageView != null){
+            ViewSize size = getSize(cardView.getContext());
+            String previewSource = book.previewPath != null && !book.previewPath.isEmpty()
+                    ? book.previewPath
+                    : "https://picsum.photos/400?random=" + book.id;
+            Glide.with(context)
+                    .load(previewSource)
+                    .override(size.width, size.height)
+                    .into(imageView);
+        }
+    }
+
+    @Override
+    public void onUnbindViewHolder(ViewHolder viewHolder) {
+        if (viewHolder.view instanceof ImageCardView cardView && cardView.getMainImageView() != null) {
+            Glide.with(cardView.getContext()).clear(cardView.getMainImageView());
+        }
+    }
+
+    private ViewSize getSize( Context context){
+        ViewSize size = new ViewSize();
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        size.width = (int)(displayMetrics.widthPixels*0.16);
+        size.height = (int)(displayMetrics.heightPixels *0.48);
+        return size;
+    }
+
+    private ImageCardView setCardView(ViewGroup parent){
         ImageCardView cardView = new ImageCardView(parent.getContext()) {
             @Override
             public void setSelected(boolean selected) {
@@ -37,49 +87,13 @@ public class BookPreviewPresenter extends Presenter {
                 }
             }
         };
-
-
-        DisplayMetrics displayMetrics = parent.getContext().getResources().getDisplayMetrics();
-        int width = displayMetrics.widthPixels;
-        int height = displayMetrics.heightPixels;
-
-        cardView.setLayoutParams(new ViewGroup.LayoutParams((int)(width*0.17), (int)(height*0.47)));
+        Context context = parent.getContext();
+        ViewSize size = getSize(context);
+        cardView.setLayoutParams(new ViewGroup.LayoutParams(size.width, size.height));
         cardView.setFocusable(true);
         cardView.setFocusableInTouchMode(true);
-        cardView.setBackgroundColor(ContextCompat.getColor(parent.getContext(), R.color.default_background));
-
-        return new ViewHolder(cardView);
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder viewHolder, @Nullable Object item) {
-        if(!(item instanceof BookDto book) || !(viewHolder.view instanceof ImageCardView cardView)) return;
-        cardView.setTitleText(book.title);
-        cardView.setContentText("author");
-        cardView.setMainImageScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        // cardView.setMainImageAdjustViewBounds(true);
-        // cardView.setMainImageDimensions(400, 300);
-        // cardView.setCardType(BaseCardView.CARD_TYPE_INFO_OVER | BaseCardView.CARD_TYPE_FLAG_CONTENT);
-        TextView titleView = cardView.findViewById(androidx.leanback.R.id.title_text);
-        if (titleView != null) {
-            titleView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-            titleView.setMarqueeRepeatLimit(-1);
-            titleView.setSingleLine(true);
-            titleView.setHorizontallyScrolling(true);
-        }
-        cardView.setInfoAreaBackgroundColor(
-                ContextCompat.getColor(cardView.getContext(), android.R.color.transparent)
-        );
-        ImageView imageView = cardView.getMainImageView();
-        if(imageView != null){
-            Glide.with(cardView.getContext())
-                    .load("https://picsum.photos/400?random=" + book.id)
-                    .into(imageView);
-        }
-    }
-
-    @Override
-    public void onUnbindViewHolder(ViewHolder viewHolder) {
-
+        cardView.setBackgroundColor(ContextCompat.getColor(context, R.color.default_background));
+        cardView.setMainImageScaleType(ImageView.ScaleType.FIT_XY);
+        return cardView;
     }
 }

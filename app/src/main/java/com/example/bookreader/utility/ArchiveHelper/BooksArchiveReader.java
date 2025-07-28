@@ -47,7 +47,7 @@ public class BooksArchiveReader {
 
             String ext = FileHelper.getFileExtension(file);
             if (filesExt.contains(ext)) {
-                files.add(file.getPath());
+               files.add(file.getPath());
             }
             else if (archivesExt.contains(ext)) {
                 String path = file.getPath();
@@ -58,7 +58,7 @@ public class BooksArchiveReader {
     }
     public static boolean isArchivePath(String path){
         for (String ext:archivesExt){
-            if(path.contains(ext)){
+            if(path.contains("." + ext)){
                 return new TFile(path).exists();
             }
         }

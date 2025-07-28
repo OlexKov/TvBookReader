@@ -12,4 +12,6 @@ public final class Constants {
     public static int INIT_ADAPTER_SIZE = UPLOAD_SIZE * 3;
     public static int UPLOAD_THRESHOLD = UPLOAD_SIZE;
 
+    public static final  String PREVIEWS_DIR = "previews";
+
 }

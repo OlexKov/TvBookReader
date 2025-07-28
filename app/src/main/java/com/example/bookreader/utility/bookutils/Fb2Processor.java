@@ -7,7 +7,10 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.bookreader.R;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
+import com.example.bookreader.utility.ImageHelper;
+import com.example.bookreader.utility.bookutils.fb2parser.Section;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.fb2parser.Annotation;
@@ -19,6 +22,8 @@ import com.example.bookreader.utility.bookutils.fb2parser.Image;
 import com.example.bookreader.utility.bookutils.fb2parser.Person;
 import com.example.bookreader.utility.bookutils.fb2parser.PublishInfo;
 import com.example.bookreader.utility.bookutils.fb2parser.TitleInfo;
+
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -203,26 +208,9 @@ public class Fb2Processor implements IBookProcessor {
             Log.d(TAG, "Cover image not found");
             return null;
         }
-
-        // Збереження прев’ю
-        File previewDir = new File(context.getFilesDir(), "previews");
-        if (!previewDir.exists()) previewDir.mkdirs();
-
-        if (bookName.toLowerCase().endsWith(".fb2")) {
-            bookName = bookName.substring(0, bookName.length() - 4);
-        }
-
-        File previewFile = new File(previewDir, bookName + "_preview.png");
-        try (FileOutputStream out = new FileOutputStream(previewFile)) {
-            cover.compress(Bitmap.CompressFormat.PNG, 100, out);
-            out.flush();
-        }catch (Exception e) {
-            Log.e(TAG, "Error reading book info", e);
-            throw new RuntimeException(e);
-        }
         BookPaths result = new BookPaths();
         result.filePath = bookPath;
-        result.previewPath = previewFile.getAbsolutePath();
+        result.previewPath = ImageHelper.saveImage(context,cover,100, Bitmap.CompressFormat.PNG);
         return result;
     }
 
@@ -236,7 +224,7 @@ public class Fb2Processor implements IBookProcessor {
                 .map(TitleInfo::getAuthors)
                 .filter((ArrayList<Person> list) -> !list.isEmpty())
                 .map(list -> list.get(0).getFullName())
-                .orElse("Unknown");
+                .orElse(context.getString(R.string.unknown));
 
         result.description = Optional.of(fb)
                 .map(FictionBook::getDescription)
@@ -245,13 +233,13 @@ public class Fb2Processor implements IBookProcessor {
                 .map(Annotation::getElements)
                 .filter((ArrayList<Element> list) -> !list.isEmpty())
                 .map(list -> list.get(0).getText())
-                .orElse("Unknown");
+                .orElse(context.getString(R.string.unknown));
 
         result.year = Optional.of(fb)
                 .map(FictionBook::getDescription)
                 .map(Description::getPublishInfo)
                 .map(PublishInfo::getYear)
-                .orElse("Unknown");
+                .orElse(context.getString(R.string.unknown));
 
         if (result.title == null || result.title.trim().isEmpty()) {
             result.title = bookName.substring(0,bookName.length() - 4);

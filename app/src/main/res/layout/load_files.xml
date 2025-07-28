@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+ <LinearLayout
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:id="@+id/load_files"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:orientation="vertical"
+     android:paddingHorizontal="40dp">
+
+    <TextView
+        android:id="@+id/load_files_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:gravity="end"
+        android:lines="1"
+        android:textSize="30sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginStart="70dp">
+
+        <androidx.leanback.widget.VerticalGridView
+            android:id="@+id/load_files_list"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+
+            <LinearLayout
+                android:id="@+id/load_files_button_container"
+                android:layout_width="200dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:gravity="center|center_vertical">
+
+                <Button
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:id="@+id/load_files_save_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:textAllCaps="false"
+                    android:text="@string/save"/>
+
+                <Button
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:id="@+id/load_files_cancel_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:textAllCaps="false"
+                    android:text="@string/cancel"/>
+
+
+            </LinearLayout>
+
+     </LinearLayout>
+
+ </LinearLayout>
+

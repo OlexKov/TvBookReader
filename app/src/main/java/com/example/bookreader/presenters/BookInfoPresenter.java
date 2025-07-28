@@ -1,20 +1,28 @@
 package com.example.bookreader.presenters;
 
+import static android.view.View.GONE;
+
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.Presenter;
 import com.example.bookreader.R;
+import com.example.bookreader.utility.AnimHelper;
+import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.BookInfo;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class BookInfoPresenter extends Presenter {
+
     @Override
     public @NonNull ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
@@ -25,19 +33,48 @@ public class BookInfoPresenter extends Presenter {
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
+        View root = viewHolder.view;
         if (item instanceof BookInfo info){
-            ImageView preview = viewHolder.view.findViewById(R.id.preview_image);
-            TextView title = viewHolder.view.findViewById(R.id.book_preview_title);
-            TextView author = viewHolder.view.findViewById(R.id.book_preview_author);
-            TextView year = viewHolder.view.findViewById(R.id.book_preview_year);
-            TextView pages = viewHolder.view.findViewById(R.id.book_preview_pages);
-            preview.setImageBitmap(info.preview);
-            author.setText(info.author);
-            year.setText(info.year);
-            title.setText(info.title);
-            pages.setText(info.pageCount + " ст.");
 
+            Context context = root.getContext();
+            ImageView preview = root.findViewById(R.id.preview_image);
+            TextView title = root.findViewById(R.id.book_preview_title);
+            TextView author = root.findViewById(R.id.book_preview_author);
+            TextView year = root.findViewById(R.id.book_preview_year);
+            TextView pages = root.findViewById(R.id.book_preview_pages);
+            TextView size = root.findViewById(R.id.book_preview_size);
+            preview.setImageBitmap(info.preview);
+            title.setText(info.title);
+            if(info.author.equals(context.getString(R.string.unknown))){
+                author.setVisibility(GONE);
+            }
+            else{
+                author.setText(info.author);
+            }
+            if(info.year.equals(context.getString(R.string.unknown))){
+                year.setVisibility(GONE);
+            }
+            else{
+                year.setText(String.valueOf(info.year));
+            }
+
+            if(info.pageCount == 0){
+                pages.setVisibility(GONE);
+            }
+            else{
+                pages.setText(info.pageCount + " ст.");
+            }
+            size.setText(FileHelper.formatSize(info.fileSize));
         }
+
+        root.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                int color =  hasFocus ? Color.parseColor("#BB494949") : ContextCompat.getColor(root.getContext(),android.R.color.transparent);
+                v.setBackgroundColor(color);
+                AnimHelper.scale(v,1.05f,hasFocus,150);
+            }
+        });
     }
 
     @Override

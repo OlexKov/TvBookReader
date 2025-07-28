@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
+import com.example.bookreader.R;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
@@ -221,23 +222,21 @@ public class EpubProcessor implements IBookProcessor {
                 .map(Metadata::getAuthors)
                 .filter((List<Author> list) -> !list.isEmpty())
                 .map(list -> list.get(0).getFirstname() + " " + list.get(0).getLastname())
-                .orElse("Unknown");
+                .orElse(context.getString(R.string.unknown));
 
         result.year = Optional.of(book)
                 .map(Book::getMetadata)
                 .map(Metadata::getDates)
                 .filter((List<Date> list) -> !list.isEmpty())
                 .map(list -> list.get(0).getValue())
-                .orElse("Unknown");
+                .orElse(context.getString(R.string.unknown));
 
         result.description = Optional.of(book)
                 .map(Book::getMetadata)
                 .map(Metadata::getDescriptions)
                 .filter((List<String> list) -> !list.isEmpty())
                 .map(list -> String.join(" ",list))
-                .orElse("Unknown");
-
-        result.pageCount = book.getSpine().size();
+                .orElse(context.getString(R.string.unknown));
 
         if (result.title == null || result.title.trim().isEmpty()) {
             result.title = bookName.substring(0,bookName.length() - 4);

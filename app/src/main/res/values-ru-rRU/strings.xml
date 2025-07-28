@@ -24,4 +24,9 @@
     <string name="select_files">Выберите файлы</string>
     <string name="confirm">Подтвердить</string>
     <string name="select">Выбрать</string>
+    <string name="unknown">Не известно</string>
+    <string name="save">Захранить</string>
+    <string name="new_books_found">"Найдено новых книг - "</string>
+    <string name="no_new_books_found">Не найдено новых книг</string>
+    <string name="searching">Поиск...</string>
 </resources>

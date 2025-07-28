@@ -78,8 +78,6 @@ public class MainFragment extends BrowseSupportFragment {
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
 
 
-
-
         fileBrowserLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.bookutils.pdf.PdfProcessor;
@@ -34,7 +35,12 @@ public class BookProcessor {
     }
 
     public CompletableFuture<BookInfo> getInfoAsync() throws IOException {
-        return  bookProcessor.getInfoAsync(bookPath);
+        return bookProcessor.getInfoAsync(bookPath).thenApply((info)->{
+            info.filePath = bookPath;
+            info.fileSize = BooksArchiveReader.isArchivePath(bookPath) ? new BooksArchiveReader().getFileSize(bookPath) : new File(bookPath).length();
+            info.hash = info.getHash();
+            return  info;
+        });
     }
 
     public CompletableFuture<Bitmap> getPreviewAsync( int pageIndex, int height, int wight) throws IOException{

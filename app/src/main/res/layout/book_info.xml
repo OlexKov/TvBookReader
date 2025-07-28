@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
-    android:layout_width="600dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:layout_height="match_parent"
-    android:background="#BB575757"
-    android:padding="0dp">
+    android:layout_marginStart="20dp">
 
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
         <ImageView
@@ -30,7 +29,9 @@
                 android:id="@+id/book_preview_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"/>
+                android:maxLines="1"
+                android:ellipsize="end"
+               android:textSize="14sp"/>
 
             <TextView
                 android:id="@+id/book_preview_author"
@@ -46,6 +47,12 @@
 
             <TextView
                 android:id="@+id/book_preview_pages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"/>
+
+            <TextView
+                android:id="@+id/book_preview_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="13sp"/>

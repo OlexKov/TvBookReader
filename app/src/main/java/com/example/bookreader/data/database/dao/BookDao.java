@@ -2,6 +2,7 @@ package com.example.bookreader.data.database.dao;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.RawQuery;
 import androidx.sqlite.db.SupportSQLiteQuery;
@@ -16,11 +17,17 @@ public interface BookDao {
     @Insert
     long insert(Book book);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE) // або інша стратегія
+    List<Long> insertAll(List<Book> books);
+
     @Query("DELETE FROM books WHERE id = :bookId")
     int deleteById(long bookId);
 
     @Query("SELECT fileHash FROM books WHERE fileHash IN (:hashes)")
     List<Integer> getByHash(List<Integer> hashes);
+
+    @Query("SELECT EXISTS (SELECT 1 FROM books WHERE fileHash = :hash)")
+    boolean existsByHash(Integer hash);
 
     @Query("SELECT * FROM books")
     List<BookDto> getAllRange();

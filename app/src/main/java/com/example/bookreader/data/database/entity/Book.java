@@ -27,7 +27,6 @@ public class Book {
     public String author;
     public int pageCount;
     public String filePath;
-    public String zipPath;
     public String previewPath;
     public String title;
     public String description;
@@ -36,4 +35,5 @@ public class Book {
     public Long categoryId = null;
     public boolean isFavorite = false;
     public Date creationDate = new Date();
+    public long fileSize;
 }

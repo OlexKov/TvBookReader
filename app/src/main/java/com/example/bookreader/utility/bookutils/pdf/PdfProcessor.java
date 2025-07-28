@@ -7,6 +7,7 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 
+import com.example.bookreader.R;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.bookutils.BookInfo;
 import com.example.bookreader.utility.bookutils.BookPaths;
@@ -199,13 +200,13 @@ public class PdfProcessor implements IBookProcessor {
             result.title = bookName.substring(0,bookName.length() - 4);
         }
         if (result.author == null || result.author.trim().isEmpty()) {
-            result.author = "Unknown";
+            result.author = context.getString(R.string.unknown);
         }
         if (result.description == null || result.description.trim().isEmpty()) {
-            result.description = "Unknown";
+            result.description = context.getString(R.string.unknown);
         }
         if (result.year == null || result.year.trim().isEmpty()) {
-            result.year = "Unknown";
+            result.year = context.getString(R.string.unknown);
         }
         return result;
     }

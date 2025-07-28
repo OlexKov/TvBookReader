@@ -29,10 +29,11 @@ import com.example.bookreader.listeners.BookActionClickListener;
 import com.example.bookreader.presenters.BookDetailsPresenter;
 import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.presenters.StringPresenter;
+import com.example.bookreader.utility.AnimHelper;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
-    private static final int DETAIL_THUMB_WIDTH = 360;
-    private static final int DETAIL_THUMB_HEIGHT = 460;
+    private static final int DETAIL_THUMB_WIDTH = 270;
+    private static final int DETAIL_THUMB_HEIGHT = 400;
 
 
     private static final String TAG = "MediaItemDetailsFragment";
@@ -66,17 +67,12 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         if(!(serializedBook instanceof  BookDto bookDto)) return;
         book = bookDto;
         clickListener = new BookActionClickListener(getContext(),book,actionAdapter);
-         // Attach your media item details presenter to the row presenter:
         ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(book,clickListener);
         setDetailsOverview(rowsAdapter,book);
         setAdditionalMediaRow(rowsAdapter);
         setAdapter(rowsAdapter);
     }
 
-    private int convertDpToPixel(Context context, int dp) {
-        float density = context.getResources().getDisplayMetrics().density;
-        return Math.round((float) dp * density);
-    }
 
     private void setActions(DetailsOverviewRow detailsOverview){
         actionAdapter.set(ActionType.BOOK_READ.getId(), new Action(ActionType.BOOK_READ.getId(), getString(R.string.read)));
@@ -92,16 +88,17 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void setOverviewImage(DetailsOverviewRow detailsOverview,ArrayObjectAdapter rowsAdapter){
-        int width = convertDpToPixel(getActivity().getApplicationContext(), DETAIL_THUMB_WIDTH);
-        int height = convertDpToPixel(getActivity().getApplicationContext(), DETAIL_THUMB_HEIGHT);
+        int width = AnimHelper.convertToPx(requireContext(), DETAIL_THUMB_WIDTH);
+        int height = AnimHelper.convertToPx(requireContext(), DETAIL_THUMB_HEIGHT);
+        String source = book.previewPath != null && !book.previewPath.isEmpty()?book.previewPath : "https://picsum.photos/600/800";
         Glide.with(this)
                 .asBitmap()
-                .load("https://picsum.photos/600/800")
+                .load(source)
                 .centerCrop()
                 .into(new CustomTarget<Bitmap>(width,height) {
                     @Override
                     public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                        detailsOverview.setImageBitmap(getActivity(), resource);
+                        detailsOverview.setImageBitmap(getContext(), resource);
                         rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size());
                     }
 

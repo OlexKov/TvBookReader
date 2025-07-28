@@ -7,7 +7,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.bookreader.R;
-import com.example.bookreader.fragments.NewFilesFragment;
+import com.example.bookreader.fragments.LoadFilesFragment;
 import com.example.bookreader.utility.LocaleHelper;
 
 public class NewFilesActivity extends FragmentActivity {
@@ -21,7 +21,7 @@ public class NewFilesActivity extends FragmentActivity {
         FragmentManager fm = getSupportFragmentManager();
         setContentView(R.layout.new_files_activity);
         fm.beginTransaction()
-                .replace(R.id.new_files, new NewFilesFragment())
+                .replace(R.id.load_files, new LoadFilesFragment())
                 .commit();
 
     }

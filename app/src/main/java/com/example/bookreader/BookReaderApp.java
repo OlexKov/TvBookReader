@@ -35,10 +35,7 @@ public class BookReaderApp  extends Application {
     private  SharedPreferences prefs;
     private final List<CategoryDto> categoriesCash = new ArrayList<>();
 
-
-
-
-    // Глобальний доступ до інстансу MyApp
+ // Глобальний доступ до інстансу MyApp
     @Getter
     private static BookReaderApp instance;
 
@@ -88,6 +85,7 @@ public class BookReaderApp  extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        System.setProperty("zip.encoding", "UTF-8");
        // PDFBoxResourceLoader.init(getApplicationContext());
         globalEventListener = new GlobalEventListener();
         // Зберігаємо інстанс класу для глобального доступу

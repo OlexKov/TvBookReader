@@ -14,7 +14,7 @@ public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
     protected void onBindDescription(@NonNull ViewHolder viewHolder, @NonNull Object item) {
         if(!(item instanceof BookDto book)) return;
         viewHolder.getTitle().setText(book.title);
-        viewHolder.getSubtitle().setText( " sdf sdf sdf sdf sdf sdf sdf s");
-        viewHolder.getBody().setText(" sdfsfsd fsdf sdf sdfs df sdfs df");
+        viewHolder.getSubtitle().setText( book.author);
+        viewHolder.getBody().setText(book.description);
     }
 }

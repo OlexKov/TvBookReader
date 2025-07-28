@@ -29,6 +29,7 @@ public class HashHelper {
         }
         return hash;
     }
+
     public static int getStringHash(String input) {
         byte[] data = input.getBytes(StandardCharsets.UTF_8);
         XXHashFactory factory = XXHashFactory.fastestInstance();

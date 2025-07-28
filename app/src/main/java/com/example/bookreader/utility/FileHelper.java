@@ -1,5 +1,6 @@
 package com.example.bookreader.utility;
 
+import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
@@ -156,6 +157,14 @@ public class FileHelper {
             return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
         }
         return null;
+    }
+
+    @SuppressLint("DefaultLocale")
+    public static String formatSize(long size){
+        if (size < 1024) return size + " B";
+        int exp = (int) (Math.log(size) / Math.log(1024));
+        String pre = "KMGTPE".charAt(exp - 1) + "B";
+        return String.format("%.1f %s", size / Math.pow(1024, exp), pre);
     }
 
 

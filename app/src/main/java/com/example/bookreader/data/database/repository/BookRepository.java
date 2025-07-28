@@ -35,8 +35,16 @@ public class BookRepository {
         });
     }
 
+    public CompletableFuture<List<Long>> insertAllAsync(List<Book> books) {
+       return CompletableFuture.supplyAsync(() ->  bookDao.insertAll(books));
+    }
+
     public CompletableFuture<List<Integer>> getBooksByHashesAsync(List<Integer> hashes){
         return CompletableFuture.supplyAsync(() -> bookDao.getByHash(hashes));
+    }
+
+    public CompletableFuture<Boolean> isBookExistByHashesAsync(Integer hash){
+        return CompletableFuture.supplyAsync(() -> bookDao.existsByHash(hash));
     }
 
 

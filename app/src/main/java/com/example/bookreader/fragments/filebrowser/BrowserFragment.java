@@ -62,7 +62,6 @@ public class BrowserFragment extends Fragment {
     private BrowserFile currentFile = new BrowserFile(mainParentFile, false);
     private ArrayObjectAdapter storagesAdapter;
     private ArrayObjectAdapter folderGridAdapter;
-    private int columnCount;
     private final DiffCallback<MainStorage> storagesDiff = new MainFolderDiffCallback();
     private final List<BrowserFile> selectedFiles = new ArrayList<>();
     private final DiffCallback<BrowserFile> fileDiff = new BrowserFileDiffCallback();

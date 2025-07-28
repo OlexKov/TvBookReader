@@ -23,6 +23,11 @@
     <string name="select_files">Select files</string>
     <string name="confirm">Confirm</string>
     <string name="select">Select</string>
+    <string name="unknown">Unknown</string>
+    <string name="save">Save</string>
+    <string name="new_books_found">New books found -</string>
+    <string name="no_new_books_found">No new books found</string>
+    <string name="searching">Searching...</string>
 
     <!-- Error messages -->
 </resources>
