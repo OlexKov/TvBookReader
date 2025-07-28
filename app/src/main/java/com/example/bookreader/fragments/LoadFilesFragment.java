@@ -41,11 +41,10 @@ import com.example.bookreader.utility.bookutils.BookProcessor;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -89,33 +88,9 @@ public class LoadFilesFragment extends Fragment {
             }
         });
 
-
-        newFilesList = view.findViewById(R.id.load_files_list);
-        newFilesList.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-        newFilesList.setNumColumns(1);
-        newFilesList.setVerticalSpacing(30);
-        ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
-        presenterSelector.addClassPresenter(BookInfo.class,new BookInfoPresenter());
-        presenterSelector.addClassPresenter(EmptyItem.class,new EmptyItemPresenter());
-
-        newFileAdapter = new ArrayObjectAdapter(presenterSelector);
-        newFileAdapter.add(new EmptyItem(180));
-        newFilesList.setAdapter(new ItemBridgeAdapter(newFileAdapter));
-        RecyclerView.ItemAnimator animator = newFilesList.getItemAnimator();
-        if (animator != null) {
-            animator.setRemoveDuration(0);
-            animator.setAddDuration(500);
-        }
-
-
-        progressBarManager = new ProgressBarManager();
-        if(getView() instanceof  ViewGroup root){
-            progressBarManager.setRootView((ViewGroup) root.getRootView());
-            progressBarManager.setInitialDelay(0);
-            progressBarManager.hide();
-        }
-
-
+        setFileList(view);
+        setFileListAdapter();
+        setProgressBarManager(100);
         List<String> filePaths = requireActivity().getIntent().getStringArrayListExtra("data");
         if(filePaths != null){
             addInfoToPreview(filePaths);
@@ -134,6 +109,7 @@ public class LoadFilesFragment extends Fragment {
         super.onStop();
 
     }
+
     private List<String> getArchivesPaths(List<String> paths){
         return  paths.stream()
                 .filter(path->{
@@ -141,6 +117,36 @@ public class LoadFilesFragment extends Fragment {
                     return ext != null && (ext.equals("zip"));
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void setFileListAdapter(){
+        ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
+        presenterSelector.addClassPresenter(BookInfo.class,new BookInfoPresenter());
+        presenterSelector.addClassPresenter(EmptyItem.class,new EmptyItemPresenter());
+        newFileAdapter = new ArrayObjectAdapter(presenterSelector);
+        newFileAdapter.add(new EmptyItem(180));
+        newFilesList.setAdapter(new ItemBridgeAdapter(newFileAdapter));
+        RecyclerView.ItemAnimator animator = newFilesList.getItemAnimator();
+        if (animator != null) {
+            animator.setRemoveDuration(0);
+            animator.setAddDuration(500);
+        }
+    }
+
+    private void setProgressBarManager(int initialDelay){
+        progressBarManager = new ProgressBarManager();
+        if(getView() instanceof  ViewGroup root){
+            progressBarManager.setRootView((ViewGroup) root.getRootView());
+            progressBarManager.setInitialDelay(initialDelay);
+            progressBarManager.hide();
+        }
+    }
+
+    private void setFileList(View view){
+        newFilesList = view.findViewById(R.id.load_files_list);
+        newFilesList.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        newFilesList.setNumColumns(1);
+        newFilesList.setVerticalSpacing(30);
     }
 
     private void runOnUiThread(Runnable r) {
@@ -161,62 +167,103 @@ public class LoadFilesFragment extends Fragment {
         }
 
         progressBarManager.show();
-        AtomicInteger filesCount = new AtomicInteger(filePaths.size());
-
-        Set<Integer> existingHashes = new HashSet<Integer>();
-        for (int i = 0; i < newFileAdapter.size(); i++) {
-            if (newFileAdapter.get(i) instanceof BookInfo info) {
-                existingHashes.add(info.hash);
-            }
-        }
-
         BookRepository bookRepository = new BookRepository();
-
-        for (String filePath : filePaths) {
-            processFile(filePath, filesCount, existingHashes, bookRepository);
-        }
+        processFiles(filePaths, bookRepository);
     }
-    private void processFile(String filePath, AtomicInteger filesCount, Set<Integer> existingHashes, BookRepository bookRepository) {
-        try {
-            BookProcessor processor = new BookProcessor(requireContext(), filePath);
-            processor.getInfoAsync()
-                    .thenCompose(bookInfo -> {
-                        if (bookInfo == null) {
-                            showToast("Error open file " + filePath);
-                            return CompletableFuture.completedFuture(null);
-                        }
 
-                        if (existingHashes.contains(bookInfo.hash)) {
-                            showToast("Duplicate book " + bookInfo.filePath);
-                            return CompletableFuture.completedFuture(null);
-                        }
+    private void processFiles(List<String> filePaths, BookRepository bookRepository) {
+        List<CompletableFuture<BookInfo>> bookInfosFutures = filePaths.stream()
+                .map(filePath -> {
+                    try {
+                        BookProcessor processor = new BookProcessor(requireContext(), filePath);
+                        return processor.getInfoAsync().thenApply(bookInfo -> {
+                            if (bookInfo == null) {
+                                showToast("Error open file " + filePath);
+                            }
+                            return bookInfo;
+                        });
+                    } catch (IOException e) {
+                        return this.<BookInfo>failedFuture(e);
+                    }
+                })
+                .collect(Collectors.toList());
 
-                        return bookRepository.isBookExistByHashesAsync(bookInfo.hash)
-                                .thenCompose(exists -> {
-                                    if (Boolean.TRUE.equals(exists)) return CompletableFuture.completedFuture(null);
-                                    try {
-                                        return processor.getPreviewAsync(
-                                                        0,
-                                                        AnimHelper.convertToPx(requireContext(), 400),
-                                                        AnimHelper.convertToPx(requireContext(), 300))
-                                                .thenAccept(bitmap -> {
-                                                    bookInfo.preview = bitmap;
-                                                    runOnUiThread(() -> newFileAdapter.add(bookInfo));
-                                                });
-                                    } catch (IOException e) {
-                                        return failedFuture(e);
-                                    }
-                                });
-                    })
-                    .whenComplete((res, ex) -> {
-                        if (ex != null) Log.e("BookProcessor", "Error: " + filePath, ex);
-                        if (filesCount.decrementAndGet() == 0) checkAndHideProgress();
-                    });
+        CompletableFuture.allOf(bookInfosFutures.toArray(new CompletableFuture[0]))
+                .thenAccept(v -> {
+                    List<BookInfo> infos = bookInfosFutures.stream()
+                            .map(future -> {
+                                try {
+                                    return future.join();
+                                } catch (CompletionException ex) {
+                                    Log.e("BookProcessor", "Error getting BookInfo", ex.getCause());
+                                    return null;
+                                }
+                            })
+                            .filter(Objects::nonNull)
+                            .distinct()
+                            .collect(Collectors.toList());
 
-        } catch (IOException e) {
-            Log.e("BookProcessor", "Failed to create processor for file: " + filePath, e);
-            if (filesCount.decrementAndGet() == 0) checkAndHideProgress();
-        }
+                    List<Integer> hashes = infos.stream()
+                            .map(info -> info.hash)
+                            .collect(Collectors.toList());
+
+                    bookRepository.getBooksByHashesAsync(hashes)
+                            .thenAccept(existingHashes -> {
+                                List<BookInfo> newInfos = infos.stream()
+                                        .filter(info -> !existingHashes.contains(info.hash))
+                                        .collect(Collectors.toList());
+
+                                if (newInfos.isEmpty()) {
+                                    checkAndHideProgress();
+                                    return;
+                                }
+
+                                AtomicInteger filesCount = new AtomicInteger(newInfos.size());
+
+                                List<CompletableFuture<Void>> previewFutures = newInfos.stream()
+                                        .map(info -> {
+                                            try {
+                                                return new BookProcessor(getContext(), info.filePath)
+                                                        .getPreviewAsync(
+                                                                0,
+                                                                AnimHelper.convertToPx(requireContext(), 400),
+                                                                AnimHelper.convertToPx(requireContext(), 300))
+                                                        .thenAccept(bitmap -> {
+                                                            info.preview = bitmap;
+                                                            runOnUiThread(() -> newFileAdapter.add(info));
+                                                        })
+                                                        .exceptionally(ex -> {
+                                                            Log.e("BookProcessor", "Error loading preview for " + info.filePath, ex);
+                                                            return null;
+                                                        })
+                                                        .whenComplete((r, ex) -> {
+                                                            if (filesCount.decrementAndGet() == 0) {
+                                                                checkAndHideProgress();
+                                                            }
+                                                        });
+                                            } catch (IOException e) {
+                                                // Якщо не можемо створити BookProcessor, зменшуємо лічильник і логіруємо
+                                                if (filesCount.decrementAndGet() == 0) {
+                                                    checkAndHideProgress();
+                                                }
+                                                Log.e("BookProcessor", "IOException creating BookProcessor for " + info.filePath, e);
+                                                return CompletableFuture.<Void>completedFuture(null);
+                                            }
+                                        })
+                                        .collect(Collectors.toList());
+
+                                CompletableFuture.allOf(previewFutures.toArray(new CompletableFuture[0]))
+                                        .exceptionally(ex -> {
+                                            Log.e("BookProcessor", "Error in preview futures", ex);
+                                            return null;
+                                        });
+                            });
+                })
+                .exceptionally(ex -> {
+                    Log.e("BookProcessor", "Error processing files", ex);
+                    checkAndHideProgress();
+                    return null;
+                });
     }
 
     private void showToast(String msg) {
@@ -240,13 +287,14 @@ public class LoadFilesFragment extends Fragment {
         });
     }
 
-    private static <T> CompletableFuture<T> failedFuture(Throwable ex) {
+    private  <T> CompletableFuture<T> failedFuture(Throwable ex) {
         CompletableFuture<T> future = new CompletableFuture<>();
         future.completeExceptionally(ex);
         return future;
     }
 
     private void saveBooksToDataBase() {
+        progressBarManager.show();
         List<BookInfo> booksInfos = newFileAdapter.unmodifiableList().stream()
                 .filter(BookInfo.class::isInstance)
                 .map(BookInfo.class::cast)
@@ -272,12 +320,13 @@ public class LoadFilesFragment extends Fragment {
                             .collect(Collectors.toList());
 
                     return bookRepository.insertAllAsync(books);
-                }).thenRun(() -> {
+                }).thenAccept((booksIds) -> {
                     requireActivity().runOnUiThread(() -> {
+                        progressBarManager.hide();
                         requireActivity().finish();
                         requireActivity().overridePendingTransition(0, R.anim.slide_out_top);
                     });
-                });
+        });
     }
 }
 

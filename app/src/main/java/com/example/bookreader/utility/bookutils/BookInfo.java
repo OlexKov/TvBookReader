@@ -16,11 +16,6 @@ public  class BookInfo {
     public String filePath;
     public String previewPath;
     public long fileSize;
-
-    public int getHash(){
-        return HashHelper.getStringHash(author + String.valueOf(pageCount) + description + year + String.valueOf(fileSize));
-    }
-
     public Book getBook(){
         Book book = new Book();
         book.author = author;

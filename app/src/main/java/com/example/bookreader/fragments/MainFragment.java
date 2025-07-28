@@ -82,37 +82,33 @@ public class MainFragment extends BrowseSupportFragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        switch (currentBrowserMode){
-                            case FOLDER :
+                        switch (currentBrowserMode) {
+                            case FOLDER:
                                 String selectedFolderPath = result.getData().getStringExtra(BrowserResult.FOLDER_PATH.name());
-                                if(selectedFolderPath != null){
-                                    Log.d("BrowserResult",selectedFolderPath);
+                                if (selectedFolderPath != null) {
+                                    Log.d("BrowserResult", selectedFolderPath);
                                 }
                                 break;
                             case MULTIPLE_FILES:
                                 List<String> selectedFilesPaths = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
-                                if(selectedFilesPaths != null){
+                                if (selectedFilesPaths != null) {
                                     Intent intent = new Intent(requireActivity(), NewFilesActivity.class);
-                                    intent.putStringArrayListExtra("data",new ArrayList<>(selectedFilesPaths));
+                                    intent.putStringArrayListExtra("data", new ArrayList<>(selectedFilesPaths));
                                     requireActivity().startActivity(intent);
-                                    requireActivity().overridePendingTransition(R.anim.slide_in_top,0);
+                                    requireActivity().overridePendingTransition(R.anim.slide_in_top, 0);
                                 }
 
                                 break;
                             case SINGLE_FILE:
                                 String selectedFilePath = result.getData().getStringExtra(BrowserResult.SELECTED_FILE_PATH.name());
-                                if(selectedFilePath != null){
-                                    Log.d("BrowserResult",selectedFilePath);
+                                if (selectedFilePath != null) {
+                                    Log.d("BrowserResult", selectedFilePath);
                                 }
                                 break;
                         }
-
-
-
                     }
                 }
         );
-
     }
 
     private void setupUIElements(){

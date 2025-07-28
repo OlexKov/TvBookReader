@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.FileHelper;
+import com.example.bookreader.utility.HashHelper;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.bookutils.pdf.PdfProcessor;
 
@@ -38,7 +39,7 @@ public class BookProcessor {
         return bookProcessor.getInfoAsync(bookPath).thenApply((info)->{
             info.filePath = bookPath;
             info.fileSize = BooksArchiveReader.isArchivePath(bookPath) ? new BooksArchiveReader().getFileSize(bookPath) : new File(bookPath).length();
-            info.hash = info.getHash();
+            info.hash = HashHelper.getStringHash(info.author + String.valueOf(info.pageCount) +info.description + info.year + String.valueOf(info.fileSize));;
             return  info;
         });
     }
