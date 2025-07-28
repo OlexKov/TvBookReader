@@ -63,6 +63,7 @@ public class MainFragment extends BrowseSupportFragment {
     private ArrayObjectAdapter rowsAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
     private ActivityResultLauncher<Intent> fileBrowserLauncher;
+    private ActivityResultLauncher<Intent> newFileActivityLauncher;
 
     private BrowserMode currentBrowserMode;
 
@@ -76,39 +77,9 @@ public class MainFragment extends BrowseSupportFragment {
         setupUIElements();
         setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
+        setFileBrowserLauncher();
+        setNewFileActivityLauncher();
 
-
-        fileBrowserLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        switch (currentBrowserMode) {
-                            case FOLDER:
-                                String selectedFolderPath = result.getData().getStringExtra(BrowserResult.FOLDER_PATH.name());
-                                if (selectedFolderPath != null) {
-                                    Log.d("BrowserResult", selectedFolderPath);
-                                }
-                                break;
-                            case MULTIPLE_FILES:
-                                List<String> selectedFilesPaths = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
-                                if (selectedFilesPaths != null) {
-                                    Intent intent = new Intent(requireActivity(), NewFilesActivity.class);
-                                    intent.putStringArrayListExtra("data", new ArrayList<>(selectedFilesPaths));
-                                    requireActivity().startActivity(intent);
-                                    requireActivity().overridePendingTransition(R.anim.slide_in_top, 0);
-                                }
-
-                                break;
-                            case SINGLE_FILE:
-                                String selectedFilePath = result.getData().getStringExtra(BrowserResult.SELECTED_FILE_PATH.name());
-                                if (selectedFilePath != null) {
-                                    Log.d("BrowserResult", selectedFilePath);
-                                }
-                                break;
-                        }
-                    }
-                }
-        );
     }
 
     private void setupUIElements(){
@@ -248,5 +219,51 @@ public class MainFragment extends BrowseSupportFragment {
         vActivity.overridePendingTransition(R.anim.slide_in_bottom, 0);
     }
 
+    private void setFileBrowserLauncher(){
+        fileBrowserLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        switch (currentBrowserMode) {
+                            case FOLDER:
+                                String selectedFolderPath = result.getData().getStringExtra(BrowserResult.FOLDER_PATH.name());
+                                if (selectedFolderPath != null) {
+                                    Log.d("BrowserResult", selectedFolderPath);
+                                }
+                                break;
+                            case MULTIPLE_FILES:
+                                List<String> selectedFilesPaths = result.getData().getStringArrayListExtra(BrowserResult.SELECTED_FILES.name());
+                                if (selectedFilesPaths != null) {
+                                    Intent intent = new Intent(requireActivity(), NewFilesActivity.class);
+                                    intent.putStringArrayListExtra("data", new ArrayList<>(selectedFilesPaths));
+                                    newFileActivityLauncher.launch(intent);
+                                    requireActivity().overridePendingTransition(R.anim.slide_in_top, 0);
+                                }
 
+                                break;
+                            case SINGLE_FILE:
+                                String selectedFilePath = result.getData().getStringExtra(BrowserResult.SELECTED_FILE_PATH.name());
+                                if (selectedFilePath != null) {
+                                    Log.d("BrowserResult", selectedFilePath);
+                                }
+                                break;
+                        }
+                    }
+                }
+        );
+    }
+
+    private void setNewFileActivityLauncher(){
+        newFileActivityLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
+                        long[] newFilesIds = result.getData().getLongArrayExtra("NEW_FILES_IDS");
+                        if(newFilesIds != null){
+
+                        }
+
+                    }
+                });
+    }
 }

@@ -306,7 +306,6 @@ public class PageRowsFragment extends RowsSupportFragment {
         future.thenAccept(listRows -> {
             if (!isAdded() || isDetached()) return;
             requireActivity().runOnUiThread(() -> {
-                Log.d("DEBUG", "UI thread update");
                 rowsAdapter.addAll(0, listRows);
                 setAdapter(rowsAdapter);
                 progressBarManager.hide();
@@ -408,7 +407,6 @@ public class PageRowsFragment extends RowsSupportFragment {
          if( !(rowBookData.getRow().getAdapter() instanceof ArrayBookAdapter bookAdapter)) return;
          bookAdapter.paginateRow(rowBookData.getBook());
     };
-
 
     private  String getCurrentCategoryName(){
         return getArguments() != null ? getArguments().getString("category") : "";
