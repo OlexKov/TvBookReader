@@ -1,12 +1,17 @@
 package com.example.bookreader.fragments;
 
+import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -30,6 +35,8 @@ import com.example.bookreader.presenters.BookDetailsPresenter;
 import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.presenters.StringPresenter;
 import com.example.bookreader.utility.AnimHelper;
+
+import jp.wasabeef.glide.transformations.BlurTransformation;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
     private static final int DETAIL_THUMB_WIDTH = 270;
@@ -62,6 +69,15 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         // getView().post(() -> setSelectedPosition(1, true));
     }
 
+    private void prepareBackgroundManager() {
+
+        BackgroundManager mBackgroundManager = BackgroundManager.getInstance(requireActivity());
+        mBackgroundManager.attach(requireActivity().getWindow());
+        DisplayMetrics mMetrics = new DisplayMetrics();
+        requireActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
+        getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
+    }
+
     private void buildDetails() {
         Object serializedBook = getActivity().getIntent().getSerializableExtra("BOOK");
         if(!(serializedBook instanceof  BookDto bookDto)) return;
@@ -71,6 +87,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         setDetailsOverview(rowsAdapter,book);
         setAdditionalMediaRow(rowsAdapter);
         setAdapter(rowsAdapter);
+        prepareBackgroundManager();
     }
 
     private void setActions(DetailsOverviewRow detailsOverview){

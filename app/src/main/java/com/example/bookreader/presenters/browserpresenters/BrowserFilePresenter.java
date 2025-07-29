@@ -2,34 +2,24 @@ package com.example.bookreader.presenters.browserpresenters;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.leanback.widget.Presenter;
-
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BrowserFile;
 import com.example.bookreader.utility.bookutils.BookProcessor;
-import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
-import com.example.bookreader.utility.bookutils.EpubProcessor;
-import com.example.bookreader.utility.bookutils.Fb2Processor;
 import com.example.bookreader.utility.FileHelper;
-import com.example.bookreader.utility.bookutils.pdf.PdfProcessor;
-
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
+
 
 public class BrowserFilePresenter extends Presenter {
 
@@ -43,7 +33,7 @@ public class BrowserFilePresenter extends Presenter {
     public @NonNull ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.browser_file, parent, false);
-        return new Presenter.ViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
@@ -59,28 +49,21 @@ public class BrowserFilePresenter extends Presenter {
             Context context = rootView.getContext();
 
             if(!file.getFile().isDirectory()) {
-
                 String fileExt = FileHelper.getFileExtension(file.getFile());
-                try {
-                    if(fileExt == null) throw new NullPointerException();
-                    switch (fileExt){
-                        case "zip":
-                            iconView.setImageResource(R.drawable.zip_file);
-                            break;
-                        case "tar":
-                            iconView.setImageResource(R.drawable.tar_file);
-                            break;
-                        case "gzip":
-                            iconView.setImageResource(R.drawable.gzip_file);
-                            break;
-                        case "bzip2":
-                            iconView.setImageResource(R.drawable.bzip2_file);
-                            break;
-                        case "xz":
-                            iconView.setImageResource(R.drawable.xz_file);
-                            break;
-                        default:
-                            // exceptionally
+                if(fileExt != null){
+                    int resource = switch (fileExt){
+                        case "zip" -> R.drawable.zip_file;
+                        case "tar" -> R.drawable.tar_file;
+                        case "gzip" -> R.drawable.gzip_file;
+                        case "bzip2" -> R.drawable.bzip2_file;
+                        case "xz" -> R.drawable.xz_file;
+                        default -> 0;
+                    };
+                    if(resource != 0){
+                        iconView.setImageResource(resource);
+                    }
+                    else{
+                        try {
                             new BookProcessor(context,file.getFile()).getPreviewAsync(0,96,70 ).thenAccept((bitmap)->{
                                 rootView.post(() -> {
                                     if (bitmap != null) {
@@ -90,22 +73,20 @@ public class BrowserFilePresenter extends Presenter {
                                     }
                                 });
                             });
+                        } catch (IOException | NullPointerException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-
-                } catch (IOException | NullPointerException e) {
-                    throw new RuntimeException(e);
                 }
             }
             else{
                 var files = file.getFile().listFiles();
-                if(files != null && files.length > 0)
-                {
-                    iconView.setImageResource(R.drawable.not_empty_folder);
-                }
-                else{
-                    iconView.setImageResource(R.drawable.folder);
-                }
-
+                int resource = files != null && files.length > 0
+                        ? R.drawable.not_empty_folder
+                        : R.drawable.folder;
+                rootView.post(() -> {
+                    iconView.setImageResource(resource);
+                });
             }
 
             rootView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -127,6 +108,8 @@ public class BrowserFilePresenter extends Presenter {
 
     @Override
     public void onUnbindViewHolder(@NonNull ViewHolder viewHolder) {
-
+        View rootView = viewHolder.view;
+        ImageView iconView = rootView.findViewById(R.id.browser_file_icon);
+        iconView.setImageResource(R.drawable.e_book);
     }
 }

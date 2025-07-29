@@ -1,10 +1,18 @@
 package com.example.bookreader.fragments;
 
+import static com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade;
+import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
+
 import android.app.Activity;
 import android.content.Intent;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +21,9 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
+import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.app.ProgressBarManager;
@@ -25,6 +35,9 @@ import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.activities.FileBrowserActivity;
@@ -32,6 +45,7 @@ import com.example.bookreader.activities.NewFilesActivity;
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.FileData;
 import com.example.bookreader.customclassses.MainCategoryInfo;
+import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 
@@ -49,23 +63,28 @@ import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import jp.wasabeef.glide.transformations.BlurTransformation;
+
 
 public class MainFragment extends BrowseSupportFragment {
-   // private BackgroundManager mBackgroundManager;
-  //  private Drawable mDefaultBackground;
-  //  private DisplayMetrics mMetrics;
+    private BackgroundManager mBackgroundManager;
     private ArrayObjectAdapter rowsAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
     private ActivityResultLauncher<Intent> fileBrowserLauncher;
     private ActivityResultLauncher<Intent> newFileActivityLauncher;
-
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable pendingBackgroundUpdate = null;
     private BrowserMode currentBrowserMode;
+    private RowItemData selectedRowItem;
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -79,7 +98,16 @@ public class MainFragment extends BrowseSupportFragment {
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
         setFileBrowserLauncher();
         setNewFileActivityLauncher();
+        prepareBackgroundManager();
 
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if(selectedRowItem != null){
+            getBlurBitmap(requireContext(),selectedRowItem.getBook().previewPath,mBackgroundManager::setBitmap);
+        }
     }
 
     private void setupUIElements(){
@@ -98,15 +126,15 @@ public class MainFragment extends BrowseSupportFragment {
         });
     }
 
-//    private void prepareBackgroundManager() {
-//
-//        mBackgroundManager = BackgroundManager.getInstance(Objects.requireNonNull(getActivity()));
-//        mBackgroundManager.attach(getActivity().getWindow());
-//
-//        mDefaultBackground = ContextCompat.getDrawable(Objects.requireNonNull(getContext()), R.drawable.default_background);
-//        mMetrics = new DisplayMetrics();
-//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
-//    }
+    private void prepareBackgroundManager() {
+
+        mBackgroundManager = BackgroundManager.getInstance(requireActivity());
+        mBackgroundManager.attach(requireActivity().getWindow());
+        Drawable mDefaultBackground = ContextCompat.getDrawable(requireContext(), R.drawable.default_background);
+        DisplayMetrics mMetrics = new DisplayMetrics();
+        requireActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
+        mBackgroundManager.setDrawable(mDefaultBackground);
+    }
 
     private void setupEventListeners(){
         setBrowseTransitionListener(new BrowserTransitionListener());
@@ -136,7 +164,21 @@ public class MainFragment extends BrowseSupportFragment {
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler, Object.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler,BookDto.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler,Long.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectedChangeHandler, RowItemData.class);
     }
+
+    private final Consumer<RowItemData> itemSelectedChangeHandler = (RowItemData rowItemData)->{
+        selectedRowItem = rowItemData;
+        if (pendingBackgroundUpdate != null) {
+            handler.removeCallbacks(pendingBackgroundUpdate);
+        }
+        pendingBackgroundUpdate = () -> {
+            getBlurBitmap(requireContext(),rowItemData.getBook().previewPath,mBackgroundManager::setBitmap);
+            pendingBackgroundUpdate = null;
+        };
+
+        handler.postDelayed(pendingBackgroundUpdate, 2000);
+    };
 
     private final Consumer<Long> categoryDeleteHandler = (categoryToDeleteId)->{
        for (int i = 0; i < rowsAdapter.size(); i++) {

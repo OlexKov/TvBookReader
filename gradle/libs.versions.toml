@@ -4,9 +4,11 @@ agp = "8.11.1"
 androidPdfViewer = "3.2.0-beta.1"
 androidPdfViewerVersion = "3.2.0-beta.3"
 appcompat = "1.7.1"
+compiler = "4.16.0"
 djvulibre = "0.1.4"
 fitz = "1.24.9.2"
 githubPdfboxAndroid = "master-SNAPSHOT"
+glideTransformations = "4.3.0"
 junrar = "7.5.5"
 leakcanaryAndroid = "2.14"
 leanback = "1.2.0"
@@ -44,9 +46,11 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-compiler-v261 = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
 androidx-room-runtime-v261 = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 djvulibre = { module = "com.github.axet:djvulibre", version.ref = "djvulibre" }
 fitz = { module = "net.timelegend.mupdf:fitz", version.ref = "fitz" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+glide-transformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
 junrar = { module = "com.github.junrar:junrar", version.ref = "junrar" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }

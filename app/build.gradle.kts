@@ -56,11 +56,14 @@ android {
 dependencies {
     implementation (libs.androidx.activity)
     implementation(libs.androidx.leanback)
-    implementation(libs.androidx.leanback.paging)
     implementation(libs.androidx.leanback.tab)
     implementation(libs.androidx.leanback.preference)
-    implementation(libs.glide)
     implementation (libs.androidx.appcompat)
+
+    //Glide
+    implementation(libs.glide)
+    implementation(libs.glide.transformations)
+    annotationProcessor (libs.compiler)
 
     // https://mvnrepository.com/artifact/net.jpountz.lz4/lz4
     implementation(libs.lz4)
