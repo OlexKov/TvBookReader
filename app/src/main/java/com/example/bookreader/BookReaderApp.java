@@ -95,7 +95,7 @@ public class BookReaderApp  extends Application {
         globalEventListener = new GlobalEventListener();
 
         setPrefs();
-       // getApplicationContext().deleteDatabase("book-database");
+        //getApplicationContext().deleteDatabase("book-database");
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
                 .fallbackToDestructiveMigration() // видалить базу при несумісності схем
                 .build();

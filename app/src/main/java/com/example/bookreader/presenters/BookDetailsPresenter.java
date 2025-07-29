@@ -21,17 +21,16 @@ import com.example.bookreader.data.database.entity.Book;
 
 public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
 
-
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     protected void onBindDescription(@NonNull ViewHolder viewHolder, @NonNull Object item) {
         if(!(item instanceof BookDto book)) return;
         viewHolder.getTitle().setText(book.title);
         viewHolder.getSubtitle().setText( book.author);
         TextView description = viewHolder.getBody();
-        description.setMaxLines(10);
-        description.setLines(10);
-        description.setEllipsize(null);
         description.setText(book.description);
+        description.post(() -> {
+            description.setMaxLines(15);
+            description.setLines(15);
+        });
     }
 }

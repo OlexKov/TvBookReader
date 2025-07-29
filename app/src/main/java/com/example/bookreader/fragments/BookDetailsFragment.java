@@ -73,7 +73,6 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         setAdapter(rowsAdapter);
     }
 
-
     private void setActions(DetailsOverviewRow detailsOverview){
         actionAdapter.set(ActionType.BOOK_READ.getId(), new Action(ActionType.BOOK_READ.getId(), getString(R.string.read)));
         actionAdapter.set(ActionType.BOOK_EDIT.getId(), new Action(ActionType.BOOK_EDIT.getId(), getString(R.string.edit)));
@@ -111,8 +110,6 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     private ArrayObjectAdapter  AttachBookDetailsPresenter(BookDto book,BookActionClickListener clickListener){
         ClassPresenterSelector selector = new ClassPresenterSelector();
-
-        // Attach your media item details presenter to the row presenter:
         FullWidthDetailsOverviewRowPresenter rowPresenter =
                 new CustomBookDetailsPresenter(new BookDetailsPresenter());
         rowPresenter.setOnActionClickedListener(clickListener);
