@@ -82,17 +82,20 @@ public class BookReaderApp  extends Application {
         });
     }
 
+    public String getLocalLanguage(){
+        return prefs.getString("localization","uk");
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        instance = this;
         System.setProperty("zip.encoding", "UTF-8");
        // PDFBoxResourceLoader.init(getApplicationContext());
         globalEventListener = new GlobalEventListener();
-        // Зберігаємо інстанс класу для глобального доступу
-        instance = this;
-        prefs = getApplicationContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-        prefs.edit().putBoolean("db_seeded", false).apply();
-        getApplicationContext().deleteDatabase("book-database");
+
+        setPrefs();
+       // getApplicationContext().deleteDatabase("book-database");
         appDatabase = Room.databaseBuilder(getApplicationContext(), BookDb.class, "book-database")
                 .fallbackToDestructiveMigration() // видалить базу при несумісності схем
                 .build();
@@ -199,5 +202,15 @@ public class BookReaderApp  extends Application {
                 globalEventListener.sendEvent(GlobalEventType.DATABASE_DONE,null);
             });
         }
+
+    private void setPrefs(){
+        prefs = getApplicationContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        if(!prefs.contains("db_seeded")){
+            prefs.edit().putBoolean("db_seeded", false).apply();
+        }
+        if(!prefs.contains("localization")){
+            prefs.edit().putString("localization", "uk").apply();
+        }
+    }
 }
 

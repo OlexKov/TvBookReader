@@ -34,6 +34,7 @@ import java.util.Map;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Fb2Processor implements IBookProcessor {
     private static final String TAG = "Fb2Processor";
@@ -232,7 +233,9 @@ public class Fb2Processor implements IBookProcessor {
                 .map(TitleInfo::getAnnotation)
                 .map(Annotation::getElements)
                 .filter((ArrayList<Element> list) -> !list.isEmpty())
-                .map(list -> list.get(0).getText())
+                .map(list -> list.stream()
+                        .map(Element::getText)
+                        .collect(Collectors.joining("")))
                 .orElse(context.getString(R.string.unknown));
 
         result.year = Optional.of(fb)

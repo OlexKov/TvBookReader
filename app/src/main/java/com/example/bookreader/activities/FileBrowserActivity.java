@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.leanback.widget.BrowseFrameLayout;
 
 
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.fragments.filebrowser.BrowserFragment;
 import com.example.bookreader.utility.LocaleHelper;
@@ -19,9 +20,10 @@ import com.example.bookreader.utility.LocaleHelper;
 import org.jspecify.annotations.Nullable;
 
 public class FileBrowserActivity extends FragmentActivity {
+    private final BookReaderApp app = BookReaderApp.getInstance();
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase, "uk"));  // або інша мова
+        super.attachBaseContext(LocaleHelper.setLocale(newBase, app.getLocalLanguage()));
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {

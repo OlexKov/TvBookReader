@@ -41,7 +41,7 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase, "uk"));  // або інша мова
+        super.attachBaseContext(LocaleHelper.setLocale(newBase, app.getLocalLanguage()));
     }
 
     @Override

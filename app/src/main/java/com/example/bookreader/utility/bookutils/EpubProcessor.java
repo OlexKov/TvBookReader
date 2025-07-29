@@ -235,7 +235,7 @@ public class EpubProcessor implements IBookProcessor {
                 .map(Book::getMetadata)
                 .map(Metadata::getDescriptions)
                 .filter((List<String> list) -> !list.isEmpty())
-                .map(list -> String.join(" ",list))
+                .map(list -> String.join("",list))
                 .orElse(context.getString(R.string.unknown));
 
         if (result.title == null || result.title.trim().isEmpty()) {
