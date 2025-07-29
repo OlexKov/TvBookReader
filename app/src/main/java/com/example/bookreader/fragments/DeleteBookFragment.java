@@ -1,8 +1,8 @@
 package com.example.bookreader.fragments;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.widget.Toast;
-import androidx.core.content.ContextCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
@@ -27,13 +27,11 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
     @androidx.annotation.NonNull
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
-       // Bitmap bitmap = ...;
-      //  Drawable drawable = new BitmapDrawable(getResources(), bitmap);
         return new GuidanceStylist.Guidance(
                 getString(R.string.q_delete_book),
                 book.title,
                 getString(R.string.confirmation),
-                ContextCompat.getDrawable(requireContext(), R.drawable.settings)
+                Drawable.createFromPath(book.previewPath)
         );
     }
 

@@ -14,6 +14,7 @@ import androidx.leanback.widget.Presenter;
 import com.bumptech.glide.Glide;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.utility.AnimHelper;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -70,8 +71,8 @@ public class BookPreviewPresenter extends Presenter {
     private ViewSize getSize( Context context){
         ViewSize size = new ViewSize();
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        size.width = (int)(displayMetrics.widthPixels*0.16);
-        size.height = (int)(displayMetrics.heightPixels *0.48);
+        size.width = (int)(displayMetrics.widthPixels / 7);
+        size.height = (int)(displayMetrics.heightPixels / 3);
         return size;
     }
 
@@ -89,11 +90,19 @@ public class BookPreviewPresenter extends Presenter {
         };
         Context context = parent.getContext();
         ViewSize size = getSize(context);
-        cardView.setLayoutParams(new ViewGroup.LayoutParams(size.width, size.height));
         cardView.setFocusable(true);
         cardView.setFocusableInTouchMode(true);
         cardView.setBackgroundColor(ContextCompat.getColor(context, R.color.default_background));
         cardView.setMainImageScaleType(ImageView.ScaleType.FIT_XY);
+        cardView.setMainImageDimensions(size.width, size.height);
+
+        ViewGroup.MarginLayoutParams layoutParams =
+                new ViewGroup.MarginLayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+        layoutParams.setMargins(0, 0, AnimHelper.convertToPx(context,5), 0);
+        cardView.setLayoutParams(layoutParams);
         return cardView;
     }
 }

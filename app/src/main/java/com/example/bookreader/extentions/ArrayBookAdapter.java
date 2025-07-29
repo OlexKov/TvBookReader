@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
-
 public class ArrayBookAdapter extends ArrayObjectAdapter {
     private final RowUploadInfo info;
     private final BookDtoDiffCallback bookDiffCallback = new BookDtoDiffCallback();

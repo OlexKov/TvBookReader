@@ -200,7 +200,7 @@ public class LoadFilesFragment extends Fragment {
                                 .getPreviewAsync(
                                         0,
                                         AnimHelper.convertToPx(requireContext(), 400),
-                                        AnimHelper.convertToPx(requireContext(), 300))
+                                        AnimHelper.convertToPx(requireContext(), 280))
                                 .thenAccept(bitmap -> {
                                     info.preview = bitmap;
                                     runOnUiThread(() -> newFileAdapter.add(info));

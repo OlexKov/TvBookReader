@@ -67,7 +67,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         if(!(serializedBook instanceof  BookDto bookDto)) return;
         book = bookDto;
         clickListener = new BookActionClickListener(getContext(),book,actionAdapter);
-        ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(book,clickListener);
+        ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(clickListener);
         setDetailsOverview(rowsAdapter,book);
         setAdditionalMediaRow(rowsAdapter);
         setAdapter(rowsAdapter);
@@ -108,7 +108,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                 });
     }
 
-    private ArrayObjectAdapter  AttachBookDetailsPresenter(BookDto book,BookActionClickListener clickListener){
+    private ArrayObjectAdapter  AttachBookDetailsPresenter(BookActionClickListener clickListener){
         ClassPresenterSelector selector = new ClassPresenterSelector();
         FullWidthDetailsOverviewRowPresenter rowPresenter =
                 new CustomBookDetailsPresenter(new BookDetailsPresenter());
