@@ -19,7 +19,6 @@ public class BookProcessor {
     private final IBookProcessor bookProcessor;
     private final String bookPath;
 
-
     public BookProcessor (Context context, String bookPath){
         this.bookPath = bookPath;
         String ext = FileHelper.getPathFileExtension(bookPath);
@@ -40,7 +39,7 @@ public class BookProcessor {
         return bookProcessor.getInfoAsync(bookPath).thenApply((info)->{
             info.filePath = bookPath;
             info.fileSize = BooksArchiveReader.isArchivePath(bookPath) ? new BooksArchiveReader().getFileSize(bookPath) : new File(bookPath).length();
-            info.fileHash = HashHelper.getStringHash(info.author + String.valueOf(info.pageCount) +info.description + info.year + String.valueOf(info.fileSize));;
+            info.fileHash = HashHelper.getStringHash(info.author + info.pageCount + info.description + info.year + info.fileSize);
             return  info;
         });
     }
