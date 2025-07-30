@@ -135,7 +135,7 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
 
     private final Consumer<Boolean> menuChangeButtonProcessorHandler = (isMenuStartOpen)->{
         int currentMainCategoryIndex = app.getSelectedMainCategoryInfo().getIndex();
-        if(currentMainCategoryIndex <= 1 || ! isMenuStartOpen){
+        if(!isMenuStartOpen || currentMainCategoryIndex == 0 ){
             smoothDisplay(buttonContainer);
         }
         else{
@@ -171,24 +171,29 @@ public class CustomTitleView extends FrameLayout implements TitleViewAdapter.Pro
         app.getGlobalEventListener().subscribe(GlobalEventType.CATEGORY_SELECTION_CHANGED,categoryChangeButtonProcessorHandler,MainCategoryInfo.class);
 
     }
-    private void smoothHide(View view){
-        if(view.getVisibility() != View.GONE ){
-            view.animate()
-                    .alpha(0f)
-                    .setDuration(250)
-                    .withEndAction(() -> view.setVisibility(View.GONE))
-                    .start();
-        }
 
+    private void smoothHide(View view){
+        view.post(()->{
+            if(view.getVisibility() != View.GONE ){
+                view.animate()
+                        .alpha(0f)
+                        .setDuration(250)
+                        .withEndAction(() -> view.setVisibility(View.GONE))
+                        .start();
+            }
+        });
     }
     private void smoothDisplay(View view) {
-        if (view.getVisibility() != View.VISIBLE){
-            view.animate()
-                    .withStartAction(() -> view.setVisibility(View.VISIBLE))
-                    .alpha(1f)
-                    .setDuration(250)
-                    .start();
-        }
+        view.post(()->{
+            if (view.getVisibility() != View.VISIBLE){
+                view.animate()
+                        .withStartAction(() -> view.setVisibility(View.VISIBLE))
+                        .alpha(1f)
+                        .setDuration(250)
+                        .start();
+            }
+        });
+
     }
 
     private void setTitle(CharSequence title) {

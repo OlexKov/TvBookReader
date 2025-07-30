@@ -15,7 +15,7 @@
     <string name="book_deleted">Книга \"%1$s\" видалена</string>
     <string name="oops_error">Упс...щось пішло не так...:(</string>
     <string name="favorite">Улюблені</string>
-    <string name="add_to_favorite">Додати до улюблений</string>
+    <string name="add_to_favorite">Додати до улюблених</string>
     <string name="remove_from_favorite">Видалити з улюблених</string>
     <string name="main_storage">Основна пам\'ять</string>
     <string name="storages">Сховища</string>

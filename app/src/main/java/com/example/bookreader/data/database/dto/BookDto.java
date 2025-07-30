@@ -19,6 +19,7 @@ public class BookDto implements Serializable {
     public String description;
     public String year;
     public Long categoryId = null;
+    public long fileSize;
     public boolean isFavorite = false;
     public Date creationDate;
 
@@ -27,11 +28,11 @@ public class BookDto implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BookDto book = (BookDto) o;
-        return id == book.id;
+        return fileHash == book.fileHash;
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(id);
+        return fileHash;
     }
 }

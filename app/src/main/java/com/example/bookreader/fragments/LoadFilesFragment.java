@@ -230,7 +230,7 @@ public class LoadFilesFragment extends Fragment {
         bookRepository.getBooksByHashesAsync(hashes)
                 .thenAccept(existingHashes -> {
                     List<BookInfo> newInfos = infos.stream()
-                            .filter(info -> !existingHashes.contains(info.hash))
+                            .filter(info -> !existingHashes.contains(info.fileHash))
                             .collect(Collectors.toList());
 
                     if (newInfos.isEmpty()) {
@@ -267,7 +267,7 @@ public class LoadFilesFragment extends Fragment {
                             .collect(Collectors.toList());
 
                     List<Integer> hashes = infos.stream()
-                            .map(info -> info.hash)
+                            .map(info -> info.fileHash)
                             .collect(Collectors.toList());
 
                     addBooksInfoToBookInfoList(bookRepository,hashes,infos);

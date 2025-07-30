@@ -36,8 +36,6 @@ import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.presenters.StringPresenter;
 import com.example.bookreader.utility.AnimHelper;
 
-import jp.wasabeef.glide.transformations.BlurTransformation;
-
 public class BookDetailsFragment  extends DetailsSupportFragment {
     private static final int DETAIL_THUMB_WIDTH = 270;
     private static final int DETAIL_THUMB_HEIGHT = 400;
