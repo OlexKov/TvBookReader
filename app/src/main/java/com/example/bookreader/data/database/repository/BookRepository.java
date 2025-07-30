@@ -1,5 +1,7 @@
 package com.example.bookreader.data.database.repository;
 
+import static com.example.bookreader.utility.ArraysHelper.partitionList;
+
 import android.os.Handler;
 import android.os.Looper;
 
@@ -13,6 +15,7 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +24,7 @@ import java.util.concurrent.Executors;
 public class BookRepository {
     private final BookDao bookDao;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    final int MAX_SQL_VARS = 999;
 
     public BookRepository() {
         this.bookDao = BookReaderApp.getInstance().getAppDatabase().bookDao();
@@ -35,12 +39,34 @@ public class BookRepository {
         });
     }
 
+    public long insert(Book book) {
+       return bookDao.insert(book);
+    }
+
+    public CompletableFuture<List<String>> getAllPathsAsync(){
+        return CompletableFuture.supplyAsync(bookDao::getAllPaths);
+    }
+
     public CompletableFuture<List<Long>> insertAllAsync(List<Book> books) {
-       return CompletableFuture.supplyAsync(() ->  bookDao.insertAll(books));
+       return CompletableFuture.supplyAsync(() -> {
+           List<Long> result = new ArrayList<>();
+           List<List<Book>> partitions = partitionList(books,MAX_SQL_VARS);
+           for (List<Book> bookList:partitions){
+               result.addAll(bookDao.insertAll(bookList));
+           }
+           return result;
+        });
     }
 
     public CompletableFuture<List<Integer>> getBooksByHashesAsync(List<Integer> hashes){
-        return CompletableFuture.supplyAsync(() -> bookDao.getByHash(hashes));
+        return CompletableFuture.supplyAsync(() -> {
+            List<Integer> results = new ArrayList<>();
+            List<List<Integer>> partitions = partitionList(hashes, MAX_SQL_VARS);
+            for (List<Integer> hashList:partitions){
+                results.addAll(bookDao.getByHash(hashList));
+            }
+            return results;
+        });
     }
 
     public CompletableFuture<Boolean> isBookExistByHashesAsync(Integer hash){

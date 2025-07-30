@@ -167,5 +167,13 @@ public class FileHelper {
         return String.format("%.1f %s", size / Math.pow(1024, exp), pre);
     }
 
+    public static boolean deleteFile(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            return file.delete();
+        }
+        return false;
+    }
+
 
 }

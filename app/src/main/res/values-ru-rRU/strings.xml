@@ -29,4 +29,6 @@
     <string name="new_books_found">"Найдено новых книг - "</string>
     <string name="no_new_books_found">Не найдено новых книг</string>
     <string name="searching">Поиск...</string>
+    <string name="scanning">Сканирование...</string>
+    <string name="saving">Сохранение...</string>
 </resources>

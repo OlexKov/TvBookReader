@@ -8,9 +8,8 @@ import android.util.Log;
 
 
 import com.example.bookreader.R;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
-import com.example.bookreader.utility.bookutils.BookInfo;
-import com.example.bookreader.utility.bookutils.BookPaths;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.shockwave.pdfium.PdfDocument;
@@ -34,7 +33,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookPaths> savePreviewAsync(String bookPath, int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(String bookPath, int height, int wight) throws IOException {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -53,7 +52,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookPaths> savePreviewAsync(File bookFile,int height, int wight) throws IOException{
+    public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight) throws IOException{
         return   CompletableFuture.supplyAsync(()->{
             // 1. Рендер першої сторінки
             try (FileInputStream inputStream = new FileInputStream(bookFile)) {
@@ -66,7 +65,7 @@ public class PdfProcessor implements IBookProcessor {
 
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(File bookFile) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(File bookFile) throws IOException {
 
         return  CompletableFuture.supplyAsync(()->{
             try (FileInputStream stream = new FileInputStream(bookFile)) {
@@ -79,7 +78,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(String bookPath) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(String bookPath) throws IOException {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -130,7 +129,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync( Uri bookUri) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync( Uri bookUri) throws IOException {
         File file = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(file);
     }
@@ -159,7 +158,7 @@ public class PdfProcessor implements IBookProcessor {
         return result;
     }
 
-    private BookPaths savePreview(InputStream inputStream,String bookName,String bookPath,int height,int wight) throws IOException {
+    private String savePreview(InputStream inputStream,String bookName,String bookPath,int height,int wight) throws IOException {
         Bitmap bitmap = createPreview((FileInputStream) inputStream, 0, height, wight);
         // 2. Збереження прев’ю
         File previewDir = new File(context.getFilesDir(), "previews");
@@ -178,16 +177,11 @@ public class PdfProcessor implements IBookProcessor {
         }catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        // 4. Повернення даних
-        BookPaths result = new BookPaths();
-        result.filePath = bookPath;
-        result.previewPath = previewFile.getAbsolutePath();
-        return result;
+        return previewFile.getAbsolutePath();
     }
 
-    private BookInfo getInfo(FileInputStream stream,String bookName) throws IOException {
-        BookInfo result = new BookInfo();
+    private BookDto getInfo(FileInputStream stream, String bookName) throws IOException {
+        BookDto result = new BookDto();
         PdfiumCore pdfiumCore = new PdfiumCore(context);
         PdfDocument document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(stream.getFD()));
         PdfDocument.Meta meta = pdfiumCore.getDocumentMeta(document);

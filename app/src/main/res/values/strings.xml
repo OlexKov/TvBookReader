@@ -28,6 +28,8 @@
     <string name="new_books_found">New books found -</string>
     <string name="no_new_books_found">No new books found</string>
     <string name="searching">Searching...</string>
+    <string name="scanning">Scanning...</string>
+    <string name="saving">Saving...</string>
 
     <!-- Error messages -->
 </resources>

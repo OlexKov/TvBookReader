@@ -26,6 +26,9 @@ public interface BookDao {
     @Query("SELECT fileHash FROM books WHERE fileHash IN (:hashes)")
     List<Integer> getByHash(List<Integer> hashes);
 
+    @Query("SELECT filePath FROM books")
+    List<String> getAllPaths();
+
     @Query("SELECT EXISTS (SELECT 1 FROM books WHERE fileHash = :hash)")
     boolean existsByHash(Integer hash);
 

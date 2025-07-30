@@ -9,6 +9,7 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.example.bookreader.R;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
@@ -41,7 +42,7 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookPaths> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -60,7 +61,7 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookPaths> savePreviewAsync(File bookFile,int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight) throws IOException {
         return  CompletableFuture.supplyAsync(() -> {
             try(InputStream stream = new FileInputStream(bookFile)) {
                return savePreview(stream,bookFile.getName(),bookFile.getAbsolutePath(),300,400);
@@ -75,11 +76,11 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(File bookFile) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(File bookFile) throws IOException {
        return   CompletableFuture.supplyAsync(() -> {
             try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY)) {
                 InputStream stream = new FileInputStream(fd.getFileDescriptor());
-                BookInfo result = getInfo(stream, bookFile.getName());
+                BookDto result = getInfo(stream, bookFile.getName());
                 result.fileSize = bookFile.length();
                 result.filePath = bookFile.getAbsolutePath();
                 return result;
@@ -91,7 +92,7 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(String bookPath) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(String bookPath) throws IOException {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -110,7 +111,7 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(Uri bookUri) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) throws IOException {
         File bookFile = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(bookFile);
     }
@@ -182,7 +183,7 @@ public class EpubProcessor implements IBookProcessor {
         return null;
     }
 
-    private BookPaths savePreview(InputStream stream,String bookName,String bookPath,int wight, int height) throws IOException {
+    private String savePreview(InputStream stream,String bookName,String bookPath,int wight, int height) throws IOException {
         Bitmap cover = extractCoverPreview(stream, wight, height);
         if (cover == null) {
             Log.d("EpubProcessor", "Cover not found");
@@ -204,14 +205,11 @@ public class EpubProcessor implements IBookProcessor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        BookPaths result = new BookPaths();
-        result.filePath = bookPath;
-        result.previewPath = previewFile.getAbsolutePath();
-        return result;
+        return previewFile.getAbsolutePath();
     }
 
-    private BookInfo getInfo(InputStream stream,String bookName) throws IOException {
-        BookInfo result = new BookInfo();
+    private BookDto getInfo(InputStream stream,String bookName) throws IOException {
+        BookDto result = new BookDto();
         EpubReader epubReader = new EpubReader();
         Book book = epubReader.readEpub(stream);
 

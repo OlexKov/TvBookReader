@@ -8,6 +8,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.example.bookreader.R;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.ImageHelper;
 import com.example.bookreader.utility.bookutils.fb2parser.Section;
@@ -46,7 +47,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookPaths> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
        if(BooksArchiveReader.isArchivePath(bookPath)){
            return  CompletableFuture.supplyAsync(() -> {
                try {
@@ -66,7 +67,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookPaths> savePreviewAsync(File bookFile,int height, int wight) {
+    public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight) {
         return  CompletableFuture.supplyAsync(() -> {
             try {
                 FictionBook fb = new FictionBook(bookFile);
@@ -80,7 +81,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(File bookFile) {
+    public CompletableFuture<BookDto> getInfoAsync(File bookFile) {
         return CompletableFuture.supplyAsync(() -> {
             try  {
                 FictionBook fb = new FictionBook(bookFile);
@@ -97,7 +98,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(String bookPath) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(String bookPath) throws IOException {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -117,7 +118,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookInfo> getInfoAsync(Uri bookUri) throws java.io.IOException {
+    public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) throws java.io.IOException {
         File file = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(file);
     }
@@ -203,20 +204,17 @@ public class Fb2Processor implements IBookProcessor {
         return null;
     }
 
-    private BookPaths savePreview(FictionBook fb, String bookName, String bookPath, int height, int wight){
+    private String savePreview(FictionBook fb, String bookName, String bookPath, int height, int wight){
         Bitmap cover = extractCoverPreview(fb, wight, height);
         if (cover == null) {
             Log.d(TAG, "Cover image not found");
             return null;
         }
-        BookPaths result = new BookPaths();
-        result.filePath = bookPath;
-        result.previewPath = ImageHelper.saveImage(context,cover,100, Bitmap.CompressFormat.PNG);
-        return result;
+        return ImageHelper.saveImage(context,cover,100, Bitmap.CompressFormat.PNG);
     }
 
-    private BookInfo getBookInfo(FictionBook fb,String bookName){
-        BookInfo result = new BookInfo();
+    private BookDto getBookInfo(FictionBook fb,String bookName){
+        BookDto result = new BookDto();
         result.title = fb.getTitle();
 
         result.author =  Optional.of(fb)

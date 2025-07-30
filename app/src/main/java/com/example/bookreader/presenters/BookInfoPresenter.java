@@ -14,12 +14,15 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.Presenter;
 import com.example.bookreader.R;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.FileHelper;
-import com.example.bookreader.utility.bookutils.BookInfo;
+import com.example.bookreader.utility.bookutils.BookProcessor;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.io.IOException;
 
 public class BookInfoPresenter extends Presenter {
 
@@ -34,7 +37,7 @@ public class BookInfoPresenter extends Presenter {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
         View root = viewHolder.view;
-        if (item instanceof BookInfo info){
+        if (item instanceof BookDto info){
 
             Context context = root.getContext();
             ImageView preview = root.findViewById(R.id.preview_image);
@@ -43,7 +46,20 @@ public class BookInfoPresenter extends Presenter {
             TextView year = root.findViewById(R.id.book_preview_year);
             TextView pages = root.findViewById(R.id.book_preview_pages);
             TextView size = root.findViewById(R.id.book_preview_size);
-            preview.setImageBitmap(info.preview);
+            BookProcessor bookProcessor = new BookProcessor(context,info.filePath);
+            try {
+                bookProcessor.getPreviewAsync(0,400,280).thenAccept(bitmap ->{
+                    if(bitmap != null){
+                       root.post(()-> preview.setImageBitmap(bitmap));
+                    }
+                    else{
+                        root.post(()->  preview.setImageResource(R.drawable.books_logo));
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             title.setText(info.title);
             if(info.author.equals(context.getString(R.string.unknown))){
                 author.setVisibility(GONE);
