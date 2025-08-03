@@ -73,6 +73,17 @@ public class BookRepository {
         return CompletableFuture.supplyAsync(() -> bookDao.existsByHash(hash));
     }
 
+    public CompletableFuture<BookDto> getByIdAsync(Long bookId){
+        return CompletableFuture.supplyAsync(()->bookDao.getById(bookId));
+    }
+
+    public CompletableFuture<BookDto> updateAndGetAsync(Book book) {
+        return CompletableFuture.supplyAsync(() -> {
+            bookDao.update(book);
+            return bookDao.getById(book.id);
+        });
+    }
+
 
     ///  toggle favorites
 

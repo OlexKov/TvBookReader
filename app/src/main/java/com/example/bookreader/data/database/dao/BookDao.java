@@ -5,6 +5,7 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.RawQuery;
+import androidx.room.Update;
 import androidx.sqlite.db.SupportSQLiteQuery;
 
 import com.example.bookreader.data.database.dto.BookDto;
@@ -16,6 +17,9 @@ import java.util.List;
 public interface BookDao {
     @Insert
     long insert(Book book);
+
+    @Update
+    void update(Book book);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE) // або інша стратегія
     List<Long> insertAll(List<Book> books);

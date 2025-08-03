@@ -19,6 +19,11 @@ public interface CategoryDao {
             "WHERE parentId IS NULL")
     List<CategoryDto> getAllParent();
 
+    @Query("SELECT DISTINCT cat.* FROM categories AS cat " +
+            "JOIN books AS bks ON bks.categoryId = cat.id " +
+            "WHERE bks.id IN (:bookIds)")
+    List<CategoryDto> getByBookIds(List<Long> bookIds);
+
     @Query("SELECT cat.id, cat.name, cat.parentId, cat.iconId, " +
             "(SELECT COUNT(*) FROM books bks WHERE bks.categoryId = cat.id OR bks.categoryId IN " +
             "(SELECT sub.id FROM categories sub WHERE sub.parentId = cat.id)) AS booksCount " +

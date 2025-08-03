@@ -63,6 +63,7 @@ dependencies {
     //Glide
     implementation(libs.glide)
     implementation(libs.glide.transformations)
+    implementation(libs.androidx.preference)
     annotationProcessor (libs.compiler)
 
     // https://mvnrepository.com/artifact/net.jpountz.lz4/lz4

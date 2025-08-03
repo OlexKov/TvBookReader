@@ -38,15 +38,14 @@ public class GlobalEventListener {
         CopyOnWriteArrayList<Consumer<?>> list =  events.get(eventType);
         if (list != null && !list.contains(handler)) {
             list.add(handler);
-        }
-
-        // Якщо є остання подія - відправляємо і очищуємо її
-        if (lastEventData.containsKey(eventType)) {
-            Object data = lastEventData.get(eventType);
-            if (clazz.isInstance(data)) {
-                handler.accept(clazz.cast(data));
-                Log.d("GlobalEventLog", "LastEventAccept and clear " + eventType.name());
-                lastEventData.remove(eventType);
+            // Якщо є остання подія - відправляємо і очищуємо її
+            if (lastEventData.containsKey(eventType)) {
+                Object data = lastEventData.get(eventType);
+                if (clazz.isInstance(data)) {
+                    handler.accept(clazz.cast(data));
+                    Log.d("GlobalEventLog", "LastEventAccept and clear " + eventType.name());
+                    lastEventData.remove(eventType);
+                }
             }
         }
     }

@@ -13,7 +13,6 @@ public class BookDto implements Serializable {
     public String author;
     public int pageCount;
     public String filePath;
-    public String zipPath;
     public String previewPath;
     public String title;
     public String description;
@@ -38,6 +37,7 @@ public class BookDto implements Serializable {
 
     public Book getBook(){
         Book book = new Book();
+        book.id = id;
         book.author = author;
         book.pageCount = pageCount;
         book.title = title;
@@ -49,6 +49,7 @@ public class BookDto implements Serializable {
         book.fileSize = fileSize;
         book.isFavorite = isFavorite;
         book.categoryId = categoryId;
+        book.creationDate = creationDate;
         return book;
     }
 }

@@ -6,7 +6,6 @@ import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
 import android.app.Activity;
 import android.content.Intent;
 
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
@@ -15,8 +14,6 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -26,7 +23,6 @@ import androidx.core.util.Consumer;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
-import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DividerPresenter;
 import androidx.leanback.widget.DividerRow;
@@ -35,23 +31,19 @@ import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.activities.FileBrowserActivity;
 import com.example.bookreader.activities.NewFilesActivity;
 import com.example.bookreader.constants.Constants;
-import com.example.bookreader.customclassses.FileData;
 import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 
+import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.fragments.filebrowser.BrowserMode;
 import com.example.bookreader.fragments.filebrowser.BrowserResult;
-import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.CustomTitleView;
@@ -63,16 +55,11 @@ import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
 
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import jp.wasabeef.glide.transformations.BlurTransformation;
 
 
 public class MainFragment extends BrowseSupportFragment {
@@ -300,12 +287,51 @@ public class MainFragment extends BrowseSupportFragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
-                        long[] newFilesIds = result.getData().getLongArrayExtra("NEW_FILES_IDS");
-                        if(newFilesIds != null){
+                        long[] newIds = result.getData().getLongArrayExtra("NEW_FILES_IDS");
+                        if(newIds != null){
+                            List<Long> newBooksIds = Arrays.stream(newIds)
+                                    .boxed().collect(Collectors.toList());
+                            CategoryRepository categoryRepository = new CategoryRepository();
+                            categoryRepository.getCategoriesByBooksIdsAsync(newBooksIds)
+                                    .thenAccept((categories)->{
+                                        List<Long> categoriesIds = null;
+                                        if(!categories.isEmpty()){
+                                            categoriesIds = categories.stream()
+                                                            .map(cat->cat.id)
+                                                    .collect(Collectors.toList());
+                                            addNewCategoriesByBooksIds( categories);
+                                        }
+                                        // app.getGlobalEventListener().sendEvent(GlobalEventType.NEED_UPDATE_ROWS_BY_ID,categoriesIds);
 
+                                    });
                         }
-
                     }
                 });
+    }
+
+    private void addNewCategoriesByBooksIds(List<CategoryDto> categories){
+        List<CategoryDto> parentCategory = categories.stream()
+                .filter(cat->cat.parentId == null)
+                .collect(Collectors.toList());
+        if(!parentCategory.isEmpty()){
+            List<Long> currentParentCategoryIds = rowsAdapter.unmodifiableList()
+                    .stream().map((obj)->{
+                        if(obj instanceof PageRow pageRow){
+                            return pageRow.getId();
+                        }
+                        else{
+                            return null;
+                        }
+                    }).filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            List<PageRow> newCategories = parentCategory.stream()
+                    .filter(cat->!currentParentCategoryIds.contains(cat.id))
+                    .map(cat-> new PageRow(new IconHeader(cat.id, cat.name,cat.iconId)))
+                    .collect(Collectors.toList());
+            if(!newCategories.isEmpty()){
+                rowsAdapter.addAll(rowsAdapter.size() - 1,newCategories);
+            }
+        }
     }
 }

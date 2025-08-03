@@ -20,6 +20,7 @@ import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.entity.Book;
+import com.example.bookreader.utility.FileHelper;
 
 public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
 
@@ -31,27 +32,34 @@ public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
         viewHolder.getTitle().setText(book.title);
         StringBuilder sb = new StringBuilder();
 
-        if(!book.year.equals(unknown)){
+        if(book.year!= null && !book.year.equals(unknown)){
             sb.append(book.year);
         }
-        if(!book.author.equals(unknown)){
+        if(book.author!= null &&!book.author.equals(unknown)){
             if(sb.length() > 0){
-                sb.append(" • ");
+                sb.append(" ● ");
             }
             sb.append(book.author);
         }
 
         if(book.pageCount != 0){
             if(sb.length() > 0){
-                sb.append(" • ");
+                sb.append(" ● ");
             }
             sb.append(book.pageCount);
             sb.append(" ст.");
         }
 
+        if(book.fileSize != 0){
+            if(sb.length() > 0){
+                sb.append(" ● ");
+            }
+            sb.append(FileHelper.formatSize(book.fileSize));
+        }
+
         viewHolder.getSubtitle().setText(sb.toString());
         TextView description = viewHolder.getBody();
-        if(!book.description.equals(unknown)){
+        if(book.description!= null && !book.description.equals(unknown)){
             description.setText(book.description);
         }
 

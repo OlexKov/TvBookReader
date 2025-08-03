@@ -18,7 +18,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Consumer;
 import androidx.fragment.app.Fragment;
+import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ClassPresenterSelector;
@@ -26,16 +28,18 @@ import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.EmptyItem;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.fragments.settings.booksettings.EditBookFragment;
 import com.example.bookreader.presenters.BookInfoPresenter;
 import com.example.bookreader.presenters.EmptyItemPresenter;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.FileHelper;
-//import com.example.bookreader.utility.bookutils.BookInfo;
 import com.example.bookreader.utility.bookutils.BookProcessor;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class LoadFilesFragment extends Fragment {
+    private final BookReaderApp app = BookReaderApp.getInstance();
     private VerticalGridView newFilesList;
     private TextView title;
     private TextView subTitle;
@@ -80,6 +85,7 @@ public class LoadFilesFragment extends Fragment {
         if(filePaths != null){
             prepareAndScanFileList(filePaths);
         }
+       app.getGlobalEventListener().subscribe(getViewLifecycleOwner(), GlobalEventType.LOAD_BOOK_UPDATED,loadBookUpdatedHandler,BookDto.class);
     }
 
     @Override
@@ -125,7 +131,7 @@ public class LoadFilesFragment extends Fragment {
 
     private void setFileListAdapter(){
         ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
-        presenterSelector.addClassPresenter(BookDto.class,new BookInfoPresenter());
+        presenterSelector.addClassPresenter(BookDto.class,new BookInfoPresenter(bookClickHandler));
         presenterSelector.addClassPresenter(EmptyItem.class,new EmptyItemPresenter());
         newFileAdapter = new ArrayObjectAdapter(presenterSelector);
         newFileAdapter.add(new EmptyItem(180));
@@ -136,6 +142,20 @@ public class LoadFilesFragment extends Fragment {
             animator.setAddDuration(500);
         }
     }
+
+    private final Consumer<BookDto> bookClickHandler = (book)->{
+        GuidedStepSupportFragment.add(
+                requireActivity().getSupportFragmentManager(),
+                new EditBookFragment(book)
+        );
+    };
+
+    private final Consumer<BookDto> loadBookUpdatedHandler = (updatedBook)->{
+        int index = newFileAdapter.indexOf(updatedBook);
+        if(index >= 0){
+            newFileAdapter.notifyItemRangeChanged(index,1);
+        }
+    };
 
     private void setProgressBarManager(int initialDelay){
         progressBarManager = new ProgressBarManager();
@@ -157,7 +177,7 @@ public class LoadFilesFragment extends Fragment {
         requireActivity().runOnUiThread(r);
     }
 
-   private boolean isEmptyList(List<String> list){
+    private boolean isEmptyList(List<String> list){
        if (list.isEmpty()) {
            runOnUiThread(()-> title.setText(getString(R.string.no_new_books_found)) );
            return true;

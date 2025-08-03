@@ -7,10 +7,15 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Consumer;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
 import androidx.leanback.widget.Action;
@@ -26,6 +31,7 @@ import androidx.leanback.widget.SparseArrayObjectAdapter;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 
@@ -35,6 +41,9 @@ import com.example.bookreader.presenters.BookDetailsPresenter;
 import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.presenters.StringPresenter;
 import com.example.bookreader.utility.AnimHelper;
+import com.example.bookreader.utility.eventlistener.GlobalEventType;
+
+import java.util.Objects;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
     private static final int DETAIL_THUMB_WIDTH = 270;
@@ -43,8 +52,18 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     private static final String TAG = "MediaItemDetailsFragment";
     private final SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
-    private  BookDto book;
-    BookActionClickListener clickListener;
+    private BookDto book;
+    private BookActionClickListener clickListener;
+    private DetailsOverviewRow detailsOverviewRow;
+    private ArrayObjectAdapter rowsAdapter;
+    private BackgroundManager mBackgroundManager;
+    private final BookReaderApp app = BookReaderApp.getInstance();
+
+    @Override
+    public @Nullable View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
+        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_UPDATED,bookUpdatedHandler,BookDto.class);
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,9 +86,32 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         // getView().post(() -> setSelectedPosition(1, true));
     }
 
+    private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
+            if (updatedBook == null) return;
+            if (detailsOverviewRow != null) {
+                detailsOverviewRow.setItem(updatedBook);
+                if(!Objects.equals(updatedBook.previewPath, book.previewPath)) {
+                    setOverviewImage(detailsOverviewRow, rowsAdapter);
+                }
+                // Оновлюємо адаптер у головному потоці UI
+                requireActivity().runOnUiThread(() -> {
+                    if (rowsAdapter != null) {
+                        int index = rowsAdapter.indexOf(detailsOverviewRow);
+                        if (index >= 0) {
+                            rowsAdapter.notifyArrayItemRangeChanged(index, 1);
+                        }
+                    }
+                    if(!Objects.equals(updatedBook.previewPath, book.previewPath)){
+                        getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
+                    }
+                });
+            }
+            this.book = updatedBook;
+    };
+
     private void prepareBackgroundManager() {
 
-        BackgroundManager mBackgroundManager = BackgroundManager.getInstance(requireActivity());
+        mBackgroundManager = BackgroundManager.getInstance(requireActivity());
         mBackgroundManager.attach(requireActivity().getWindow());
         DisplayMetrics mMetrics = new DisplayMetrics();
         requireActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
@@ -81,7 +123,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         if(!(serializedBook instanceof  BookDto bookDto)) return;
         book = bookDto;
         clickListener = new BookActionClickListener(getContext(),book,actionAdapter);
-        ArrayObjectAdapter rowsAdapter = AttachBookDetailsPresenter(clickListener);
+        rowsAdapter = AttachBookDetailsPresenter(clickListener);
         setDetailsOverview(rowsAdapter,book);
         setAdditionalMediaRow(rowsAdapter);
         setAdapter(rowsAdapter);
@@ -134,10 +176,10 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void setDetailsOverview( ArrayObjectAdapter rowsAdapter,BookDto book){
-        DetailsOverviewRow detailsOverview = new DetailsOverviewRow(book);
-        setActions(detailsOverview);
-        setOverviewImage(detailsOverview,rowsAdapter);
-        rowsAdapter.add(detailsOverview);
+        detailsOverviewRow = new DetailsOverviewRow(book);
+        setActions(detailsOverviewRow);
+        setOverviewImage(detailsOverviewRow,rowsAdapter);
+        rowsAdapter.add(detailsOverviewRow);
     }
 
     private void setAdditionalMediaRow(ArrayObjectAdapter rowsAdapter){

@@ -1,6 +1,7 @@
 package com.example.bookreader.listeners;
 
 import android.content.Context;
+import android.content.Intent;
 import android.widget.Toast;
 
 import androidx.core.util.Consumer;
@@ -12,10 +13,12 @@ import androidx.leanback.widget.SparseArrayObjectAdapter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.activities.SettingActivity;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.fragments.DeleteBookFragment;
+import com.example.bookreader.fragments.settings.booksettings.EditBookFragment;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 
@@ -42,7 +45,10 @@ public class BookActionClickListener implements OnActionClickedListener {
                 break;
 
             case BOOK_EDIT:
-                Toast.makeText(context, "редагувати...", Toast.LENGTH_SHORT).show();
+                GuidedStepSupportFragment.add(
+                        ((FragmentActivity) context).getSupportFragmentManager(),
+                        new EditBookFragment(book) // передаємо книгу
+                );
                 break;
             case BOOK_DELETE:
                 GuidedStepSupportFragment.add(

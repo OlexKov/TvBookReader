@@ -1,0 +1,27 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceScreen
+        android:key="description"
+        android:title="Опис"
+        android:summary="Налаштування опису"
+        android:fragment="com.example.bookreader.fragments.settings.appsettings.DescriptionSettingsFragment" />
+
+    <PreferenceScreen
+        android:key="tags"
+        android:title="Теги"
+        android:summary="Налаштування тегів"
+        android:fragment="com.example.bookreader.fragments.settings.appsettings.TagsSettingsFragment" />
+
+    <PreferenceScreen
+        android:key="preview"
+        android:title="Прев’ю"
+        android:summary="Налаштування прев’ю"
+        android:fragment="com.example.bookreader.fragments.settings.appsettings.PreviewSettingsFragment" />
+
+    <PreferenceScreen
+        android:key="category"
+        android:title="Категорія"
+        android:summary="Налаштування категорії"
+        android:fragment="com.example.bookreader.fragments.settings.appsettings.CategorySettingsFragment" />
+
+</PreferenceScreen>

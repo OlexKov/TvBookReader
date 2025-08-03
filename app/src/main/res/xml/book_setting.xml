@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Основна інформація">
+
+        <EditTextPreference
+            android:key="title"
+            android:title="Назва"
+            android:summary="Введіть назву книжки" />
+
+        <EditTextPreference
+            android:key="author"
+            android:title="Автор"
+            android:summary="Ім’я автора" />
+
+        <EditTextPreference
+            android:key="year"
+            android:title="Рік видання"
+            android:inputType="number" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Опис та мета-дані">
+
+        <EditTextPreference
+            android:key="description"
+            android:title="Опис"
+            android:summary="Короткий опис книжки" />
+
+        <Preference
+            android:key="tags"
+            android:title="Теги"
+            android:summary="Редагувати список тегів" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Медіа">
+
+        <Preference
+            android:key="preview"
+            android:title="Прев’ю"
+            android:summary="Оберіть зображення обкладинки" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Категоризація">
+
+        <Preference
+            android:key="category"
+            android:title="Категорія" />
+
+        <Preference
+            android:key="subcategory"
+            android:title="Підкатегорія" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

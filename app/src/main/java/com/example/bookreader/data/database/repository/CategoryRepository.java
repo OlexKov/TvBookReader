@@ -9,7 +9,9 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.data.database.dao.CategoryDao;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.entity.Category;
+import com.example.bookreader.utility.ArraysHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +20,7 @@ import java.util.concurrent.Executors;
 public class CategoryRepository {
     private final CategoryDao categoryDao;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
+    final int MAX_SQL_VARS = 999;
     public CategoryRepository() {
         this.categoryDao = BookReaderApp.getInstance().getAppDatabase().categoryDao();
     }
@@ -45,6 +47,22 @@ public class CategoryRepository {
 
     public CompletableFuture<CategoryDto> getCategoryByIdAsyncCF(long categoryId) {
         return CompletableFuture.supplyAsync(()->categoryDao.getById(categoryId));
+    }
+
+    public CompletableFuture<List<CategoryDto>> getCategoriesByBooksIdsAsync(List<Long> bookIds){
+        return CompletableFuture.supplyAsync(()->{
+            if(bookIds.size() > MAX_SQL_VARS){
+                List<CategoryDto> result =  new ArrayList<>();
+                List<List<Long>> partitions = ArraysHelper.partitionList(bookIds,MAX_SQL_VARS);
+                for (List<Long> partition:partitions){
+                    result.addAll(categoryDao.getByBookIds(partition));
+                }
+                return result;
+            }
+            else {
+                return categoryDao.getByBookIds(bookIds);
+            }
+        });
     }
 
 

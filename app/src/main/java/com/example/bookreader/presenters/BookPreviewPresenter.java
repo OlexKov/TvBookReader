@@ -101,8 +101,8 @@ public class BookPreviewPresenter extends Presenter {
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
-        layoutParams.setMargins(0, 0, AnimHelper.convertToPx(context,5), 0);
-        cardView.setLayoutParams(layoutParams);
+       // layoutParams.setMargins(0, 0, AnimHelper.convertToPx(context,3), 0);
+      //  cardView.setLayoutParams(layoutParams);
         return cardView;
     }
 }
