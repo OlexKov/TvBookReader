@@ -13,7 +13,6 @@ import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.VerticalGridView;
 
-import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.RowUploadInfo;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
@@ -30,6 +29,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
     private final RowUploadInfo info;
     private final BookDtoDiffCallback bookDiffCallback = new BookDtoDiffCallback();
     private final VerticalGridView gridView;
+
 
     public ArrayBookAdapter(@NonNull PresenterSelector presenterSelector,@NonNull RowUploadInfo info,VerticalGridView gridView) {
         super(presenterSelector);
@@ -83,6 +83,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
     }
 
     private void normalizeAdapterSize() {
+
         int count = INIT_ADAPTER_SIZE - size();
         if(count == 0) return;
         if(count < 0){
@@ -97,7 +98,6 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
             }
         }
     }
-
 
     public void paginateRow(BookDto selectedBook){
         int currentFocusPosition = this.indexOf(selectedBook);
@@ -116,7 +116,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         }
     }
 
-    private void updateAdapter(){
+    public void updateAdapter(){
         loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId()).thenAccept(books->{
             if(!books.isEmpty()){
                 new Handler(Looper.getMainLooper()).post(() -> {
@@ -132,9 +132,11 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         });
     }
 
+    public RowUploadInfo getRowUploadInfo() {return info;}
+
     private CompletableFuture<List<BookDto>> loadRowBooks(Long mainCategoryId, Long rowCategoryId) {
         int offset = Math.max(0, info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE);
-        return new BookRepository().loadRowBooks(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
+        return new BookRepository().loadRowBooksAsync(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
     }
 
 }

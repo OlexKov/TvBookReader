@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -37,6 +38,7 @@ import com.example.bookreader.activities.FileBrowserActivity;
 import com.example.bookreader.activities.NewFilesActivity;
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.MainCategoryInfo;
+import com.example.bookreader.customclassses.NewCategoryList;
 import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
@@ -44,6 +46,7 @@ import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.fragments.filebrowser.BrowserMode;
 import com.example.bookreader.fragments.filebrowser.BrowserResult;
+import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.extentions.CustomTitleView;
@@ -55,6 +58,7 @@ import com.example.bookreader.listeners.HeaderViewSelectedListener;
 import com.example.bookreader.presenters.IconCategoryItemPresenter;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -143,16 +147,26 @@ public class MainFragment extends BrowseSupportFragment {
             });
 
             customsView.setOnButton3ClickListener((v)->{
-                currentBrowserMode = BrowserMode.FOLDER;
-                runFileBrowser(v,currentBrowserMode);
+                Intent intent = new Intent(requireActivity(), NewFilesActivity.class);
+                File booksDir = new File(Environment.getExternalStorageDirectory(), "Books");
+                List<String> paths = new ArrayList<>();
+                FileHelper.listFilesRecursive(booksDir,paths);
+                intent.putStringArrayListExtra("data", new ArrayList<>(paths));
+
+                newFileActivityLauncher.launch(intent);
+                requireActivity().overridePendingTransition(R.anim.slide_in_top, 0);
             });
         }
         LifecycleOwner owner = getViewLifecycleOwner();
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.CATEGORY_CASH_UPDATED,categoryCashUpdateHandler, Object.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler,BookDto.class);
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.NEED_DELETE_CATEGORY,categoryDeleteHandler,Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectedChangeHandler, RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,categoryDeleteHandler,Long.class);
     }
+
+    private final Consumer<RowItemData> addCategoryHandler = (RowItemData rowItemData)->{
+
+    };
 
     private final Consumer<RowItemData> itemSelectedChangeHandler = (RowItemData rowItemData)->{
         selectedRowItem = rowItemData;
@@ -172,6 +186,7 @@ public class MainFragment extends BrowseSupportFragment {
             if(rowsAdapter.get(i) instanceof PageRow pageRow){
                 if(pageRow.getId() == categoryToDeleteId)
                 {
+                    Log.d("BOOKUPDATELOG","main row delete - "+String.valueOf(pageRow.getHeaderItem().getName()));
                     rowsAdapter.remove(pageRow);
                     if (!app.isMenuOpen()){
                         startHeadersTransition(true);
@@ -195,12 +210,6 @@ public class MainFragment extends BrowseSupportFragment {
        }
     };
 
-    private final Consumer<Object> categoryCashUpdateHandler = (object)->{
-        if(rowsAdapter.size() > 0){
-            setupCategoryRows();
-        }
-    };
-
     private void setupCategoryRows() {
         if (!app.isMenuOpen()){
             startHeadersTransition(true);
@@ -218,12 +227,12 @@ public class MainFragment extends BrowseSupportFragment {
                         R.drawable.books_stack);
                 rowsAdapter.add(0,new PageRow( iconHeader));
                 app.setSelectedMainCategoryInfo(
-                        new MainCategoryInfo(0,favoriteName, R.drawable.books_stack)
+                        new MainCategoryInfo(0, Constants.FAVORITE_CATEGORY_ID,favoriteName, R.drawable.books_stack)
                 );
             }
             else{
                 app.setSelectedMainCategoryInfo(
-                        new MainCategoryInfo(2,allName, R.drawable.books_stack)
+                        new MainCategoryInfo(2, Constants.FAVORITE_CATEGORY_ID,allName, R.drawable.books_stack)
                 );
             }
             rowsAdapter.add( new PageRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID,allName,R.drawable.books_stack)));
@@ -294,26 +303,26 @@ public class MainFragment extends BrowseSupportFragment {
                             CategoryRepository categoryRepository = new CategoryRepository();
                             categoryRepository.getCategoriesByBooksIdsAsync(newBooksIds)
                                     .thenAccept((categories)->{
-                                        List<Long> categoriesIds = null;
                                         if(!categories.isEmpty()){
-                                            categoriesIds = categories.stream()
-                                                            .map(cat->cat.id)
-                                                    .collect(Collectors.toList());
-                                            addNewCategoriesByBooksIds( categories);
+                                            addNewCategories(categories);
                                         }
-                                        // app.getGlobalEventListener().sendEvent(GlobalEventType.NEED_UPDATE_ROWS_BY_ID,categoriesIds);
-
+                                        app.getGlobalEventListener().sendEvent(GlobalEventType.UPDATE_CATEGORIES_COMMAND,new NewCategoryList(categories));
                                     });
                         }
                     }
                 });
     }
 
-    private void addNewCategoriesByBooksIds(List<CategoryDto> categories){
-        List<CategoryDto> parentCategory = categories.stream()
-                .filter(cat->cat.parentId == null)
+    private void addNewCategories(List<CategoryDto> categories){
+        List<Long> parentCategoryIds = categories.stream()
+                .map(cat->cat.parentId == null ? cat.id : cat.parentId)
                 .collect(Collectors.toList());
-        if(!parentCategory.isEmpty()){
+
+        List<CategoryDto> parentCategories = app.getCategoriesCash().stream()
+                .filter(cat->parentCategoryIds.contains(cat.id))
+                .collect(Collectors.toList());
+
+        if(!parentCategories.isEmpty()){
             List<Long> currentParentCategoryIds = rowsAdapter.unmodifiableList()
                     .stream().map((obj)->{
                         if(obj instanceof PageRow pageRow){
@@ -325,12 +334,14 @@ public class MainFragment extends BrowseSupportFragment {
                     }).filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
-            List<PageRow> newCategories = parentCategory.stream()
+            List<PageRow> newCategories = parentCategories.stream()
                     .filter(cat->!currentParentCategoryIds.contains(cat.id))
                     .map(cat-> new PageRow(new IconHeader(cat.id, cat.name,cat.iconId)))
                     .collect(Collectors.toList());
             if(!newCategories.isEmpty()){
-                rowsAdapter.addAll(rowsAdapter.size() - 1,newCategories);
+                app.updateCategoryCash();
+                rowsAdapter.addAll(rowsAdapter.size() - 2,newCategories);
+
             }
         }
     }

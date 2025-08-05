@@ -7,10 +7,12 @@ public class MainCategoryInfo {
     private int index;
     private  int icon;
     private String name;
+    private Long id;
 
-    public MainCategoryInfo(int index, String name, int icon) {
+    public MainCategoryInfo(int index,Long id, String name, int icon) {
         this.icon = icon;
         this.index = index;
         this.name = name;
+        this.id = id;
     }
 }

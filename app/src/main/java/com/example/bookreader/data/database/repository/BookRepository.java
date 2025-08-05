@@ -181,9 +181,8 @@ public class BookRepository {
     }
 
 
-
     public CompletableFuture<PaginationResultData<BookDto>> getPageDataUnsortedBooksByCategoryIdAsync(Long categoryId, int page, int size){
-        CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCount(categoryId));
+        CompletableFuture<Long> booksCount = CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCountAsync(categoryId));
         CompletableFuture<List<BookDto>> bookList = CompletableFuture.supplyAsync(() -> bookDao.getUnsortedByCategoryIdRange(categoryId,(page - 1) * size, size));
         return CompletableFuture.allOf(booksCount, bookList).thenApply(v -> {
             PaginationResultData<BookDto> result = new PaginationResultData<>();
@@ -204,7 +203,7 @@ public class BookRepository {
     }
 
 
-    public CompletableFuture<List<BookDto>> loadRowBooks(Long mainCategoryId, Long rowCategoryId,int offset,int limit ) {
+    public CompletableFuture<List<BookDto>> loadRowBooksAsync(Long mainCategoryId, Long rowCategoryId, int offset, int limit ) {
         if (mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID) {
             return getRangeFavoriteBooksAsync(offset, limit);
         } else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
@@ -225,6 +224,29 @@ public class BookRepository {
             }
         }
     }
+
+    public CompletableFuture<Long> getRowBooksCountAsync(Long mainCategoryId, Long rowCategoryId) {
+        if (mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID) {
+            return CompletableFuture.supplyAsync(bookDao::getFavoriteBooksCount);
+        } else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+                return CompletableFuture.supplyAsync(bookDao::getAllCount);
+            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+                return CompletableFuture.supplyAsync(bookDao::getUnsortedCount);
+            } else {
+                return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
+            }
+        } else {
+            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+                return  CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(mainCategoryId));
+            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+                return CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId));
+            } else {
+                return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(mainCategoryId));
+            }
+        }
+    }
+
 }
 
 

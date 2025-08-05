@@ -20,6 +20,7 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.constants.Constants;
+import com.example.bookreader.customclassses.NewCategoryList;
 import com.example.bookreader.extentions.ArrayBookAdapter;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.customclassses.RowItemData;
@@ -64,7 +65,7 @@ public class PageRowsFragment extends RowsSupportFragment {
             progressBarManager.hide();
         }
         setupEventListeners();
-        getPageRows();
+        setPageRows();
     }
 
     @Override
@@ -274,7 +275,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
     }
 
-    private void getPageRows() {
+    private void setPageRows() {
         String categoryName = getCurrentCategoryName();
         if (categoryName == null || categoryName.isEmpty()) return;
         BookRepository bookRepo = new BookRepository();
@@ -325,7 +326,56 @@ public class PageRowsFragment extends RowsSupportFragment {
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler,RowItemData.class);
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_UPDATED,bookUpdatedHandler,BookDto.class);
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_FAVORITE_UPDATED, bookFavoriteUpdateHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.UPDATE_CATEGORIES_COMMAND, categoriesUpdateHandler, NewCategoryList.class);
     }
+
+    private final Consumer<NewCategoryList> categoriesUpdateHandler = (categoriesList)->{
+        BookRepository bookRepository = new BookRepository();
+        Long currentMainCategoryId = app.getSelectedMainCategoryInfo().getId();
+        for(int i = 0; i< rowsAdapter.size();i++){
+            if( rowsAdapter.get(i) instanceof ListRow row && row.getAdapter() instanceof ArrayBookAdapter bookAdapter){
+                RowUploadInfo rowInfo = bookAdapter.getRowUploadInfo();
+                if(Objects.equals(rowInfo.getMainCategoryId(),currentMainCategoryId)){
+                    long rowId = rowInfo.getRowCategoryId();
+                    var categoryToUpdate = categoriesList.categories.stream().filter(cat->cat.parentId == rowId || cat.id == rowId)
+                            .findFirst().orElse(null);
+                    if(rowId == Constants.ALL_BOOKS_CATEGORY_ID || rowId == Constants.UNSORTED_BOOKS_CATEGORY_ID || categoryToUpdate != null){
+                        bookRepository.getRowBooksCountAsync(rowInfo.getMainCategoryId(),rowInfo.getRowCategoryId())
+                                .thenAccept((count)->{
+                                    rowInfo.setMaxElementsDb(count);
+                                    bookAdapter.updateAdapter();
+                                });
+                    }
+                    if(categoryToUpdate != null){
+                        categoriesList.categories.remove(categoryToUpdate);
+                    }
+                }
+                else return;
+            }
+        }
+        if(!categoriesList.categories.isEmpty()){
+            for(CategoryDto cat:categoriesList.categories){
+                bookRepository.getRowBooksCountAsync(currentMainCategoryId,cat.id).thenAccept((count)->{
+                    RowUploadInfo info = new RowUploadInfo(
+                            count,
+                            (int)Math.min(count,INIT_ADAPTER_SIZE),
+                            currentMainCategoryId,
+                            cat.id);
+                    ArrayBookAdapter adapter = new ArrayBookAdapter(new BookPreviewPresenter(),info,gridView);
+                    adapter.updateAdapter();
+                    if(currentMainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID && cat.parentId != null){
+                        app.getCategoriesCash().stream().filter(category -> cat.parentId == category.id)
+                                .findFirst().ifPresent(parentCategory ->
+                                        rowsAdapter.add(new ListRow(new HeaderItem(cat.parentId, parentCategory.name), adapter)));
+                    }
+                    else{
+                        rowsAdapter.add(new ListRow(new HeaderItem(cat.id, cat.name), adapter));
+                    }
+                });
+
+            }
+        }
+    };
 
     private final Consumer<BookDto> bookFavoriteUpdateHandler = (book)->{
 //        if(!(book instanceof BookDto updatedBook)) return;
@@ -368,15 +418,71 @@ public class PageRowsFragment extends RowsSupportFragment {
    };
 
     private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
+        List<Integer> rowIndexes = new ArrayList<>();
+        List<ListRow> rowsToDelete = new ArrayList<>();
+        Log.d("BOOKUPDATELOG","Start update");
         for (int i = 0; i < rowsAdapter.size(); i++){
             if(!(rowsAdapter.get(i) instanceof ListRow row)
-                    || !(row.getAdapter() instanceof ArrayObjectAdapter adapter)) return;
+                    || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
             int index = adapter.indexOf(updatedBook);
-            if(index > 0){
-                adapter.replace(index,updatedBook);
-                adapter.notifyArrayItemRangeChanged(index,1);
+            if(index >= 0){
+                Log.d("BOOKUPDATELOG","book find in index - "+String.valueOf(index));
+                if(adapter.get(index) instanceof BookDto currentBook){
+                    if(!Objects.equals(currentBook.categoryId,updatedBook.id))
+                    {
+                        Log.d("BOOKUPDATELOG","book category changed - "+String.valueOf(updatedBook.categoryId));
+                        if(adapter.size() == 1){
+                            Log.d("BOOKUPDATELOG","row must be deleted - "+String.valueOf(row.getHeaderItem().getName()));
+                            rowsToDelete.add(row);
+                        }
+                        else{
+                            Log.d("BOOKUPDATELOG","book deleted from row - "+String.valueOf(row.getHeaderItem().getName()));
+                            adapter.remove(currentBook);
+                            adapter.notifyArrayItemRangeChanged(index,1);
+                            rowIndexes.add(i);
+                        }
+                        continue;
+                    }
+                    Log.d("BOOKUPDATELOG","book changed - "+String.valueOf(updatedBook.categoryId));
+                    adapter.replace(index,updatedBook);
+                    adapter.notifyArrayItemRangeChanged(index,1);
+                }
             }
         }
+
+        if(!rowIndexes.isEmpty()){
+            Log.d("BOOKUPDATELOG","start update rows");
+            app.updateCategoryCash();
+            for (int i = 0; i < rowsAdapter.size(); i++) {
+                if (!(rowsAdapter.get(i) instanceof ListRow row)
+                        || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
+                if( !rowsToDelete.contains(row)){
+                    Log.d("BOOKUPDATELOG","row update - "+String.valueOf(row.getHeaderItem().getName()));
+                    var info = adapter.getRowUploadInfo();
+                    if(Objects.equals(updatedBook.categoryId,info.getMainCategoryId())
+                            || Objects.equals(updatedBook.categoryId,info.getRowCategoryId())){
+                        info.setMaxElementsDb(info.getMaxElementsDb() + 1);
+                        adapter.updateAdapter();
+                    }
+                }
+            }
+        }
+
+        if(!rowsToDelete.isEmpty()){
+            if(rowsAdapter.size() == rowsToDelete.size()){
+                Log.d("BOOKUPDATELOG","main category must be deleted - "+String.valueOf(app.getSelectedMainCategoryInfo().getName()));
+                app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
+                return;
+            }
+            for(ListRow row:rowsToDelete){
+                Log.d("BOOKUPDATELOG","row must be deleted - "+String.valueOf(row.getHeaderItem().getName()));
+                int index = rowsAdapter.indexOf(row);
+                rowsAdapter.remove(row);
+                rowsAdapter.notifyItemRangeChanged(index,1);
+            }
+        }
+
+
     };
 
     private final Consumer<RowItemData> bookDeletedHandler = (bookData)->{

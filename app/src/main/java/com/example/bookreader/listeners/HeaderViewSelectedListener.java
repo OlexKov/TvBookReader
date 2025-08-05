@@ -35,7 +35,7 @@ public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHead
             Object adapterObj = fragment.getAdapter();
             if (adapterObj instanceof ArrayObjectAdapter adapter) {
                 if(!title.equals(app.getSelectedMainCategoryInfo().getName())){
-                    var categoryInfo = new MainCategoryInfo(adapter.indexOf(row),iconHeader.getName(),iconHeader.iconResId);
+                    var categoryInfo = new MainCategoryInfo(adapter.indexOf(row),row.getId(),iconHeader.getName(),iconHeader.iconResId);
                     app.setSelectedMainCategoryInfo(categoryInfo);
                     app.getGlobalEventListener().sendEvent(GlobalEventType.CATEGORY_SELECTION_CHANGED,categoryInfo);
                 }

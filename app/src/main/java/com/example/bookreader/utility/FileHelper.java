@@ -1,5 +1,8 @@
 package com.example.bookreader.utility;
 
+import static com.example.bookreader.constants.FilesExt.archivesExt;
+import static com.example.bookreader.constants.FilesExt.filesExt;
+
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.Context;
@@ -11,7 +14,10 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
+import net.java.truevfs.access.TFile;
+
 import java.io.File;
+import java.util.List;
 
 public class FileHelper {
 
@@ -175,5 +181,20 @@ public class FileHelper {
         return false;
     }
 
+    public static void listFilesRecursive(File file, List<String> files) {
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null ) {
+                for (File child : children) {
+                    listFilesRecursive(child, files);
+                }
+            }
+        } else {
 
+            String ext = FileHelper.getFileExtension(file);
+            if (filesExt.contains(ext) || archivesExt.contains(ext)) {
+                files.add(file.getPath());
+            }
+        }
+    }
 }

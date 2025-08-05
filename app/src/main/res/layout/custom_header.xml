@@ -51,7 +51,7 @@
             android:focusableInTouchMode="true"
             android:padding="8dp"
             android:scaleType="centerInside"
-            android:src="@drawable/add_folder"
+            android:src="@drawable/refresh"
             android:visibility="invisible"
             android:layout_margin="8dp"/>
     </LinearLayout>

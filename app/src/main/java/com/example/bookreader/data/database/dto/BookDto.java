@@ -49,7 +49,7 @@ public class BookDto implements Serializable {
         book.fileSize = fileSize;
         book.isFavorite = isFavorite;
         book.categoryId = categoryId;
-        book.creationDate = creationDate;
+        book.creationDate = creationDate == null ? book.creationDate : creationDate;
         return book;
     }
 }

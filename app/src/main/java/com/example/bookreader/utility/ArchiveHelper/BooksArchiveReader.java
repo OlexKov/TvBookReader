@@ -1,5 +1,8 @@
 package com.example.bookreader.utility.ArchiveHelper;
 
+import static com.example.bookreader.constants.FilesExt.archivesExt;
+import static com.example.bookreader.constants.FilesExt.filesExt;
+
 import android.util.Log;
 
 import com.example.bookreader.utility.FileHelper;
@@ -17,8 +20,6 @@ import java.util.Set;
 
 
 public class BooksArchiveReader {
-    private final Set<String> filesExt = Set.of("epub", "fb2");
-    private static final Set<String> archivesExt = Set.of("zip", "tar","gzip","bzip2","xz");
 
     public List<String> fileBooksPaths(String archivePath) {
         List<String> files = new ArrayList<>();

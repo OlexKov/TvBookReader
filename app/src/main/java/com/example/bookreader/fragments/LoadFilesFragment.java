@@ -193,7 +193,7 @@ public class LoadFilesFragment extends Fragment {
                 filePaths.addAll(new BooksArchiveReader().fileBooksPaths(archivePath));
             }
         }
-        if ( isEmptyList(filePaths)) return;
+        if (isEmptyList(filePaths)) return;
         BookRepository bookRepository = new BookRepository();
         bookRepository.getAllPathsAsync().thenAccept((paths)->{
             List<String> filteredPaths = filePaths.stream()
