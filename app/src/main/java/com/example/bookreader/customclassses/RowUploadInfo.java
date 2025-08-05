@@ -2,8 +2,10 @@ package com.example.bookreader.customclassses;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class RowUploadInfo {
     @Getter
     private int lastUploadedElementDbIndex;

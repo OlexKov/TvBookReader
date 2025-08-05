@@ -79,13 +79,11 @@ public class PageRowsFragment extends RowsSupportFragment {
             List<ListRow> rows = new ArrayList<>();
             List<BookDto> books = booksData.getData();
             if(!books.isEmpty()){
-                RowUploadInfo info = new RowUploadInfo(
-                        booksData.getTotal(),
-                        booksData.getData().size(),
+                ArrayBookAdapter adapter = new ArrayBookAdapter(
+                        itemPresenter,
                         Constants.FAVORITE_CATEGORY_ID,
-                        Constants.FAVORITE_CATEGORY_ID);
-                ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
-                adapter.addAll(0, books);
+                        Constants.FAVORITE_CATEGORY_ID,
+                        gridView);
                 rows.add(new ListRow(new IconHeader(Constants.FAVORITE_CATEGORY_ID,
                         getString(R.string.favorite),R.drawable.books_stack),
                         adapter));
@@ -111,13 +109,11 @@ public class PageRowsFragment extends RowsSupportFragment {
                     List<ListRow> rows = new ArrayList<>();
                     List<BookDto> books = booksData.getData();
                     if(!books.isEmpty()){
-                        RowUploadInfo info = new RowUploadInfo(
-                                booksData.getTotal(),
-                                booksData.getData().size(),
+                        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                itemPresenter,
                                 Constants.ALL_BOOKS_CATEGORY_ID,
-                                Constants.ALL_BOOKS_CATEGORY_ID);
-                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
-                        adapter.addAll(0, books);
+                                Constants.ALL_BOOKS_CATEGORY_ID,
+                                gridView);
                         rows.add(new ListRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID,
                                 getString(R.string.all_category),R.drawable.books_stack),
                                 adapter));
@@ -131,13 +127,11 @@ public class PageRowsFragment extends RowsSupportFragment {
 
                     List<BookDto> books = booksData.getData();
                     if(!books.isEmpty()){
-                        RowUploadInfo info = new RowUploadInfo(
-                                booksData.getTotal(),
-                                booksData.getData().size(),
+                       ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                itemPresenter,
                                 Constants.ALL_BOOKS_CATEGORY_ID,
-                                Constants.UNSORTED_BOOKS_CATEGORY_ID);
-                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
-                        adapter.addAll(0, books);
+                                Constants.UNSORTED_BOOKS_CATEGORY_ID,
+                                gridView);
                         rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
                     }
                     return rows;
@@ -151,13 +145,11 @@ public class PageRowsFragment extends RowsSupportFragment {
                             .thenApply(booksData -> {
                                 List<BookDto> books = booksData.getData();
                                 if (!books.isEmpty()) {
-                                    RowUploadInfo info = new RowUploadInfo(
-                                            booksData.getTotal(),
-                                            booksData.getData().size(),
+                                    ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                            itemPresenter,
                                             Constants.ALL_BOOKS_CATEGORY_ID,
-                                            cat.id);
-                                    ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
-                                    adapter.addAll(0, books);
+                                            cat.id,
+                                            gridView);
                                     return new ListRow(new HeaderItem(cat.id, cat.name), adapter);
                                 }
                                 return null;
@@ -197,13 +189,11 @@ public class PageRowsFragment extends RowsSupportFragment {
                         List<ListRow> rows = new ArrayList<>();
                         List<BookDto> books = booksData.getData();
                         if (books != null && !books.isEmpty()) {
-                            RowUploadInfo info = new RowUploadInfo(
-                                    booksData.getTotal(),
-                                    booksData.getData().size(),
+                           ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                    itemPresenter,
                                     selectedCategory.id,
-                                    Constants.ALL_BOOKS_CATEGORY_ID);
-                            ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
-                            adapter.addAll(0, books);
+                                    Constants.ALL_BOOKS_CATEGORY_ID,
+                                    gridView);
                             rows.add(new ListRow(new HeaderItem(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category)), adapter));
                         }
                         return rows;
@@ -214,13 +204,11 @@ public class PageRowsFragment extends RowsSupportFragment {
                         List<ListRow> rows = new ArrayList<>();
                         List<BookDto> books = booksData.getData();
                         if (!books.isEmpty()) {
-                            RowUploadInfo info = new RowUploadInfo(
-                                    booksData.getTotal(),
-                                    booksData.getData().size(),
-                                    selectedCategory.id,
-                                    Constants.UNSORTED_BOOKS_CATEGORY_ID);
-                            ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
-                            adapter.addAll(0, books);
+                            ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                    itemPresenter
+                                    ,selectedCategory.id,
+                                    Constants.UNSORTED_BOOKS_CATEGORY_ID,
+                                    gridView);
                             rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
                         }
                         return rows;
@@ -237,13 +225,11 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 .thenApply(booksData -> {
                                     List<BookDto> books = booksData.getData();
                                     if (!books.isEmpty()) {
-                                        RowUploadInfo info = new RowUploadInfo(
-                                                booksData.getTotal(),
-                                                booksData.getData().size(),
+                                        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                                itemPresenter,
                                                 selectedCategory.id,
-                                                subCategory.id);
-                                        ArrayBookAdapter adapter = new ArrayBookAdapter(itemPresenter,info,gridView);
-                                        adapter.addAll(0, books);
+                                                subCategory.id,
+                                                gridView);
                                         return new ListRow(new HeaderItem(subCategory.id, subCategory.name), adapter);
                                     }
                                     return null;
@@ -356,13 +342,11 @@ public class PageRowsFragment extends RowsSupportFragment {
         if(!categoriesList.categories.isEmpty()){
             for(CategoryDto cat:categoriesList.categories){
                 bookRepository.getRowBooksCountAsync(currentMainCategoryId,cat.id).thenAccept((count)->{
-                    RowUploadInfo info = new RowUploadInfo(
-                            count,
-                            (int)Math.min(count,INIT_ADAPTER_SIZE),
+                    ArrayBookAdapter adapter = new ArrayBookAdapter(
+                            new BookPreviewPresenter(),
                             currentMainCategoryId,
-                            cat.id);
-                    ArrayBookAdapter adapter = new ArrayBookAdapter(new BookPreviewPresenter(),info,gridView);
-                    adapter.updateAdapter();
+                            cat.id,
+                            gridView);
                     if(currentMainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID && cat.parentId != null){
                         app.getCategoriesCash().stream().filter(category -> cat.parentId == category.id)
                                 .findFirst().ifPresent(parentCategory ->

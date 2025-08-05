@@ -26,27 +26,29 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class ArrayBookAdapter extends ArrayObjectAdapter {
-    private final RowUploadInfo info;
+    private  RowUploadInfo info;
     private final BookDtoDiffCallback bookDiffCallback = new BookDtoDiffCallback();
     private final VerticalGridView gridView;
+    private final BookRepository bookRepository = new BookRepository();
 
 
-    public ArrayBookAdapter(@NonNull PresenterSelector presenterSelector,@NonNull RowUploadInfo info,VerticalGridView gridView) {
+    public ArrayBookAdapter(@NonNull PresenterSelector presenterSelector,Long mainCategoryId,Long rowCategoryId,VerticalGridView gridView) {
         super(presenterSelector);
-        this.info = info;
         this.gridView = gridView;
+        init( mainCategoryId, rowCategoryId);
+
     }
 
-    public ArrayBookAdapter(@NonNull Presenter presenter,@NonNull RowUploadInfo info,VerticalGridView gridView) {
+    public ArrayBookAdapter(@NonNull Presenter presenter,Long mainCategoryId,Long rowCategoryId,VerticalGridView gridView) {
         super(presenter);
-        this.info = info;
         this.gridView = gridView;
+        init( mainCategoryId, rowCategoryId);
     }
 
-    public ArrayBookAdapter(@NonNull RowUploadInfo info,VerticalGridView gridView) {
+    public ArrayBookAdapter(Long mainCategoryId,Long rowCategoryId,VerticalGridView gridView) {
         super();
-        this.info = info;
         this.gridView = gridView;
+        init( mainCategoryId, rowCategoryId);
     }
 
     @Override
@@ -83,6 +85,9 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
     }
 
     private void normalizeAdapterSize() {
+        long dbBooksCount = bookRepository.getRowBooksCountAsync(info.getMainCategoryId(),info.getRowCategoryId()).join();
+        long dif = info.getMaxElementsDb() - dbBooksCount;
+        if(dif == 0) return;
 
         int count = INIT_ADAPTER_SIZE - size();
         if(count == 0) return;
@@ -136,7 +141,16 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
 
     private CompletableFuture<List<BookDto>> loadRowBooks(Long mainCategoryId, Long rowCategoryId) {
         int offset = Math.max(0, info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE);
-        return new BookRepository().loadRowBooksAsync(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
+        return bookRepository.loadRowBooksAsync(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
+    }
+
+    private void init( Long mainCategoryId,Long rowCategoryId){
+        this.info = new RowUploadInfo();
+        this.info.setMainCategoryId(mainCategoryId);
+        this.info.setRowCategoryId(rowCategoryId);
+        this.info.setMaxElementsDb(bookRepository.getRowBooksCountAsync(mainCategoryId,rowCategoryId).join());
+        this.info.setLastUploadedElementDbIndex((int)Math.min(info.getMaxElementsDb(),INIT_ADAPTER_SIZE));
+        updateAdapter();
     }
 
 }
