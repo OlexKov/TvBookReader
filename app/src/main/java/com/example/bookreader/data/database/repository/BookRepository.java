@@ -220,7 +220,7 @@ public class BookRepository {
             } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
                 return getRageUnsortedBooksByCategoryIdAsync(mainCategoryId, offset, limit);
             } else {
-                return getRangeAllBooksInCategoryIdAsync(mainCategoryId, offset, limit);
+                return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
             }
         }
     }
@@ -242,7 +242,7 @@ public class BookRepository {
             } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
                 return CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId));
             } else {
-                return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(mainCategoryId));
+                return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
             }
         }
     }

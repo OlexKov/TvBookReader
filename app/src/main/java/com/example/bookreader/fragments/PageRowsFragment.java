@@ -74,11 +74,9 @@ public class PageRowsFragment extends RowsSupportFragment {
         super.setExpand(true);
     }
 
-    private CompletableFuture<List<ListRow>> getFavoriteRows(BookRepository bookRepo, BookPreviewPresenter itemPresenter){
-        return bookRepo.getPageDataFavoriteBooksAsync(1, INIT_ADAPTER_SIZE).thenApply((booksData)->{
+    private CompletableFuture<List<ListRow>> getFavoriteRows(BookPreviewPresenter itemPresenter){
+        return CompletableFuture.supplyAsync(()->{
             List<ListRow> rows = new ArrayList<>();
-            List<BookDto> books = booksData.getData();
-            if(!books.isEmpty()){
                 ArrayBookAdapter adapter = new ArrayBookAdapter(
                         itemPresenter,
                         Constants.FAVORITE_CATEGORY_ID,
@@ -87,7 +85,6 @@ public class PageRowsFragment extends RowsSupportFragment {
                 rows.add(new ListRow(new IconHeader(Constants.FAVORITE_CATEGORY_ID,
                         getString(R.string.favorite),R.drawable.books_stack),
                         adapter));
-            }
             return rows;
         });
     }
@@ -103,13 +100,11 @@ public class PageRowsFragment extends RowsSupportFragment {
         });
     }
 
-    private CompletableFuture<List<ListRow>> getAllRowsPage(BookRepository bookRepo,BookPreviewPresenter itemPresenter, List<CategoryDto> categories){
-        CompletableFuture<List<ListRow>> allBooks = bookRepo.getPageDataAllBooksAsync(1, INIT_ADAPTER_SIZE)
-                .thenApply(booksData ->{
+    private CompletableFuture<List<ListRow>> getAllRowsPage(BookPreviewPresenter itemPresenter, List<CategoryDto> categories){
+        CompletableFuture<List<ListRow>> allBooks = CompletableFuture
+                .supplyAsync(() ->{
                     List<ListRow> rows = new ArrayList<>();
-                    List<BookDto> books = booksData.getData();
-                    if(!books.isEmpty()){
-                        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                    ArrayBookAdapter adapter = new ArrayBookAdapter(
                                 itemPresenter,
                                 Constants.ALL_BOOKS_CATEGORY_ID,
                                 Constants.ALL_BOOKS_CATEGORY_ID,
@@ -117,23 +112,18 @@ public class PageRowsFragment extends RowsSupportFragment {
                         rows.add(new ListRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID,
                                 getString(R.string.all_category),R.drawable.books_stack),
                                 adapter));
-                    }
                     return rows;
                 });
 
-        CompletableFuture<List<ListRow>> unsortedBooks = bookRepo.getPageDataUnsortedBooksAsync(1, INIT_ADAPTER_SIZE)
-                .thenApply(booksData ->{
+        CompletableFuture<List<ListRow>> unsortedBooks = CompletableFuture
+                .supplyAsync(() ->{
                     List<ListRow> rows = new ArrayList<>();
-
-                    List<BookDto> books = booksData.getData();
-                    if(!books.isEmpty()){
                        ArrayBookAdapter adapter = new ArrayBookAdapter(
                                 itemPresenter,
                                 Constants.ALL_BOOKS_CATEGORY_ID,
                                 Constants.UNSORTED_BOOKS_CATEGORY_ID,
                                 gridView);
                         rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
-                    }
                     return rows;
                 });
 
@@ -141,19 +131,15 @@ public class PageRowsFragment extends RowsSupportFragment {
             List<CompletableFuture<ListRow>> futures = new ArrayList<>();
             for (CategoryDto cat : categories) {
                 if(cat.parentId == null){
-                    CompletableFuture<ListRow> futureRow = bookRepo.getPageDataAllBooksInCategoryIdAsync(cat.id,1, INIT_ADAPTER_SIZE)
-                            .thenApply(booksData -> {
-                                List<BookDto> books = booksData.getData();
-                                if (!books.isEmpty()) {
-                                    ArrayBookAdapter adapter = new ArrayBookAdapter(
+                    CompletableFuture<ListRow> futureRow = CompletableFuture
+                            .supplyAsync(() -> {
+                                ArrayBookAdapter adapter = new ArrayBookAdapter(
                                             itemPresenter,
                                             Constants.ALL_BOOKS_CATEGORY_ID,
                                             cat.id,
                                             gridView);
                                     return new ListRow(new HeaderItem(cat.id, cat.name), adapter);
-                                }
-                                return null;
-                            });
+                             });
                     futures.add(futureRow);
                 }
             }
@@ -178,39 +164,31 @@ public class PageRowsFragment extends RowsSupportFragment {
                 });
     }
 
-    private CompletableFuture<List<ListRow>> getOtherPageRows(BookRepository bookRepo,
-                                                              BookPreviewPresenter itemPresenter,String category,
+    private CompletableFuture<List<ListRow>> getOtherPageRows(BookPreviewPresenter itemPresenter,String category,
                                                               List<CategoryDto> categories){
         Optional<CategoryDto> optionalCategory = categories.stream().filter(x -> x.name.equals(category)).findFirst();
         if (optionalCategory.isPresent()) {
             CategoryDto selectedCategory = optionalCategory.get();
-            CompletableFuture<List<ListRow>> allCategoryBooks = bookRepo.getPageDataAllBooksInCategoryIdAsync(selectedCategory.id,1, INIT_ADAPTER_SIZE)
-                    .thenApply(booksData -> {
+            CompletableFuture<List<ListRow>> allCategoryBooks = CompletableFuture
+                    .supplyAsync(() -> {
                         List<ListRow> rows = new ArrayList<>();
-                        List<BookDto> books = booksData.getData();
-                        if (books != null && !books.isEmpty()) {
-                           ArrayBookAdapter adapter = new ArrayBookAdapter(
-                                    itemPresenter,
-                                    selectedCategory.id,
-                                    Constants.ALL_BOOKS_CATEGORY_ID,
-                                    gridView);
-                            rows.add(new ListRow(new HeaderItem(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category)), adapter));
-                        }
+                        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                itemPresenter,
+                                selectedCategory.id,
+                                Constants.ALL_BOOKS_CATEGORY_ID,
+                                gridView);
+                        rows.add(new ListRow(new HeaderItem(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category)), adapter));
                         return rows;
                     });
-            CompletableFuture<List<ListRow>> unsortedCategoryBooks =
-                    bookRepo.getPageDataUnsortedBooksByCategoryIdAsync(selectedCategory.id,1, INIT_ADAPTER_SIZE)
-                    .thenApply(booksData -> {
+            CompletableFuture<List<ListRow>> unsortedCategoryBooks = CompletableFuture
+                    .supplyAsync(() -> {
                         List<ListRow> rows = new ArrayList<>();
-                        List<BookDto> books = booksData.getData();
-                        if (!books.isEmpty()) {
-                            ArrayBookAdapter adapter = new ArrayBookAdapter(
-                                    itemPresenter
-                                    ,selectedCategory.id,
-                                    Constants.UNSORTED_BOOKS_CATEGORY_ID,
-                                    gridView);
-                            rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
-                        }
+                        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                itemPresenter
+                                ,selectedCategory.id,
+                                Constants.UNSORTED_BOOKS_CATEGORY_ID,
+                                gridView);
+                        rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
                         return rows;
                     });
 
@@ -220,21 +198,16 @@ public class PageRowsFragment extends RowsSupportFragment {
                         .collect(Collectors.toList());
                 List<CompletableFuture<ListRow>> futures = new ArrayList<>();
                 for (CategoryDto subCategory : subcategories) {
-
-                        CompletableFuture<ListRow> futureRow = bookRepo.getPageDataAllBooksInCategoryIdAsync(subCategory.id,1, INIT_ADAPTER_SIZE)
-                                .thenApply(booksData -> {
-                                    List<BookDto> books = booksData.getData();
-                                    if (!books.isEmpty()) {
-                                        ArrayBookAdapter adapter = new ArrayBookAdapter(
-                                                itemPresenter,
-                                                selectedCategory.id,
-                                                subCategory.id,
-                                                gridView);
-                                        return new ListRow(new HeaderItem(subCategory.id, subCategory.name), adapter);
-                                    }
-                                    return null;
-                                });
-                        futures.add(futureRow);
+                    CompletableFuture<ListRow> futureRow = CompletableFuture
+                            .supplyAsync(() -> {
+                                ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                        itemPresenter,
+                                        selectedCategory.id,
+                                        subCategory.id,
+                                        gridView);
+                                return new ListRow(new HeaderItem(subCategory.id, subCategory.name), adapter);
+                            });
+                    futures.add(futureRow);
                 }
 
                 // Дочекатися завершення всіх ф’ючерсів
@@ -264,7 +237,6 @@ public class PageRowsFragment extends RowsSupportFragment {
     private void setPageRows() {
         String categoryName = getCurrentCategoryName();
         if (categoryName == null || categoryName.isEmpty()) return;
-        BookRepository bookRepo = new BookRepository();
         BookPreviewPresenter itemPresenter = new BookPreviewPresenter();
         CompletableFuture<List<ListRow>> future ;
 
@@ -275,17 +247,17 @@ public class PageRowsFragment extends RowsSupportFragment {
         else{
             progressBarManager.show();
             if(getString(R.string.favorite).equals(categoryName)){
-                future = getFavoriteRows(bookRepo,itemPresenter);
+                future = getFavoriteRows(itemPresenter);
             }
             else{
                 List<CategoryDto> categories = app.getCategoriesCash().stream()
                         .filter(c->c.booksCount > 0).collect(Collectors.toList());
 
                 if(categoryName.equals(getString(R.string.all_category))){
-                    future = getAllRowsPage(bookRepo,itemPresenter,categories);
+                    future = getAllRowsPage(itemPresenter,categories);
                 }
                 else{
-                    future = getOtherPageRows(bookRepo,itemPresenter, categoryName,categories);
+                    future = getOtherPageRows(itemPresenter, categoryName,categories);
                 }
             }
         }
@@ -495,7 +467,7 @@ public class PageRowsFragment extends RowsSupportFragment {
 
     private final Consumer<RowItemData> itemSelectChangeListenerHandler = (rowBookData)->{
          if( !(rowBookData.getRow().getAdapter() instanceof ArrayBookAdapter bookAdapter)) return;
-         bookAdapter.paginateRow(rowBookData.getBook());
+         bookAdapter.tryPaginateRow(rowBookData.getBook());
     };
 
     private  String getCurrentCategoryName(){

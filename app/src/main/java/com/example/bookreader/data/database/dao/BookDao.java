@@ -69,7 +69,7 @@ public interface BookDao {
 
     @Query("SELECT COUNT(*) FROM books  " +
             "WHERE categoryId = :categoryId "+
-            "OR categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) ")
+            "AND categoryId IN ( SELECT id FROM categories WHERE parentId IS NULL) ")
     Long getUnsortedByCategoryIdCountAsync(Long categoryId);
 
     @Query( "SELECT COUNT(*) FROM books "+
