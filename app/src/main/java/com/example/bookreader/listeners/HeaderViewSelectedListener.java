@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
+import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowHeaderPresenter;
 
@@ -24,16 +25,14 @@ public class HeaderViewSelectedListener implements HeadersSupportFragment.OnHead
 
     @Override
     public void onHeaderSelected(RowHeaderPresenter.ViewHolder viewHolder, Row row) {
-        if (row != null && row.getHeaderItem() != null) {
-            if(!(row.getHeaderItem() instanceof  IconHeader iconHeader)) return;
+        if (row instanceof PageRow pageRow && pageRow.getHeaderItem() instanceof  IconHeader iconHeader) {
             String title = row.getHeaderItem().getName();
             fragment.setTitle(title);
             View titleView  = fragment.getTitleView();
             if(titleView instanceof CustomTitleView customTitleView) {
                 customTitleView.setTitleIcon(ContextCompat.getDrawable(titleView.getContext(), iconHeader.iconResId));
             }
-            Object adapterObj = fragment.getAdapter();
-            if (adapterObj instanceof ArrayObjectAdapter adapter) {
+            if ( fragment.getAdapter() instanceof ArrayObjectAdapter adapter) {
                 if(!title.equals(app.getSelectedMainCategoryInfo().getName())){
                     var categoryInfo = new MainCategoryInfo(adapter.indexOf(row),row.getId(),iconHeader.getName(),iconHeader.iconResId);
                     app.setSelectedMainCategoryInfo(categoryInfo);

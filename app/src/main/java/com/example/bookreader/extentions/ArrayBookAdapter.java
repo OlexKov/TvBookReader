@@ -85,10 +85,6 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
     }
 
     private void normalizeAdapterSize() {
-        long dbBooksCount = bookRepository.getRowBooksCountAsync(info.getMainCategoryId(),info.getRowCategoryId()).join();
-        long dif = info.getMaxElementsDb() - dbBooksCount;
-        if(dif == 0) return;
-
         int count = INIT_ADAPTER_SIZE - size();
         if(count == 0) return;
         if(count < 0){
@@ -104,7 +100,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         }
     }
 
-    public void paginateRow(BookDto selectedBook){
+    public void tryPaginateRow(BookDto selectedBook){
         int currentFocusPosition = this.indexOf(selectedBook);
         boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD > INIT_ADAPTER_SIZE;
         boolean prevThreshold = currentFocusPosition - UPLOAD_THRESHOLD < 0;
@@ -121,36 +117,43 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         }
     }
 
-    public void updateAdapter(){
-        loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId()).thenAccept(books->{
+    private CompletableFuture<Integer> updateAdapter(){
+       return loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId()).thenApply(books->{
             if(!books.isEmpty()){
                 new Handler(Looper.getMainLooper()).post(() -> {
                     setItems(books,bookDiffCallback);
                     gridView.post(() -> {
                         info.setLoading(false);
                     });
+
                 });
             }
+            return books.size();
         }).exceptionally(ex->{
             Log.e("ERROR", "Exception in future: " + ex.getMessage(), ex);
             return null;
         });
     }
 
-    public RowUploadInfo getRowUploadInfo() {return info;}
-
     private CompletableFuture<List<BookDto>> loadRowBooks(Long mainCategoryId, Long rowCategoryId) {
         int offset = Math.max(0, info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE);
         return bookRepository.loadRowBooksAsync(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
     }
 
-    private void init( Long mainCategoryId,Long rowCategoryId){
+    private CompletableFuture<Integer>  init( Long mainCategoryId,Long rowCategoryId){
         this.info = new RowUploadInfo();
         this.info.setMainCategoryId(mainCategoryId);
         this.info.setRowCategoryId(rowCategoryId);
         this.info.setMaxElementsDb(bookRepository.getRowBooksCountAsync(mainCategoryId,rowCategoryId).join());
         this.info.setLastUploadedElementDbIndex((int)Math.min(info.getMaxElementsDb(),INIT_ADAPTER_SIZE));
-        updateAdapter();
+        return updateAdapter();
+    }
+
+    public Long getMainCategoryId() {return info.getMainCategoryId();}
+    public Long getRowCategoryId() {return info.getRowCategoryId();}
+
+    public  CompletableFuture<Integer> reinit(){
+       return init( info.getMainCategoryId(),info.getRowCategoryId());
     }
 
 }

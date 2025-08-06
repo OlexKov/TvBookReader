@@ -5,6 +5,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
@@ -15,6 +16,7 @@ import com.example.bookreader.extentions.IconHeader;
 
 public class IconCategoryItemPresenter extends RowHeaderPresenter {
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup) {
         LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
@@ -23,7 +25,7 @@ public class IconCategoryItemPresenter extends RowHeaderPresenter {
     }
 
     @Override
-    public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object o) {
+    public void onBindViewHolder(@NonNull Presenter.ViewHolder viewHolder, Object o) {
             if(o instanceof PageRow pageRow){
                 HeaderItem headerItem = pageRow.getHeaderItem();
                 View rootView = viewHolder.view;

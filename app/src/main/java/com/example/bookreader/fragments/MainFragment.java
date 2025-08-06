@@ -27,6 +27,7 @@ import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DividerPresenter;
 import androidx.leanback.widget.DividerRow;
+import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
@@ -44,8 +45,10 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 
 import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.diffcallbacks.PageRowDiffCallback;
 import com.example.bookreader.fragments.filebrowser.BrowserMode;
 import com.example.bookreader.fragments.filebrowser.BrowserResult;
+import com.example.bookreader.presenters.DividerRowHeaderPresenter;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -82,8 +85,6 @@ public class MainFragment extends BrowseSupportFragment {
         super.onViewCreated(view, savedInstanceState);
         rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
         setupEventListeners();
-
-         //  prepareBackgroundManager();
         setupUIElements();
         setupCategoryRows();
         getMainFragmentRegistry().registerFragment(PageRow.class, new PageRowFragmentFactory());
@@ -111,7 +112,7 @@ public class MainFragment extends BrowseSupportFragment {
                     return new IconCategoryItemPresenter();
                 }
                 else  {
-                    return new DividerPresenter();
+                    return new DividerRowHeaderPresenter();
                 }
             }
         });
@@ -182,18 +183,14 @@ public class MainFragment extends BrowseSupportFragment {
     };
 
     private final Consumer<Long> categoryDeleteHandler = (categoryToDeleteId)->{
-       for (int i = 0; i < rowsAdapter.size(); i++) {
-            if(rowsAdapter.get(i) instanceof PageRow pageRow){
-                if(pageRow.getId() == categoryToDeleteId)
-                {
-                    Log.d("BOOKUPDATELOG","main row delete - "+String.valueOf(pageRow.getHeaderItem().getName()));
-                    rowsAdapter.remove(pageRow);
-                    if (!app.isMenuOpen()){
-                        startHeadersTransition(true);
-                    }
-                    return;
-                }
-            }
+        if(categoryToDeleteId == Constants.ALL_BOOKS_CATEGORY_ID) return;
+        var items = rowsAdapter.unmodifiableList().stream()
+                .filter(row-> row instanceof DividerRow||(row instanceof PageRow && ((PageRow)row).getHeaderItem().getId() != categoryToDeleteId))
+                .collect(Collectors.toList());
+        rowsAdapter.setItems(items,new PageRowDiffCallback());
+        setSelectedPosition(0);
+        if (!app.isMenuOpen()){
+           startHeadersTransition(true);
         }
     };
 
@@ -214,7 +211,6 @@ public class MainFragment extends BrowseSupportFragment {
         if (!app.isMenuOpen()){
             startHeadersTransition(true);
         }
-        rowsAdapter.clear();
         BookRepository bookRepository = new BookRepository();
         bookRepository.getFavoriteBooksCount((count)->{
 
