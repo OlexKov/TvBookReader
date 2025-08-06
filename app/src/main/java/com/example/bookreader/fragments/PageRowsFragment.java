@@ -326,7 +326,6 @@ public class PageRowsFragment extends RowsSupportFragment {
                         rowsAdapter.add(new ListRow(new HeaderItem(cat.id, cat.name), adapter));
                     }
                 });
-
             }
         }
     };
