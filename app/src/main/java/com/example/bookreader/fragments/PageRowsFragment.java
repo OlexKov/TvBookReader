@@ -1,6 +1,5 @@
 package com.example.bookreader.fragments;
 
-import static com.example.bookreader.constants.Constants.INIT_ADAPTER_SIZE;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,7 +23,6 @@ import com.example.bookreader.customclassses.NewCategoryList;
 import com.example.bookreader.extentions.ArrayBookAdapter;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.customclassses.RowItemData;
-import com.example.bookreader.customclassses.RowUploadInfo;
 import com.example.bookreader.customclassses.TextIcon;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -74,8 +72,8 @@ public class PageRowsFragment extends RowsSupportFragment {
         super.setExpand(true);
     }
 
-    private CompletableFuture<List<ListRow>> getFavoriteRows(BookPreviewPresenter itemPresenter){
-        return CompletableFuture.supplyAsync(()->{
+    private CompletableFuture<List<ListRow>> getFavoriteRow(BookPreviewPresenter itemPresenter){
+        return  CompletableFuture.supplyAsync(()->{
             List<ListRow> rows = new ArrayList<>();
                 ArrayBookAdapter adapter = new ArrayBookAdapter(
                         itemPresenter,
@@ -247,7 +245,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         else{
             progressBarManager.show();
             if(getString(R.string.favorite).equals(categoryName)){
-                future = getFavoriteRows(itemPresenter);
+                future = getFavoriteRow(itemPresenter);
             }
             else{
                 List<CategoryDto> categories = app.getCategoriesCash().stream()
@@ -294,7 +292,8 @@ public class PageRowsFragment extends RowsSupportFragment {
             if( rowsAdapter.get(i) instanceof ListRow row && row.getAdapter() instanceof ArrayBookAdapter bookAdapter){
                if(Objects.equals(bookAdapter.getMainCategoryId(),currentMainCategoryId)){
                     long rowId = bookAdapter.getRowCategoryId();
-                    var categoryToUpdate = categoriesList.categories.stream().filter(cat->cat.parentId == rowId || cat.id == rowId)
+                    var categoryToUpdate = categoriesList.categories.stream().filter(cat->
+                                    Objects.equals(cat.parentId, rowId) || Objects.equals(cat.id,rowId))
                             .findFirst().orElse(null);
                     if(rowId == Constants.ALL_BOOKS_CATEGORY_ID || rowId == Constants.UNSORTED_BOOKS_CATEGORY_ID || categoryToUpdate != null){
                         bookRepository.getRowBooksCountAsync(bookAdapter.getMainCategoryId(),bookAdapter.getRowCategoryId())
@@ -370,6 +369,29 @@ public class PageRowsFragment extends RowsSupportFragment {
 
    };
 
+    private void tryAddCategoryRow(Long id,String name){
+         Long selectedMainCategory = app.getSelectedMainCategoryInfo().getId();
+         boolean inUnsortedCategory = id == null || Objects.equals(id , selectedMainCategory);
+
+         for (int i = 0; i < rowsAdapter.size(); i++){
+            if(rowsAdapter.get(i) instanceof ListRow row
+                    && (inUnsortedCategory ? row.getId() == Constants.UNSORTED_BOOKS_CATEGORY_ID  : row.getId() == id)) return;
+         }
+
+        int position = rowsAdapter.size();
+        if(inUnsortedCategory){
+            id = Constants.UNSORTED_BOOKS_CATEGORY_ID;
+            position = 1;
+            name = getString(R.string.unsorted_category);
+        }
+        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                new BookPreviewPresenter(),
+                selectedMainCategory,
+                id,
+                gridView);
+        rowsAdapter.add(position,new ListRow(new HeaderItem(id, name), adapter));
+    }
+
     private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
         boolean categoryChanged = false;
         for (int i = 0; i < rowsAdapter.size(); i++){
@@ -378,8 +400,29 @@ public class PageRowsFragment extends RowsSupportFragment {
             int index = adapter.indexOf(updatedBook);
             if(index >= 0){
                 if(adapter.get(index) instanceof BookDto currentBook){
-                    if(!Objects.equals(currentBook.categoryId,updatedBook.id)){
+                    if(!Objects.equals(currentBook.categoryId,updatedBook.categoryId)){
                         categoryChanged = true;
+                        if(updatedBook.categoryId != null){
+                            app.getCategoriesCash().stream().filter(cat -> cat.id == updatedBook.categoryId)
+                                    .findFirst().ifPresent(category -> {
+                                        if(Objects.equals(category.id,adapter.getMainCategoryId()) || Objects.equals(category.parentId,adapter.getMainCategoryId())){
+                                            tryAddCategoryRow(category.id,category.name);
+                                        }
+                                        else{
+                                            app.getGlobalEventListener().sendEvent(
+                                                    GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,
+                                                    category.parentId != null
+                                                            ? category.parentId
+                                                            : category.id);
+                                        }
+                                    });
+                        }
+                        else{
+                            if(adapter.getMainCategoryId() == Constants.ALL_BOOKS_CATEGORY_ID){
+                                tryAddCategoryRow(null,null);
+                            }
+                        }
+
                         break;
                     }
 
@@ -403,6 +446,7 @@ public class PageRowsFragment extends RowsSupportFragment {
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v->{
                 if(!rowsToDelete.isEmpty()){
+                    app.updateCategoryCash();
                     if(rowsAdapter.size() == rowsToDelete.size()){
                         app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
                         return;

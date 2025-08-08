@@ -14,6 +14,8 @@ public class DividerRowHeaderPresenter extends RowHeaderPresenter {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         View view = new View(parent.getContext());
+        view.setFocusable(false);
+        view.setFocusableInTouchMode(false);
         view.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 2 // або 1px, або dp, залежно від роздільника

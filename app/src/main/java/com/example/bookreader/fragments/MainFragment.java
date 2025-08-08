@@ -15,6 +15,7 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -28,10 +29,13 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.DividerPresenter;
 import androidx.leanback.widget.DividerRow;
 import androidx.leanback.widget.ListRow;
+import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
+import androidx.leanback.widget.VerticalGridView;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -91,7 +95,6 @@ public class MainFragment extends BrowseSupportFragment {
         setFileBrowserLauncher();
         setNewFileActivityLauncher();
         prepareBackgroundManager();
-
     }
 
     @Override
@@ -129,6 +132,7 @@ public class MainFragment extends BrowseSupportFragment {
     }
 
     private void setupEventListeners(){
+
         setBrowseTransitionListener(new BrowserTransitionListener());
         //Зміна заголовку відповідно до обраної категорії
         HeadersSupportFragment supportFragment = getHeadersSupportFragment();
@@ -161,12 +165,28 @@ public class MainFragment extends BrowseSupportFragment {
         LifecycleOwner owner = getViewLifecycleOwner();
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler,BookDto.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectedChangeHandler, RowItemData.class);
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,categoryDeleteHandler,Long.class);
     }
 
-    private final Consumer<RowItemData> addCategoryHandler = (RowItemData rowItemData)->{
+    private final Consumer<Long> addCategoryHandler = (Long categoryId)->{
+        for (int i = 0; i < rowsAdapter.size(); i++) {
+            if(rowsAdapter.get(i) instanceof PageRow pageRow){
+                if(pageRow.getId() == categoryId) return;
+            }
+        }
 
+        if(categoryId == Constants.FAVORITE_CATEGORY_ID){
+            rowsAdapter.add(0,new PageRow( new IconHeader(Constants.FAVORITE_CATEGORY_ID,
+                    getString(R.string.favorite),
+                    R.drawable.books_stack)));
+        }
+        else{
+            app.getCategoriesCash().stream().filter(cat -> cat.id == categoryId)
+                    .findFirst().ifPresent(category -> rowsAdapter.add(rowsAdapter.size() - 2, new PageRow(new IconHeader(category.id,
+                            category.name,
+                            category.iconId))));
+        }
     };
 
     private final Consumer<RowItemData> itemSelectedChangeHandler = (RowItemData rowItemData)->{
@@ -184,13 +204,18 @@ public class MainFragment extends BrowseSupportFragment {
 
     private final Consumer<Long> categoryDeleteHandler = (categoryToDeleteId)->{
         if(categoryToDeleteId == Constants.ALL_BOOKS_CATEGORY_ID) return;
-        var items = rowsAdapter.unmodifiableList().stream()
-                .filter(row-> row instanceof DividerRow||(row instanceof PageRow && ((PageRow)row).getHeaderItem().getId() != categoryToDeleteId))
-                .collect(Collectors.toList());
-        rowsAdapter.setItems(items,new PageRowDiffCallback());
-        setSelectedPosition(0);
-        if (!app.isMenuOpen()){
-           startHeadersTransition(true);
+        var item = rowsAdapter.unmodifiableList().stream()
+                .filter(row-> row instanceof DividerRow || (row instanceof PageRow && ((PageRow)row).getHeaderItem().getId() == categoryToDeleteId))
+                .findFirst().orElse(null);
+        if(item != null){
+            var index = rowsAdapter.indexOf(item);
+            if(index > 0){
+                setSelectedPosition(index - 1);
+            }
+            rowsAdapter.removeItems(index,1);
+            if (!app.isMenuOpen()) {
+                startHeadersTransition(true);
+            }
         }
     };
 
@@ -201,9 +226,7 @@ public class MainFragment extends BrowseSupportFragment {
             }
         }
        if(favoriteBook.isFavorite){
-          rowsAdapter.add(0,new PageRow( new IconHeader(Constants.FAVORITE_CATEGORY_ID,
-                   getString(R.string.favorite),
-                   R.drawable.books_stack)));
+           addCategoryHandler.accept(Constants.FAVORITE_CATEGORY_ID);
        }
     };
 
