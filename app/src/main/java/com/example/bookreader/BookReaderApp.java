@@ -78,7 +78,7 @@ public class BookReaderApp  extends Application {
         Executors.newSingleThreadExecutor().execute(() -> {
             categoriesCash.clear();
             categoriesCash.addAll(appDatabase.categoryDao().getAllParentWithBookCount());
-            globalEventListener.sendEvent(GlobalEventType.CATEGORY_CASH_UPDATED,null);
+            globalEventListener.sendEvent(GlobalEventType.CATEGORIES_CASH_UPDATED,null);
         });
     }
 

@@ -15,7 +15,6 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -26,16 +25,11 @@ import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.DividerPresenter;
 import androidx.leanback.widget.DividerRow;
-import androidx.leanback.widget.ListRow;
-import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
-import androidx.leanback.widget.VerticalGridView;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -49,7 +43,6 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 
 import com.example.bookreader.data.database.repository.CategoryRepository;
-import com.example.bookreader.diffcallbacks.PageRowDiffCallback;
 import com.example.bookreader.fragments.filebrowser.BrowserMode;
 import com.example.bookreader.fragments.filebrowser.BrowserResult;
 import com.example.bookreader.presenters.DividerRowHeaderPresenter;
@@ -62,7 +55,7 @@ import com.example.bookreader.extentions.RowPresenterSelector;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.BrowserTransitionListener;
 import com.example.bookreader.listeners.HeaderViewSelectedListener;
-import com.example.bookreader.presenters.IconCategoryItemPresenter;
+import com.example.bookreader.presenters.MainCategoryItemPresenter;
 
 
 import java.io.File;
@@ -112,7 +105,7 @@ public class MainFragment extends BrowseSupportFragment {
             @Override
             public Presenter getPresenter(Object o) {
                 if (o instanceof PageRow) {
-                    return new IconCategoryItemPresenter();
+                    return new MainCategoryItemPresenter();
                 }
                 else  {
                     return new DividerRowHeaderPresenter();
@@ -243,10 +236,10 @@ public class MainFragment extends BrowseSupportFragment {
                 var iconHeader = new IconHeader(
                         Constants.FAVORITE_CATEGORY_ID,
                         favoriteName,
-                        R.drawable.books_stack);
+                        R.drawable.favorite);
                 rowsAdapter.add(0,new PageRow( iconHeader));
                 app.setSelectedMainCategoryInfo(
-                        new MainCategoryInfo(0, Constants.FAVORITE_CATEGORY_ID,favoriteName, R.drawable.books_stack)
+                        new MainCategoryInfo(0, Constants.FAVORITE_CATEGORY_ID,favoriteName, R.drawable.favorite)
                 );
             }
             else{
@@ -358,9 +351,7 @@ public class MainFragment extends BrowseSupportFragment {
                     .map(cat-> new PageRow(new IconHeader(cat.id, cat.name,cat.iconId)))
                     .collect(Collectors.toList());
             if(!newCategories.isEmpty()){
-                app.updateCategoryCash();
                 rowsAdapter.addAll(rowsAdapter.size() - 2,newCategories);
-
             }
         }
     }

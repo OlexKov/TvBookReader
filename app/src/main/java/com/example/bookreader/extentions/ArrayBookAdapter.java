@@ -140,21 +140,23 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         return bookRepository.loadRowBooksAsync(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
     }
 
-    private CompletableFuture<Integer> init( Long mainCategoryId,Long rowCategoryId){
+    private void init( Long mainCategoryId,Long rowCategoryId){
         this.info = new RowUploadInfo();
         this.info.setMainCategoryId(mainCategoryId);
         this.info.setRowCategoryId(rowCategoryId);
         this.info.setMaxElementsDb(bookRepository.getRowBooksCountAsync(mainCategoryId,rowCategoryId).join());
         this.info.setLastUploadedElementDbIndex((int)Math.min(info.getMaxElementsDb(),INIT_ADAPTER_SIZE));
-        return updateAdapter();
+        updateAdapter();
     }
 
     public Long getMainCategoryId() {return info.getMainCategoryId();}
 
     public Long getRowCategoryId() {return info.getRowCategoryId();}
 
-    public  CompletableFuture<Integer> reinit(){
-       return init( info.getMainCategoryId(),info.getRowCategoryId());
+    public Long getDbElementsCount() {return info.getMaxElementsDb();}
+
+    public  void reinit(){
+       init( info.getMainCategoryId(),info.getRowCategoryId());
     }
 
 }

@@ -12,6 +12,7 @@ import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
+import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -21,6 +22,7 @@ import com.example.bookreader.constants.ActionType;
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.NewCategoryList;
 import com.example.bookreader.extentions.ArrayBookAdapter;
+import com.example.bookreader.presenters.RowCategoryItemPresenter;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.customclassses.TextIcon;
@@ -28,7 +30,6 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.extentions.IconHeader;
-import com.example.bookreader.extentions.RowPresenterSelector;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
 import com.example.bookreader.listeners.ItemViewClickedListener;
 import com.example.bookreader.listeners.RowItemSelectedListener;
@@ -55,7 +56,9 @@ public class PageRowsFragment extends RowsSupportFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         gridView = getVerticalGridView();
-        rowsAdapter = new StableIdArrayObjectAdapter(new RowPresenterSelector());
+        var listRowPresenter = new ListRowPresenter();
+        listRowPresenter.setHeaderPresenter(new RowCategoryItemPresenter());
+        rowsAdapter = new StableIdArrayObjectAdapter(listRowPresenter);
         progressBarManager = new ProgressBarManager();
         if(getView() instanceof  ViewGroup root){
             progressBarManager.setRootView((ViewGroup) root.getRootView());
@@ -82,7 +85,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         Constants.FAVORITE_CATEGORY_ID,
                         gridView);
                 rows.add(new ListRow(new IconHeader(Constants.FAVORITE_CATEGORY_ID,
-                        getString(R.string.favorite),R.drawable.books_stack),
+                        getString(R.string.favorite),R.drawable.favorite),
                         adapter));
             }
             return rows;
@@ -124,7 +127,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 Constants.ALL_BOOKS_CATEGORY_ID,
                                 Constants.UNSORTED_BOOKS_CATEGORY_ID,
                                 gridView);
-                        rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
+                        rows.add(new ListRow(new IconHeader(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category),R.drawable.unsorted_book), adapter));
                     }
                     return rows;
                 });
@@ -179,7 +182,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 selectedCategory.id,
                                 Constants.ALL_BOOKS_CATEGORY_ID,
                                 gridView);
-                        rows.add(new ListRow(new HeaderItem(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category)), adapter));
+                        rows.add(new ListRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID, getString(R.string.all_category),R.drawable.books_stack), adapter));
                         return rows;
                     });
             CompletableFuture<List<ListRow>> unsortedCategoryBooks = CompletableFuture
@@ -191,7 +194,11 @@ public class PageRowsFragment extends RowsSupportFragment {
                                     selectedCategory.id,
                                     Constants.UNSORTED_BOOKS_CATEGORY_ID,
                                     gridView);
-                            rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
+                            rows.add(new ListRow(new IconHeader(
+                                    Constants.UNSORTED_BOOKS_CATEGORY_ID,
+                                    getString(R.string.unsorted_category),
+                                    R.drawable.unsorted_book),
+                                    adapter));
                         }
                         return rows;
                     });
@@ -209,7 +216,12 @@ public class PageRowsFragment extends RowsSupportFragment {
                                         selectedCategory.id,
                                         subCategory.id,
                                         gridView);
-                                return new ListRow(new HeaderItem(subCategory.id, subCategory.name), adapter);
+                                return new ListRow(new IconHeader(
+                                        subCategory.id,
+                                        subCategory.name,
+                                        subCategory.iconId != null
+                                                ? subCategory.iconId
+                                                : R.drawable.unsorted), adapter);
                             });
                     futures.add(futureRow);
                 }
@@ -289,25 +301,31 @@ public class PageRowsFragment extends RowsSupportFragment {
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_UPDATED,bookUpdatedHandler,BookDto.class);
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_FAVORITE_UPDATED, bookFavoriteUpdateHandler,BookDto.class);
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.UPDATE_CATEGORIES_COMMAND, categoriesUpdateHandler, NewCategoryList.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.CATEGORIES_CASH_UPDATED, categoriesCashUpdatedHandler, Object.class);
     }
+
+    private final Consumer<Object> categoriesCashUpdatedHandler = (o)->{
+       // rowsAdapter.notifyItemRangeChanged(0,rowsAdapter.size());
+    };
 
     private final Consumer<NewCategoryList> categoriesUpdateHandler = (categoriesList)->{
         Long currentMainCategoryId = app.getSelectedMainCategoryInfo().getId();
         for(int i = 0; i< rowsAdapter.size(); i++){
             if( rowsAdapter.get(i) instanceof ListRow row && row.getAdapter() instanceof ArrayBookAdapter bookAdapter){
-               if(Objects.equals(bookAdapter.getMainCategoryId(),currentMainCategoryId)){
+                if(Objects.equals(bookAdapter.getMainCategoryId(),currentMainCategoryId)){
                     long rowId = bookAdapter.getRowCategoryId();
                     var categoryToUpdate = categoriesList.categories.stream().filter(cat->
                                     Objects.equals(cat.parentId, rowId) || Objects.equals(cat.id,rowId))
                             .findFirst().orElse(null);
                     if(rowId == Constants.ALL_BOOKS_CATEGORY_ID || rowId == Constants.UNSORTED_BOOKS_CATEGORY_ID || categoryToUpdate != null){
                         bookAdapter.reinit();
+                        rowsAdapter.notifyItemRangeChanged(i,1);
                     }
                     if(categoryToUpdate != null){
                         categoriesList.categories.remove(categoryToUpdate);
                     }
                 }
-               else return;
+                else return;
             }
         }
         if(!categoriesList.categories.isEmpty()){
@@ -323,7 +341,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                     rowsAdapter.add(new ListRow(new HeaderItem(cat.parentId, parentCategory.name), adapter)));
                 }
                 else{
-                    rowsAdapter.add(new ListRow(new HeaderItem(cat.id, cat.name), adapter));
+                    rowsAdapter.add(new ListRow(new IconHeader(cat.id, cat.name,cat.iconId), adapter));
                 }
             }
         }
@@ -389,11 +407,12 @@ public class PageRowsFragment extends RowsSupportFragment {
                 selectedMainCategory,
                 id,
                 gridView);
-        rowsAdapter.add(position,new ListRow(new HeaderItem(id, name), adapter));
+        rowsAdapter.add(position,new ListRow(new IconHeader(id, name,R.drawable.unsorted_book), adapter));
     }
 
     private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
         boolean categoryChanged = false;
+        BookRepository bookRepository = new BookRepository();
         for (int i = 0; i < rowsAdapter.size(); i++){
             if(!(rowsAdapter.get(i) instanceof ListRow row)
                     || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
@@ -432,19 +451,25 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
 
         if(categoryChanged){
-            app.updateCategoryCash();
             List<ListRow> rowsToDelete = new ArrayList<>();
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (int i = 0; i < rowsAdapter.size(); i++){
                 if(!(rowsAdapter.get(i) instanceof ListRow row)
                         || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
-                futures.add( adapter.reinit().thenAccept((itemsCount)->{
+                int finalI = i;
+                futures.add( bookRepository.getRowBooksCountAsync(adapter.getMainCategoryId(),adapter.getRowCategoryId()).thenAccept((itemsCount)->{
                     if(itemsCount == 0){
                         rowsToDelete.add(row);
                     }
+                    else{
+                        adapter.reinit();
+                        rowsAdapter.notifyItemRangeChanged(finalI,1);
+                    }
                 }));
             }
+
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v->{
+                app.updateCategoryCash();
                 if(!rowsToDelete.isEmpty()){
                     if(rowsAdapter.size() == rowsToDelete.size()){
                         app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
@@ -470,16 +495,15 @@ public class PageRowsFragment extends RowsSupportFragment {
                     rowsToDelete.add(row);
                 }
                 else {
-                    rowAdapter.remove(book);
+                   if(rowAdapter.remove(book)){
+                       rowsAdapter.notifyItemRangeChanged(i,1);
+                   }
                 }
             }
         }
         if (!rowsToDelete.isEmpty()) {
             for (ListRow row : rowsToDelete) {
                 rowsAdapter.remove(row);
-            }
-            if (rowsAdapter.size() == 0) {
-                app.updateCategoryCash();
             }
         }
     };

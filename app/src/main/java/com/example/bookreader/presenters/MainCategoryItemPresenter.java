@@ -14,7 +14,7 @@ import androidx.leanback.widget.RowHeaderPresenter;
 import com.example.bookreader.R;
 import com.example.bookreader.extentions.IconHeader;
 
-public class IconCategoryItemPresenter extends RowHeaderPresenter {
+public class MainCategoryItemPresenter extends RowHeaderPresenter {
 
     @NonNull
     @Override
@@ -31,9 +31,8 @@ public class IconCategoryItemPresenter extends RowHeaderPresenter {
                 View rootView = viewHolder.view;
                 rootView.setFocusable(View.FOCUSABLE);
                 ImageView iconView = rootView.findViewById(R.id.header_icon);
-                if (headerItem instanceof IconHeader) {
-                    int iconResId = ((IconHeader) headerItem).iconResId;
-                    iconView.setImageResource(iconResId);
+                if (headerItem instanceof IconHeader iconHeader) {
+                    iconView.setImageResource(iconHeader.iconResId);
                 }
                 TextView label = rootView.findViewById(R.id.header_label);
                 label.setText(headerItem.getName());
