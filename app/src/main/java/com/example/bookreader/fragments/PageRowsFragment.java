@@ -75,6 +75,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     private CompletableFuture<List<ListRow>> getFavoriteRow(BookPreviewPresenter itemPresenter){
         return  CompletableFuture.supplyAsync(()->{
             List<ListRow> rows = new ArrayList<>();
+            if(new BookRepository().getRowBooksCount(Constants.FAVORITE_CATEGORY_ID,null) > 0){
                 ArrayBookAdapter adapter = new ArrayBookAdapter(
                         itemPresenter,
                         Constants.FAVORITE_CATEGORY_ID,
@@ -83,6 +84,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                 rows.add(new ListRow(new IconHeader(Constants.FAVORITE_CATEGORY_ID,
                         getString(R.string.favorite),R.drawable.books_stack),
                         adapter));
+            }
             return rows;
         });
     }
@@ -116,12 +118,14 @@ public class PageRowsFragment extends RowsSupportFragment {
         CompletableFuture<List<ListRow>> unsortedBooks = CompletableFuture
                 .supplyAsync(() ->{
                     List<ListRow> rows = new ArrayList<>();
-                       ArrayBookAdapter adapter = new ArrayBookAdapter(
-                               itemPresenter,
-                               Constants.ALL_BOOKS_CATEGORY_ID,
-                               Constants.UNSORTED_BOOKS_CATEGORY_ID,
-                               gridView);
+                    if(new BookRepository().getRowBooksCount(Constants.ALL_BOOKS_CATEGORY_ID,Constants.UNSORTED_BOOKS_CATEGORY_ID) > 0) {
+                        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                itemPresenter,
+                                Constants.ALL_BOOKS_CATEGORY_ID,
+                                Constants.UNSORTED_BOOKS_CATEGORY_ID,
+                                gridView);
                         rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
+                    }
                     return rows;
                 });
 
@@ -181,12 +185,14 @@ public class PageRowsFragment extends RowsSupportFragment {
             CompletableFuture<List<ListRow>> unsortedCategoryBooks = CompletableFuture
                     .supplyAsync(() -> {
                         List<ListRow> rows = new ArrayList<>();
-                        ArrayBookAdapter adapter = new ArrayBookAdapter(
-                                itemPresenter
-                                ,selectedCategory.id,
-                                Constants.UNSORTED_BOOKS_CATEGORY_ID,
-                                gridView);
-                        rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
+                        if(new BookRepository().getRowBooksCount(selectedCategory.id,Constants.UNSORTED_BOOKS_CATEGORY_ID) > 0) {
+                            ArrayBookAdapter adapter = new ArrayBookAdapter(
+                                    itemPresenter,
+                                    selectedCategory.id,
+                                    Constants.UNSORTED_BOOKS_CATEGORY_ID,
+                                    gridView);
+                            rows.add(new ListRow(new HeaderItem(Constants.UNSORTED_BOOKS_CATEGORY_ID, getString(R.string.unsorted_category)), adapter));
+                        }
                         return rows;
                     });
 
@@ -286,9 +292,8 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     private final Consumer<NewCategoryList> categoriesUpdateHandler = (categoriesList)->{
-        BookRepository bookRepository = new BookRepository();
         Long currentMainCategoryId = app.getSelectedMainCategoryInfo().getId();
-        for(int i = 0; i< rowsAdapter.size();i++){
+        for(int i = 0; i< rowsAdapter.size(); i++){
             if( rowsAdapter.get(i) instanceof ListRow row && row.getAdapter() instanceof ArrayBookAdapter bookAdapter){
                if(Objects.equals(bookAdapter.getMainCategoryId(),currentMainCategoryId)){
                     long rowId = bookAdapter.getRowCategoryId();
@@ -296,35 +301,30 @@ public class PageRowsFragment extends RowsSupportFragment {
                                     Objects.equals(cat.parentId, rowId) || Objects.equals(cat.id,rowId))
                             .findFirst().orElse(null);
                     if(rowId == Constants.ALL_BOOKS_CATEGORY_ID || rowId == Constants.UNSORTED_BOOKS_CATEGORY_ID || categoryToUpdate != null){
-                        bookRepository.getRowBooksCountAsync(bookAdapter.getMainCategoryId(),bookAdapter.getRowCategoryId())
-                                .thenAccept((count)->{
-                                     bookAdapter.reinit();
-                                });
+                        bookAdapter.reinit();
                     }
                     if(categoryToUpdate != null){
                         categoriesList.categories.remove(categoryToUpdate);
                     }
                 }
-                else return;
+               else return;
             }
         }
         if(!categoriesList.categories.isEmpty()){
             for(CategoryDto cat:categoriesList.categories){
-                bookRepository.getRowBooksCountAsync(currentMainCategoryId,cat.id).thenAccept((count)->{
-                    ArrayBookAdapter adapter = new ArrayBookAdapter(
-                            new BookPreviewPresenter(),
-                            currentMainCategoryId,
-                            cat.id,
-                            gridView);
-                    if(currentMainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID && cat.parentId != null){
-                        app.getCategoriesCash().stream().filter(category -> cat.parentId == category.id)
-                                .findFirst().ifPresent(parentCategory ->
-                                        rowsAdapter.add(new ListRow(new HeaderItem(cat.parentId, parentCategory.name), adapter)));
-                    }
-                    else{
-                        rowsAdapter.add(new ListRow(new HeaderItem(cat.id, cat.name), adapter));
-                    }
-                });
+                ArrayBookAdapter adapter = new ArrayBookAdapter(
+                        new BookPreviewPresenter(),
+                        currentMainCategoryId,
+                        cat.id,
+                        gridView);
+                if(currentMainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID && cat.parentId != null){
+                    app.getCategoriesCash().stream().filter(category -> cat.parentId == category.id)
+                            .findFirst().ifPresent(parentCategory ->
+                                    rowsAdapter.add(new ListRow(new HeaderItem(cat.parentId, parentCategory.name), adapter)));
+                }
+                else{
+                    rowsAdapter.add(new ListRow(new HeaderItem(cat.id, cat.name), adapter));
+                }
             }
         }
     };
@@ -422,7 +422,6 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 tryAddCategoryRow(null,null);
                             }
                         }
-
                         break;
                     }
 
@@ -433,20 +432,20 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
 
         if(categoryChanged){
+            app.updateCategoryCash();
             List<ListRow> rowsToDelete = new ArrayList<>();
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (int i = 0; i < rowsAdapter.size(); i++){
                 if(!(rowsAdapter.get(i) instanceof ListRow row)
                         || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
-                futures.add( adapter.reinit().thenAccept((updated)->{
-                    if(updated == 0){
+                futures.add( adapter.reinit().thenAccept((itemsCount)->{
+                    if(itemsCount == 0){
                         rowsToDelete.add(row);
                     }
                 }));
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v->{
                 if(!rowsToDelete.isEmpty()){
-                    app.updateCategoryCash();
                     if(rowsAdapter.size() == rowsToDelete.size()){
                         app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
                         return;

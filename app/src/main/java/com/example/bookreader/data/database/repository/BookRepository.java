@@ -247,6 +247,28 @@ public class BookRepository {
         }
     }
 
+    public Long getRowBooksCount(Long mainCategoryId, Long rowCategoryId) {
+        if (mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID) {
+            return bookDao.getFavoriteBooksCount();
+        } else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+                return bookDao.getAllCount();
+            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+                return bookDao.getUnsortedCount();
+            } else {
+                return bookDao.getAllByCategoryIdCount(rowCategoryId);
+            }
+        } else {
+            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+                return  bookDao.getAllByCategoryIdCount(mainCategoryId);
+            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+                return bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId);
+            } else {
+                return bookDao.getAllByCategoryIdCount(rowCategoryId);
+            }
+        }
+    }
+
 }
 
 

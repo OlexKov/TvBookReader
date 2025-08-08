@@ -140,7 +140,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         return bookRepository.loadRowBooksAsync(mainCategoryId, rowCategoryId,offset,INIT_ADAPTER_SIZE);
     }
 
-    private CompletableFuture<Integer>  init( Long mainCategoryId,Long rowCategoryId){
+    private CompletableFuture<Integer> init( Long mainCategoryId,Long rowCategoryId){
         this.info = new RowUploadInfo();
         this.info.setMainCategoryId(mainCategoryId);
         this.info.setRowCategoryId(rowCategoryId);
@@ -150,6 +150,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
     }
 
     public Long getMainCategoryId() {return info.getMainCategoryId();}
+
     public Long getRowCategoryId() {return info.getRowCategoryId();}
 
     public  CompletableFuture<Integer> reinit(){
