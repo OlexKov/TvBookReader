@@ -6,7 +6,7 @@ public class CategoryDto implements Serializable {
     public long id;
     public String name;
     public Long parentId = null; // NULL для основних категорій
-    public Integer iconId = null;
+    public int iconId;
     public Integer booksCount = null;
 
 

@@ -85,40 +85,40 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
     }
 
     private void normalizeAdapterSize() {
-        int count = INIT_ADAPTER_SIZE - size();
-        if(count == 0) return;
-        if(count < 0){
-            count  = Math.abs(count);
-            info.setMaxElementsDb(info.getMaxElementsDb() + count);
-        }
-        else{
-            if(INIT_ADAPTER_SIZE <= info.getMaxElementsDb()){
-                info.setMaxElementsDb(info.getMaxElementsDb() - count);
-                info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - count);
-                updateAdapter();
-            }
+        Long bookCount =  bookRepository.getRowBooksCountAsync(info.getMainCategoryId(),info.getRowCategoryId()).join();
+        int def = (int)(info.getMaxElementsDb() - bookCount);
+        if(def != 0){
+            info.setMaxElementsDb(bookCount);
+            info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - def);
         }
     }
 
     public void tryPaginateRow(BookDto selectedBook){
         int currentFocusPosition = this.indexOf(selectedBook);
-        boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD > INIT_ADAPTER_SIZE;
+        Log.d("PAGINATION","currentFocusPosition - "+String.valueOf(currentFocusPosition));
+        boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD > size();
+        Log.d("PAGINATION","nextThreshold - "+String.valueOf(nextThreshold));
         boolean prevThreshold = currentFocusPosition - UPLOAD_THRESHOLD < 0;
+        Log.d("PAGINATION","prevThreshold - "+String.valueOf(prevThreshold));
         if(info == null || info.getMaxElementsDb() <= INIT_ADAPTER_SIZE || info.isLoading()
                 || (!nextThreshold  && !prevThreshold  )) return;
         int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
+        Log.d("PAGINATION","firstUploadedElementDbIndex - "+String.valueOf(firstUploadedElementDbIndex));
         boolean canUpload = nextThreshold ? info.getLastUploadedElementDbIndex() < info.getMaxElementsDb() : firstUploadedElementDbIndex >= 1;
+        Log.d("PAGINATION","canUpload - "+String.valueOf(canUpload));
         if(canUpload){
             info.setLastUploadedElementDbIndex(
                     nextThreshold ? (int)Math.min(info.getMaxElementsDb(),info.getLastUploadedElementDbIndex() + UPLOAD_SIZE)
                                   : Math.max(INIT_ADAPTER_SIZE,info.getLastUploadedElementDbIndex() - UPLOAD_SIZE ));
             info.setLoading(true);
+            Log.d("PAGINATION","LastUploadedElementDbIndex - "+String.valueOf(info.getLastUploadedElementDbIndex()));
             updateAdapter();
         }
+        Log.d("PAGINATION","------------------------- - ");
     }
 
-    private CompletableFuture<Integer> updateAdapter(){
-       return loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId()).thenApply(books->{
+    private void updateAdapter(){
+        loadRowBooks(info.getMainCategoryId(),info.getRowCategoryId()).thenAccept(books->{
             if(!books.isEmpty()){
                 new Handler(Looper.getMainLooper()).post(() -> {
                     setItems(books,bookDiffCallback);
@@ -128,7 +128,6 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
 
                 });
             }
-            return books.size();
         }).exceptionally(ex->{
             Log.e("ERROR", "Exception in future: " + ex.getMessage(), ex);
             return null;

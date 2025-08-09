@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
@@ -15,6 +16,8 @@ import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
@@ -219,7 +222,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                 return new ListRow(new IconHeader(
                                         subCategory.id,
                                         subCategory.name,
-                                        subCategory.iconId != null
+                                        subCategory.iconId != 0
                                                 ? subCategory.iconId
                                                 : R.drawable.unsorted), adapter);
                             });
@@ -319,7 +322,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                             .findFirst().orElse(null);
                     if(rowId == Constants.ALL_BOOKS_CATEGORY_ID || rowId == Constants.UNSORTED_BOOKS_CATEGORY_ID || categoryToUpdate != null){
                         bookAdapter.reinit();
-                        rowsAdapter.notifyItemRangeChanged(i,1);
+                        updateRowCountLabel(i,bookAdapter);
                     }
                     if(categoryToUpdate != null){
                         categoriesList.categories.remove(categoryToUpdate);
@@ -489,19 +492,22 @@ public class PageRowsFragment extends RowsSupportFragment {
         List<ListRow> rowsToDelete = new ArrayList<>();
         BookDto book = bookData.getBook();
         for (int i = 0; i < rowsAdapter.size(); i++) {
-            if (!(rowsAdapter.get(i) instanceof ListRow row) || !(row.getAdapter() instanceof ArrayBookAdapter rowAdapter)) return;
-            if(rowAdapter.indexOf(book) != -1){
-                if (rowAdapter.size() == 1) {
+            if (!(rowsAdapter.get(i) instanceof ListRow row) || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
+            if(adapter.indexOf(book) != -1){
+                if (adapter.size() == 1) {
                     rowsToDelete.add(row);
                 }
                 else {
-                   if(rowAdapter.remove(book)){
-                       rowsAdapter.notifyItemRangeChanged(i,1);
+                   if(adapter.remove(book)){
+                       updateRowCountLabel(i,adapter);
                    }
                 }
             }
         }
         if (!rowsToDelete.isEmpty()) {
+            if(rowsToDelete.size() == rowsAdapter.size()){
+                app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
+            }
             for (ListRow row : rowsToDelete) {
                 rowsAdapter.remove(row);
             }
@@ -515,5 +521,18 @@ public class PageRowsFragment extends RowsSupportFragment {
 
     private  String getCurrentCategoryName(){
         return getArguments() != null ? getArguments().getString("category") : "";
+    }
+
+    private void updateRowCountLabel(int position,ArrayBookAdapter adapter){
+        VerticalGridView headerGridView = getVerticalGridView();
+        RecyclerView.ViewHolder headerVH = headerGridView.findViewHolderForAdapterPosition(position);
+        if (headerVH != null) {
+            View headerView = headerVH.itemView;
+            TextView countView = headerView.findViewById(R.id.header_book_count);
+            if (countView != null) {
+                long newCount = adapter.getDbElementsCount();
+                countView.setText(String.valueOf(newCount));
+            }
+        }
     }
 }
