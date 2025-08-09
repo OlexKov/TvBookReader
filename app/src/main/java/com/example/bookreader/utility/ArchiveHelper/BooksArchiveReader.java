@@ -57,6 +57,11 @@ public class BooksArchiveReader {
             }
         }
     }
+
+    public void deleteFileFromArchive(String path){
+         new TFile(path).deleteOnExit();
+    }
+
     public static boolean isArchivePath(String path){
         for (String ext:archivesExt){
             if(path.contains("." + ext)){

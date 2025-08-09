@@ -466,7 +466,12 @@ public class PageRowsFragment extends RowsSupportFragment {
                     }
                     else{
                         adapter.reinit();
-                        rowsAdapter.notifyItemRangeChanged(finalI,1);
+                        if(app.getSelectedRow().getId() == row.getId()){
+                            updateRowCountLabel(finalI,adapter.getDbElementsCount());
+                        }
+                        else {
+                            rowsAdapter.notifyItemRangeChanged(finalI,1);
+                        }
                     }
                 }));
             }
@@ -499,7 +504,13 @@ public class PageRowsFragment extends RowsSupportFragment {
                 }
                 else {
                    if(adapter.remove(book)){
-                       updateRowCountLabel(i,adapter.getDbElementsCount());
+                       if(app.getSelectedRow().getId() == row.getId()){
+                           updateRowCountLabel(i,adapter.getDbElementsCount());
+                       }
+                       else {
+                           rowsAdapter.notifyItemRangeChanged(i,1);
+                       }
+
                    }
                 }
             }

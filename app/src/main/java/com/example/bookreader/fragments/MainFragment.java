@@ -205,7 +205,11 @@ public class MainFragment extends BrowseSupportFragment {
             if(index > 0){
                 setSelectedPosition(index - 1);
             }
-            rowsAdapter.removeItems(index,1);
+
+            if(getView() != null){
+                getView().post(() -> rowsAdapter.removeItems(index, 1));
+            }
+
             if (!app.isMenuOpen()) {
                 startHeadersTransition(true);
             }

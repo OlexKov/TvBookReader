@@ -8,6 +8,8 @@ import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
+import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
@@ -54,6 +56,13 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
             new BookRepository().deleteBookByIdAsyncCF(book.id).thenAccept( deletedRowsCount->{
                 requireActivity().runOnUiThread(() -> {
                     if (deletedRowsCount != 0) {
+//                        FileHelper.deleteFile(book.previewPath);
+//                        if(BooksArchiveReader.isArchivePath(book.filePath)){
+//                            new BooksArchiveReader().deleteFileFromArchive(book.filePath);
+//                        }
+//                        else{
+//                            FileHelper.deleteFile(book.filePath);
+//                        }
                         app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED, null);
                         app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED, new RowItemData(app.getSelectedRow(), book));
                         Toast.makeText(requireContext(), getString(R.string.book_deleted, book.title), Toast.LENGTH_SHORT).show();
