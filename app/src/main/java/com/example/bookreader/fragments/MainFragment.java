@@ -176,9 +176,10 @@ public class MainFragment extends BrowseSupportFragment {
         }
         else{
             app.getCategoriesCash().stream().filter(cat -> cat.id == categoryId)
-                    .findFirst().ifPresent(category -> rowsAdapter.add(rowsAdapter.size() - 2, new PageRow(new IconHeader(category.id,
+                    .findFirst().ifPresent(category ->
+                            rowsAdapter.add(rowsAdapter.size() - 2, new PageRow(new IconHeader(category.id,
                             category.name,
-                            category.iconId))));
+                            category.iconId == 0?R.drawable.unsorted:category.iconId))));
         }
     };
 
@@ -205,13 +206,9 @@ public class MainFragment extends BrowseSupportFragment {
             if(index > 0){
                 setSelectedPosition(index - 1);
             }
-
-            if(getView() != null){
-                getView().post(() -> rowsAdapter.removeItems(index, 1));
-            }
-
-            if (!app.isMenuOpen()) {
-                startHeadersTransition(true);
+            rowsAdapter.removeItems(index, 1);
+            if (!app.isMenuOpen() && getView() != null) {
+                getView().post(()->{startHeadersTransition(true);}) ;
             }
         }
     };
