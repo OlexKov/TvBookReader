@@ -89,32 +89,27 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         int def = (int)(info.getMaxElementsDb() - bookCount);
         if(def != 0){
             info.setMaxElementsDb(bookCount);
-            info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - def);
+            if(def>0){
+                if(bookCount < INIT_ADAPTER_SIZE || bookCount <= info.getLastUploadedElementDbIndex()){
+                    info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - def);
+                }
+            }
+            updateAdapter();
         }
     }
 
     public void tryPaginateRow(BookDto selectedBook){
+        int adapterSize = size();
         int currentFocusPosition = this.indexOf(selectedBook);
-        Log.d("PAGINATION","currentFocusPosition - "+String.valueOf(currentFocusPosition));
-        boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD > size();
-        Log.d("PAGINATION","nextThreshold - "+String.valueOf(nextThreshold));
-        boolean prevThreshold = currentFocusPosition - UPLOAD_THRESHOLD < 0;
-        Log.d("PAGINATION","prevThreshold - "+String.valueOf(prevThreshold));
-        if(info == null || info.getMaxElementsDb() <= INIT_ADAPTER_SIZE || info.isLoading()
-                || (!nextThreshold  && !prevThreshold  )) return;
-        int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - INIT_ADAPTER_SIZE;
-        Log.d("PAGINATION","firstUploadedElementDbIndex - "+String.valueOf(firstUploadedElementDbIndex));
-        boolean canUpload = nextThreshold ? info.getLastUploadedElementDbIndex() < info.getMaxElementsDb() : firstUploadedElementDbIndex >= 1;
-        Log.d("PAGINATION","canUpload - "+String.valueOf(canUpload));
-        if(canUpload){
-            info.setLastUploadedElementDbIndex(
-                    nextThreshold ? (int)Math.min(info.getMaxElementsDb(),info.getLastUploadedElementDbIndex() + UPLOAD_SIZE)
-                                  : Math.max(INIT_ADAPTER_SIZE,info.getLastUploadedElementDbIndex() - UPLOAD_SIZE ));
-            info.setLoading(true);
-            Log.d("PAGINATION","LastUploadedElementDbIndex - "+String.valueOf(info.getLastUploadedElementDbIndex()));
-            updateAdapter();
-        }
-        Log.d("PAGINATION","------------------------- - ");
+        boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD + 1 >= adapterSize && info.getLastUploadedElementDbIndex() < info.getMaxElementsDb();
+        int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - (adapterSize - 1);
+        boolean prevThreshold = currentFocusPosition - UPLOAD_THRESHOLD <= 0 && firstUploadedElementDbIndex > 1;
+        if(info.getMaxElementsDb() <= adapterSize || info.isLoading() || (!nextThreshold  && !prevThreshold)) return;
+        info.setLastUploadedElementDbIndex(
+                nextThreshold ? (int)Math.min(info.getMaxElementsDb(),info.getLastUploadedElementDbIndex() + UPLOAD_SIZE)
+                        : Math.max(INIT_ADAPTER_SIZE,info.getLastUploadedElementDbIndex() - UPLOAD_SIZE ));
+        info.setLoading(true);
+        updateAdapter();
     }
 
     private void updateAdapter(){

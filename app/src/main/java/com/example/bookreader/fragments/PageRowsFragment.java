@@ -322,7 +322,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                             .findFirst().orElse(null);
                     if(rowId == Constants.ALL_BOOKS_CATEGORY_ID || rowId == Constants.UNSORTED_BOOKS_CATEGORY_ID || categoryToUpdate != null){
                         bookAdapter.reinit();
-                        updateRowCountLabel(i,bookAdapter);
+                        updateRowCountLabel(i,bookAdapter.getDbElementsCount());
                     }
                     if(categoryToUpdate != null){
                         categoriesList.categories.remove(categoryToUpdate);
@@ -499,7 +499,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                 }
                 else {
                    if(adapter.remove(book)){
-                       updateRowCountLabel(i,adapter);
+                       updateRowCountLabel(i,adapter.getDbElementsCount());
                    }
                 }
             }
@@ -523,14 +523,13 @@ public class PageRowsFragment extends RowsSupportFragment {
         return getArguments() != null ? getArguments().getString("category") : "";
     }
 
-    private void updateRowCountLabel(int position,ArrayBookAdapter adapter){
+    private void updateRowCountLabel(int position,long newCount){
         VerticalGridView headerGridView = getVerticalGridView();
         RecyclerView.ViewHolder headerVH = headerGridView.findViewHolderForAdapterPosition(position);
         if (headerVH != null) {
             View headerView = headerVH.itemView;
             TextView countView = headerView.findViewById(R.id.header_book_count);
             if (countView != null) {
-                long newCount = adapter.getDbElementsCount();
                 countView.setText(String.valueOf(newCount));
             }
         }
