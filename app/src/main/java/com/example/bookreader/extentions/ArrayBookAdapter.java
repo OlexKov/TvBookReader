@@ -89,7 +89,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         int def = (int)(info.getMaxElementsDb() - bookCount);
         if(def != 0){
             info.setMaxElementsDb(bookCount);
-            if(def>0){
+            if(def > 0){
                 if(bookCount < INIT_ADAPTER_SIZE || bookCount <= info.getLastUploadedElementDbIndex()){
                     info.setLastUploadedElementDbIndex(info.getLastUploadedElementDbIndex() - def);
                 }
@@ -104,7 +104,7 @@ public class ArrayBookAdapter extends ArrayObjectAdapter {
         boolean nextThreshold = currentFocusPosition + UPLOAD_THRESHOLD + 1 >= adapterSize && info.getLastUploadedElementDbIndex() < info.getMaxElementsDb();
         int firstUploadedElementDbIndex =  info.getLastUploadedElementDbIndex() - (adapterSize - 1);
         boolean prevThreshold = currentFocusPosition - UPLOAD_THRESHOLD <= 0 && firstUploadedElementDbIndex > 1;
-        if(info.getMaxElementsDb() <= adapterSize || info.isLoading() || (!nextThreshold  && !prevThreshold)) return;
+        if(info.getMaxElementsDb() <= adapterSize || info.isLoading() || (!nextThreshold  && !prevThreshold  )) return;
         info.setLastUploadedElementDbIndex(
                 nextThreshold ? (int)Math.min(info.getMaxElementsDb(),info.getLastUploadedElementDbIndex() + UPLOAD_SIZE)
                         : Math.max(INIT_ADAPTER_SIZE,info.getLastUploadedElementDbIndex() - UPLOAD_SIZE ));
