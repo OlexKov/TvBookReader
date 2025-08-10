@@ -179,7 +179,9 @@ public class MainFragment extends BrowseSupportFragment {
                     .findFirst().ifPresent(category ->
                             rowsAdapter.add(rowsAdapter.size() - 2, new PageRow(new IconHeader(category.id,
                             category.name,
-                            category.iconId == 0?R.drawable.unsorted:category.iconId))));
+                            category.iconId == 0
+                                    ? R.drawable.unsorted
+                                    : category.iconId))));
         }
     };
 

@@ -427,16 +427,22 @@ public class PageRowsFragment extends RowsSupportFragment {
                         if(updatedBook.categoryId != null){
                             app.getCategoriesCash().stream().filter(cat -> cat.id == updatedBook.categoryId)
                                     .findFirst().ifPresent(category -> {
-                                        if(Objects.equals(category.id,adapter.getMainCategoryId()) || Objects.equals(category.parentId,adapter.getMainCategoryId())){
+                                        if(((adapter.getMainCategoryId() == Constants.ALL_BOOKS_CATEGORY_ID)
+                                                && category.parentId != null)){
+                                            app.getCategoriesCash().stream().filter(cat -> cat.id == category.parentId)
+                                                    .findFirst().ifPresent(parentCategory -> {
+                                                        tryAddCategoryRow(parentCategory.id, parentCategory.name);
+                                                    });
+                                        }
+                                        else if(Objects.equals(category.id,adapter.getMainCategoryId())
+                                                || Objects.equals(category.parentId,adapter.getMainCategoryId())){
                                             tryAddCategoryRow(category.id,category.name);
                                         }
-                                        else{
-                                            app.getGlobalEventListener().sendEvent(
+                                        app.getGlobalEventListener().sendEvent(
                                                     GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,
                                                     category.parentId != null
                                                             ? category.parentId
                                                             : category.id);
-                                        }
                                     });
                         }
                         else{
@@ -477,7 +483,6 @@ public class PageRowsFragment extends RowsSupportFragment {
             }
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v->{
-                app.updateCategoryCash();
                 if(!rowsToDelete.isEmpty()){
                     if(rowsAdapter.size() == rowsToDelete.size()){
                         app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());

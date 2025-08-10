@@ -387,12 +387,17 @@ public class EditBookFragment extends GuidedStepSupportFragment {
         book.title = title;
         book.author = author;
         book.year = year;
+        Long bookCategoryId;
         if(subCategory == null && category == null){
-            book.categoryId = null;
+            bookCategoryId = null;
         }
         else{
-            book.categoryId  = subCategory == null ? category.id : subCategory.id;
+            bookCategoryId  = subCategory == null ? category.id : subCategory.id;
         }
+        if(!Objects.equals(book.categoryId , bookCategoryId)){
+            app.updateCategoryCash();
+        }
+        book.categoryId = bookCategoryId;
         if(requireActivity() instanceof BookDetailsActivity){
             Book updatedBook = book.getBook();
             BookRepository bookRepository = new BookRepository();
