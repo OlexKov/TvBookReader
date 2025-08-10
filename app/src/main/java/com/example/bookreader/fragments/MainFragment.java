@@ -160,6 +160,33 @@ public class MainFragment extends BrowseSupportFragment {
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectedChangeHandler, RowItemData.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,categoryDeleteHandler,Long.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_EMPTY_MAIN_CATEGORIES_COMMAND,removeEmptyCategoriesHandler,Object.class);
+    }
+
+    private final Consumer<Object> removeEmptyCategoriesHandler = (v)->{
+        BookRepository bookRepository = new BookRepository();
+        rowsAdapter.unmodifiableList().forEach(row->{
+            if(row instanceof PageRow pageRow && pageRow.getHeaderItem() instanceof IconHeader header){
+                Long mainCategoryId = header.getId();
+                if(mainCategoryId != Constants.SETTINGS_CATEGORY_ID && mainCategoryId != Constants.ALL_BOOKS_CATEGORY_ID){
+                    bookRepository.getRowBooksCountAsync(mainCategoryId,mainCategoryId).thenAccept(count->{
+                        if(count == 0){
+                            var index = rowsAdapter.indexOf(pageRow);
+                            if(index > 0){
+                                setSelectedPosition(index - 1);
+                            }
+                            rowsAdapter.removeItems(index, 1);
+                        }
+                    });
+                }
+            }
+        });
+    };
+
+    private void openMenu(View view){
+        if (!app.isMenuOpen() && view != null) {
+            view.post(()->{startHeadersTransition(true);}) ;
+        }
     }
 
     private final Consumer<Long> addCategoryHandler = (Long categoryId)->{
@@ -199,7 +226,7 @@ public class MainFragment extends BrowseSupportFragment {
     };
 
     private final Consumer<Long> categoryDeleteHandler = (categoryToDeleteId)->{
-        if(categoryToDeleteId == Constants.ALL_BOOKS_CATEGORY_ID) return;
+        if(categoryToDeleteId == Constants.ALL_BOOKS_CATEGORY_ID || categoryToDeleteId == Constants.SETTINGS_CATEGORY_ID) return;
         var item = rowsAdapter.unmodifiableList().stream()
                 .filter(row-> row instanceof DividerRow || (row instanceof PageRow && ((PageRow)row).getHeaderItem().getId() == categoryToDeleteId))
                 .findFirst().orElse(null);
@@ -209,9 +236,7 @@ public class MainFragment extends BrowseSupportFragment {
                 setSelectedPosition(index - 1);
             }
             rowsAdapter.removeItems(index, 1);
-            if (!app.isMenuOpen() && getView() != null) {
-                getView().post(()->{startHeadersTransition(true);}) ;
-            }
+            openMenu(getView());
         }
     };
 

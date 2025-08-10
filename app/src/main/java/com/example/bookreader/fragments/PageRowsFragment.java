@@ -43,12 +43,16 @@ import com.example.bookreader.presenters.TextIconPresenter;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class PageRowsFragment extends RowsSupportFragment {
 
     private ProgressBarManager progressBarManager;
@@ -499,35 +503,35 @@ public class PageRowsFragment extends RowsSupportFragment {
     };
 
     private final Consumer<RowItemData> bookDeletedHandler = (bookData)->{
-        List<ListRow> rowsToDelete = new ArrayList<>();
         BookDto book = bookData.getBook();
-        for (int i = 0; i < rowsAdapter.size(); i++) {
-            if (!(rowsAdapter.get(i) instanceof ListRow row) || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
-            if(adapter.indexOf(book) != -1){
-                if (adapter.size() == 1) {
-                    rowsToDelete.add(row);
+        new ArrayList<>(rowsAdapter.unmodifiableList()).forEach(row->{
+            if(row instanceof ListRow listRow && listRow.getAdapter() instanceof ArrayBookAdapter adapter){
+                if(adapter.indexOf(book) != -1){
+                    if (adapter.size() == 1 && listRow.getId() != Constants.ALL_BOOKS_CATEGORY_ID) {
+                        if(rowsAdapter.size() == 1 && app.getSelectedMainCategoryInfo().getId() != Constants.ALL_BOOKS_CATEGORY_ID){
+                            app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
+                        }
+                        else{
+                            rowsAdapter.remove(listRow);
+                            if(app.getSelectedMainCategoryInfo().getId() == Constants.ALL_BOOKS_CATEGORY_ID){
+                                app.getGlobalEventListener().sendEvent(GlobalEventType.REMOVE_EMPTY_MAIN_CATEGORIES_COMMAND,null);
+                            }
+                        }
+                    }
+                    else {
+                        if(adapter.remove(book)){
+                            int index = rowsAdapter.indexOf(listRow);
+                            if(app.getSelectedRow().getId() == listRow.getId()){
+                                updateRowCountLabel(index,adapter.getDbElementsCount());
+                            }
+                            else {
+                                rowsAdapter.notifyItemRangeChanged(index,1);
+                            }
+                        }
+                    }
                 }
-                else {
-                   if(adapter.remove(book)){
-                       if(app.getSelectedRow().getId() == row.getId()){
-                           updateRowCountLabel(i,adapter.getDbElementsCount());
-                       }
-                       else {
-                           rowsAdapter.notifyItemRangeChanged(i,1);
-                       }
-
-                   }
-                }
             }
-        }
-        if (!rowsToDelete.isEmpty()) {
-            if(rowsToDelete.size() == rowsAdapter.size()){
-                app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
-            }
-            for (ListRow row : rowsToDelete) {
-                rowsAdapter.remove(row);
-            }
-        }
+        });
     };
 
     private final Consumer<RowItemData> itemSelectChangeListenerHandler = (rowBookData)->{

@@ -17,6 +17,7 @@ import com.example.bookreader.data.database.entity.Book;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -204,20 +205,20 @@ public class BookRepository {
 
 
     public CompletableFuture<List<BookDto>> loadRowBooksAsync(Long mainCategoryId, Long rowCategoryId, int offset, int limit ) {
-        if (mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID) {
+        if (Objects.equals(mainCategoryId, Constants.FAVORITE_CATEGORY_ID) || Objects.equals(rowCategoryId, Constants.FAVORITE_CATEGORY_ID)) {
             return getRangeFavoriteBooksAsync(offset, limit);
-        } else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+        } else if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+            if (Objects.equals(rowCategoryId,  Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return getRangeAllBooksAsync(offset, limit);
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return getRangeUnsortedBooksAsync(offset, limit);
             } else {
                 return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
             }
         } else {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return getRangeAllBooksInCategoryIdAsync(mainCategoryId, offset, limit);
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return getRageUnsortedBooksByCategoryIdAsync(mainCategoryId, offset, limit);
             } else {
                 return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
@@ -226,20 +227,20 @@ public class BookRepository {
     }
 
     public CompletableFuture<Long> getRowBooksCountAsync(Long mainCategoryId, Long rowCategoryId) {
-        if (mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID) {
+        if (Objects.equals(mainCategoryId,Constants.FAVORITE_CATEGORY_ID) || Objects.equals(rowCategoryId,Constants.FAVORITE_CATEGORY_ID)) {
             return CompletableFuture.supplyAsync(bookDao::getFavoriteBooksCount);
-        } else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+        } else if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return CompletableFuture.supplyAsync(bookDao::getAllCount);
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return CompletableFuture.supplyAsync(bookDao::getUnsortedCount);
             } else {
                 return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
             }
         } else {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return  CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(mainCategoryId));
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId));
             } else {
                 return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
@@ -248,27 +249,26 @@ public class BookRepository {
     }
 
     public Long getRowBooksCount(Long mainCategoryId, Long rowCategoryId) {
-        if (mainCategoryId == Constants.FAVORITE_CATEGORY_ID || rowCategoryId == Constants.FAVORITE_CATEGORY_ID) {
+        if (Objects.equals(mainCategoryId,Constants.FAVORITE_CATEGORY_ID) || Objects.equals(rowCategoryId,Constants.FAVORITE_CATEGORY_ID)) {
             return bookDao.getFavoriteBooksCount();
-        } else if (mainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+        } else if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return bookDao.getAllCount();
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return bookDao.getUnsortedCount();
             } else {
                 return bookDao.getAllByCategoryIdCount(rowCategoryId);
             }
         } else {
-            if (rowCategoryId == Constants.ALL_BOOKS_CATEGORY_ID) {
+            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return  bookDao.getAllByCategoryIdCount(mainCategoryId);
-            } else if (rowCategoryId == Constants.UNSORTED_BOOKS_CATEGORY_ID) {
+            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId);
             } else {
                 return bookDao.getAllByCategoryIdCount(rowCategoryId);
             }
         }
     }
-
 }
 
 

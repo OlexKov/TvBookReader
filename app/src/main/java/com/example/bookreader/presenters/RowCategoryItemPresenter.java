@@ -65,7 +65,7 @@ public class RowCategoryItemPresenter extends RowHeaderPresenter {
      private void updateCount(ListRow row,View view){
          if (row.getAdapter() instanceof ArrayBookAdapter adapter) {
              TextView label = view.findViewById(R.id.header_book_count);
-             label.setText(adapter.getDbElementsCount() != null
+             label.setText(adapter.getDbElementsCount() != null && adapter.getDbElementsCount() != 0
                      ? adapter.getDbElementsCount().toString()
                      : "");
          }
