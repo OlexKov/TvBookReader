@@ -157,7 +157,6 @@ public class MainFragment extends BrowseSupportFragment {
             });
         }
         LifecycleOwner owner = getViewLifecycleOwner();
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.BOOK_FAVORITE_UPDATED,bookFavoriteUpdatedHandler,BookDto.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectedChangeHandler, RowItemData.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,categoryDeleteHandler,Long.class);
@@ -213,7 +212,7 @@ public class MainFragment extends BrowseSupportFragment {
         if(categoryId == Constants.FAVORITE_CATEGORY_ID){
             rowsAdapter.add(0,new PageRow( new IconHeader(Constants.FAVORITE_CATEGORY_ID,
                     getString(R.string.favorite),
-                    R.drawable.books_stack)));
+                    R.drawable.favorite)));
         }
         else{
             app.getCategoriesCash().stream().filter(cat -> cat.id == categoryId)
@@ -242,7 +241,7 @@ public class MainFragment extends BrowseSupportFragment {
     private final Consumer<Long> categoryDeleteHandler = (categoryToDeleteId)->{
         if(categoryToDeleteId == Constants.ALL_BOOKS_CATEGORY_ID || categoryToDeleteId == Constants.SETTINGS_CATEGORY_ID) return;
         var item = rowsAdapter.unmodifiableList().stream()
-                .filter(row-> row instanceof DividerRow || (row instanceof PageRow && ((PageRow)row).getHeaderItem().getId() == categoryToDeleteId))
+                .filter(row-> row instanceof PageRow pageRow && pageRow.getHeaderItem().getId() == categoryToDeleteId)
                 .findFirst().orElse(null);
         if(item != null){
             var index = rowsAdapter.indexOf(item);
@@ -252,17 +251,6 @@ public class MainFragment extends BrowseSupportFragment {
             rowsAdapter.removeItems(index, 1);
             openMenu(getView());
         }
-    };
-
-    private final Consumer<BookDto> bookFavoriteUpdatedHandler = (favoriteBook)->{
-       for (int i = 0; i < rowsAdapter.size(); i++) {
-            if(rowsAdapter.get(i) instanceof PageRow pageRow){
-                if(pageRow.getId() == Constants.FAVORITE_CATEGORY_ID) return;
-            }
-        }
-       if(favoriteBook.isFavorite){
-           addCategoryHandler.accept(Constants.FAVORITE_CATEGORY_ID);
-       }
     };
 
     private void setupCategoryRows() {

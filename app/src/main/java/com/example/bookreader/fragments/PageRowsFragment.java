@@ -69,7 +69,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         progressBarManager = new ProgressBarManager();
         if(getView() instanceof  ViewGroup root){
             progressBarManager.setRootView((ViewGroup) root.getRootView());
-            progressBarManager.setInitialDelay(0);
+            progressBarManager.setInitialDelay(100);
             progressBarManager.hide();
         }
         setupEventListeners();
@@ -311,6 +311,45 @@ public class PageRowsFragment extends RowsSupportFragment {
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.CATEGORIES_CASH_UPDATED, categoriesCashUpdatedHandler, Object.class);
     }
 
+    private void tryAddCategoryRow(Long id,String name){
+        Long selectedMainCategory = app.getSelectedMainCategoryInfo().getId();
+        boolean inUnsortedCategory = id == null || Objects.equals(id , selectedMainCategory);
+
+        for (int i = 0; i < rowsAdapter.size(); i++){
+            if(rowsAdapter.get(i) instanceof ListRow row
+                    && (inUnsortedCategory ? row.getId() == Constants.UNSORTED_BOOKS_CATEGORY_ID  : row.getId() == id)) return;
+        }
+
+        int position = rowsAdapter.size();
+        if(inUnsortedCategory){
+            id = Constants.UNSORTED_BOOKS_CATEGORY_ID;
+            position = 1;
+            name = getString(R.string.unsorted_category);
+        }
+        ArrayBookAdapter adapter = new ArrayBookAdapter(
+                new BookPreviewPresenter(),
+                selectedMainCategory,
+                id,
+                gridView);
+        rowsAdapter.add(position,new ListRow(new IconHeader(id, name,R.drawable.unsorted_book), adapter));
+    }
+
+    private  String getCurrentCategoryName(){
+        return getArguments() != null ? getArguments().getString("category") : "";
+    }
+
+    private void updateRowCountLabel(int position,long newCount){
+        VerticalGridView headerGridView = getVerticalGridView();
+        RecyclerView.ViewHolder headerVH = headerGridView.findViewHolderForAdapterPosition(position);
+        if (headerVH != null) {
+            View headerView = headerVH.itemView;
+            TextView countView = headerView.findViewById(R.id.header_book_count);
+            if (countView != null) {
+                countView.setText(String.valueOf(newCount));
+            }
+        }
+    }
+
     private final Consumer<Object> categoriesCashUpdatedHandler = (o)->{
        // rowsAdapter.notifyItemRangeChanged(0,rowsAdapter.size());
     };
@@ -355,67 +394,25 @@ public class PageRowsFragment extends RowsSupportFragment {
     };
 
     private final Consumer<BookDto> bookFavoriteUpdateHandler = (book)->{
-//        if(!(book instanceof BookDto updatedBook)) return;
-//        Long selectedCategoryId = app.getSelectedParentCategoryHeader().getId();
-//        if(selectedCategoryId == Constants.FAVORITE_CATEGORY_ID){
-//            if(rowsAdapter.size() == 0) return;
-//            Object row = rowsAdapter.get(0);
-//            if (row instanceof ListRow listRow) {
-//                RowUploadInfo info =  rowsUploadInfo.get(Constants.FAVORITE_CATEGORY_ID);
-//                if(info != null && listRow.getAdapter() instanceof ArrayObjectAdapter adapter) {
-//                    if (!updatedBook.isFavorite) {
-//                        if(adapter.size() == 1){
-//                            rowsUploadInfo.remove(Constants.FAVORITE_CATEGORY_ID);
-//                            rowsAdapter.remove(row);
-//                            app.getGlobalEventListener().sendEvent(GlobalEventType.NEED_DELETE_CATEGORY,Constants.FAVORITE_CATEGORY_ID);
-//                            return;
-//                        }
-//                        adapter.remove(book);
-//                        info.setMaxElements(info.getMaxElements() - 1);
-//                        if(adapter.size() == INIT_ADAPTER_SIZE - 1 && adapter.size() < info.getMaxElements()) {
-//                             loadRowBooks(Constants.FAVORITE_CATEGORY_ID,Constants.FAVORITE_CATEGORY_ID,(info.getStartUploadPage() + INIT_PAGES_COUNT -1)*UPLOAD_SIZE ,1)
-//                                    .thenAccept((books)->{
-//                                        requireActivity().runOnUiThread(()->{
-//                                            adapter.add(rowsAdapter.size(),books.get(0));
-//                                        });
-//                                    });
-//                        }
-//                    }
-//                    else {
-//                        adapter.add(0,book);
-//                        adapter.removeItems(adapter.size(),1);
-//                        info.setMaxElements(info.getMaxElements() + 1);
-//                    }
-//
-//                }
-//            }
-//        }
-
-
-   };
-
-    private void tryAddCategoryRow(Long id,String name){
-         Long selectedMainCategory = app.getSelectedMainCategoryInfo().getId();
-         boolean inUnsortedCategory = id == null || Objects.equals(id , selectedMainCategory);
-
-         for (int i = 0; i < rowsAdapter.size(); i++){
-            if(rowsAdapter.get(i) instanceof ListRow row
-                    && (inUnsortedCategory ? row.getId() == Constants.UNSORTED_BOOKS_CATEGORY_ID  : row.getId() == id)) return;
-         }
-
-        int position = rowsAdapter.size();
-        if(inUnsortedCategory){
-            id = Constants.UNSORTED_BOOKS_CATEGORY_ID;
-            position = 1;
-            name = getString(R.string.unsorted_category);
+        var favoriteRow = rowsAdapter.unmodifiableList().stream()
+                .filter(listRow->listRow instanceof ListRow row && row.getId() == Constants.FAVORITE_CATEGORY_ID)
+                .findFirst().orElse(null);
+        if(favoriteRow != null){
+            if(((ListRow)favoriteRow).getAdapter() instanceof ArrayBookAdapter adapter){
+                if(adapter.size() == 1 && !book.isFavorite){
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,Constants.FAVORITE_CATEGORY_ID);
+                }
+                else if(app.getSelectedMainCategoryInfo().getId() == Constants.FAVORITE_CATEGORY_ID) {
+                    int index = rowsAdapter.indexOf(favoriteRow);
+                    adapter.reinit();
+                    updateRowCountLabel(index, adapter.getDbElementsCount());
+                }
+            }
         }
-        ArrayBookAdapter adapter = new ArrayBookAdapter(
-                new BookPreviewPresenter(),
-                selectedMainCategory,
-                id,
-                gridView);
-        rowsAdapter.add(position,new ListRow(new IconHeader(id, name,R.drawable.unsorted_book), adapter));
-    }
+        else{
+            app.getGlobalEventListener().sendEvent(GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,Constants.FAVORITE_CATEGORY_ID);
+        }
+    };
 
     private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
         boolean categoryChanged = false;
@@ -534,20 +531,4 @@ public class PageRowsFragment extends RowsSupportFragment {
          if( !(rowBookData.getRow().getAdapter() instanceof ArrayBookAdapter bookAdapter)) return;
          bookAdapter.tryPaginateRow(rowBookData.getBook());
     };
-
-    private  String getCurrentCategoryName(){
-        return getArguments() != null ? getArguments().getString("category") : "";
-    }
-
-    private void updateRowCountLabel(int position,long newCount){
-        VerticalGridView headerGridView = getVerticalGridView();
-        RecyclerView.ViewHolder headerVH = headerGridView.findViewHolderForAdapterPosition(position);
-        if (headerVH != null) {
-            View headerView = headerVH.itemView;
-            TextView countView = headerView.findViewById(R.id.header_book_count);
-            if (countView != null) {
-                countView.setText(String.valueOf(newCount));
-            }
-        }
-    }
 }

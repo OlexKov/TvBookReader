@@ -72,7 +72,6 @@ public class BookActionClickListener implements OnActionClickedListener {
         if(favoriteToggled){
             BookRepository bookRepo = new BookRepository();
             Consumer<Long> postToggleHandler = (o)->{
-                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
                 app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_FAVORITE_UPDATED,book);
             };
             if(book.isFavorite){

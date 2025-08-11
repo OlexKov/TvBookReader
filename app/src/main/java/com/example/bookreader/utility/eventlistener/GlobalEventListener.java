@@ -80,9 +80,6 @@ public class GlobalEventListener {
     public <T> void sendEvent(GlobalEventType eventType, T data) {
         Log.d("GlobalEventLog", "SendEvent " + eventType.name());
         if (data == null) data = (T) new Object();
-
-        lastEventData.put(eventType, data);
-
         List<Consumer<?>> list =  events.get(eventType);
         if (list != null && !list.isEmpty()) {
             T finalData = data;
@@ -92,6 +89,9 @@ public class GlobalEventListener {
                     consumer.accept(finalData);
                 }
             });
+        }
+        else{
+            lastEventData.put(eventType, data);
         }
     }
 
