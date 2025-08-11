@@ -387,21 +387,21 @@ public class EditBookFragment extends GuidedStepSupportFragment {
         book.title = title;
         book.author = author;
         book.year = year;
-        Long bookCategoryId;
+        Long oldCategoryId = book.categoryId;
         if(subCategory == null && category == null){
-            bookCategoryId = null;
+            book.categoryId = null;
         }
         else{
-            bookCategoryId  = subCategory == null ? category.id : subCategory.id;
+            book.categoryId  = subCategory == null ? category.id : subCategory.id;
         }
-        if(!Objects.equals(book.categoryId , bookCategoryId)){
-            app.updateCategoryCash();
-        }
-        book.categoryId = bookCategoryId;
+
         if(requireActivity() instanceof BookDetailsActivity){
             Book updatedBook = book.getBook();
             BookRepository bookRepository = new BookRepository();
             bookRepository.updateAndGetAsync(updatedBook).thenAccept((book)->{
+                if(!Objects.equals(book.categoryId , oldCategoryId)){
+                    app.updateCategoryCash();
+                }
                 app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
                 closeFragment();
             });
