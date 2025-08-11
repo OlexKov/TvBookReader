@@ -76,6 +76,7 @@ public class MainFragment extends BrowseSupportFragment {
     private Runnable pendingBackgroundUpdate = null;
     private BrowserMode currentBrowserMode;
     private RowItemData selectedRowItem;
+    BookRepository bookRepository = new BookRepository();
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -161,24 +162,37 @@ public class MainFragment extends BrowseSupportFragment {
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,categoryDeleteHandler,Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_EMPTY_MAIN_CATEGORIES_COMMAND,removeEmptyCategoriesHandler,Object.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,removeCategoryIsEmptyHandler,Long.class);
     }
 
-    private final Consumer<Object> removeEmptyCategoriesHandler = (v)->{
-        BookRepository bookRepository = new BookRepository();
-        rowsAdapter.unmodifiableList().forEach(row->{
-            if(row instanceof PageRow pageRow && pageRow.getHeaderItem() instanceof IconHeader header){
-                Long mainCategoryId = header.getId();
-                if(mainCategoryId != Constants.SETTINGS_CATEGORY_ID && mainCategoryId != Constants.ALL_BOOKS_CATEGORY_ID){
-                    bookRepository.getRowBooksCountAsync(mainCategoryId,mainCategoryId).thenAccept(count->{
-                        if(count == 0){
-                            var index = rowsAdapter.indexOf(pageRow);
-                            if(index > 0){
-                                setSelectedPosition(index - 1);
-                            }
-                            rowsAdapter.removeItems(index, 1);
+    private void removeIsEmpty(PageRow pageRow){
+        if(pageRow != null && pageRow.getHeaderItem() instanceof IconHeader header){
+            long mainCategoryId = header.getId();
+            if(mainCategoryId != Constants.SETTINGS_CATEGORY_ID && mainCategoryId != Constants.ALL_BOOKS_CATEGORY_ID){
+                bookRepository.getRowBooksCountAsync(mainCategoryId,mainCategoryId).thenAccept(count->{
+                    if(count == 0){
+                        var index = rowsAdapter.indexOf(pageRow);
+                        if(index > 0){
+                            setSelectedPosition(index - 1);
                         }
-                    });
-                }
+                        rowsAdapter.removeItems(index, 1);
+                    }
+                });
+            }
+        }
+    }
+
+    private final Consumer<Long> removeCategoryIsEmptyHandler = (categoryId)->{
+        var categoryRow = rowsAdapter.unmodifiableList().stream()
+                .filter(row->row instanceof PageRow pageRow && pageRow.getId() == categoryId )
+                .findFirst().orElse(null);
+        removeIsEmpty((PageRow) categoryRow);
+    };
+
+    private final Consumer<Object> removeEmptyCategoriesHandler = (v)->{
+        rowsAdapter.unmodifiableList().forEach(row->{
+            if(row instanceof PageRow pageRow){
+                removeIsEmpty(pageRow);
             }
         });
     };

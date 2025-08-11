@@ -429,7 +429,8 @@ public class PageRowsFragment extends RowsSupportFragment {
                     if(!Objects.equals(currentBook.categoryId,updatedBook.categoryId)){
                         categoryChanged = true;
                         if(updatedBook.categoryId != null){
-                            app.getCategoriesCash().stream().filter(cat -> cat.id == updatedBook.categoryId)
+                            app.getCategoriesCash().stream()
+                                    .filter(cat -> cat.id == updatedBook.categoryId)
                                     .findFirst().ifPresent(category -> {
                                         if(((adapter.getMainCategoryId() == Constants.ALL_BOOKS_CATEGORY_ID)
                                                 && category.parentId != null)){
@@ -464,40 +465,34 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
 
         if(categoryChanged){
-            List<ListRow> rowsToDelete = new ArrayList<>();
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
-            for (int i = 0; i < rowsAdapter.size(); i++){
-                if(!(rowsAdapter.get(i) instanceof ListRow row)
-                        || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
-                int finalI = i;
-                futures.add( bookRepository.getRowBooksCountAsync(adapter.getMainCategoryId(),adapter.getRowCategoryId()).thenAccept((itemsCount)->{
+            rowsAdapter.unmodifiableList().forEach(rowList->{
+                if(!(rowList instanceof ListRow row) || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
+                int finalIndex = rowsAdapter.indexOf(rowList);
+                bookRepository.getRowBooksCountAsync(adapter.getMainCategoryId(),adapter.getRowCategoryId()).thenAccept((itemsCount)->{
                     if(itemsCount == 0){
-                        rowsToDelete.add(row);
+                        if(rowsAdapter.size() == 1){
+                            app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
+                        }
+                        else{
+                            rowsAdapter.remove(row);
+                            rowsAdapter.notifyItemRangeChanged(finalIndex,1);
+                            if(app.getSelectedMainCategoryInfo().getId() == Constants.ALL_BOOKS_CATEGORY_ID){
+                                app.getGlobalEventListener().sendEvent(GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,row.getId());
+                            }
+                        }
+
                     }
                     else{
                         adapter.reinit();
                         if(app.getSelectedRow().getId() == row.getId()){
-                            updateRowCountLabel(finalI,adapter.getDbElementsCount());
+                            updateRowCountLabel(finalIndex,adapter.getDbElementsCount());
                         }
                         else {
-                            rowsAdapter.notifyItemRangeChanged(finalI,1);
+                            rowsAdapter.notifyItemRangeChanged(finalIndex,1);
                         }
                     }
-                }));
-            }
+                });
 
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v->{
-                if(!rowsToDelete.isEmpty()){
-                    if(rowsAdapter.size() == rowsToDelete.size()){
-                        app.getGlobalEventListener().sendEvent(GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,app.getSelectedMainCategoryInfo().getId());
-                        return;
-                    }
-                    for(ListRow row:rowsToDelete){
-                        int index = rowsAdapter.indexOf(row);
-                        rowsAdapter.remove(row);
-                        rowsAdapter.notifyItemRangeChanged(index,1);
-                    }
-                }
             });
         }
     };
@@ -514,13 +509,14 @@ public class PageRowsFragment extends RowsSupportFragment {
                         else{
                             rowsAdapter.remove(listRow);
                             if(app.getSelectedMainCategoryInfo().getId() == Constants.ALL_BOOKS_CATEGORY_ID){
-                                app.getGlobalEventListener().sendEvent(GlobalEventType.REMOVE_EMPTY_MAIN_CATEGORIES_COMMAND,null);
+                                app.getGlobalEventListener().sendEvent(GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,listRow.getId());
                             }
                         }
                     }
                     else {
                         if(adapter.remove(book)){
                             int index = rowsAdapter.indexOf(listRow);
+                            app.getGlobalEventListener().sendEvent(GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,Constants.FAVORITE_CATEGORY_ID);
                             if(app.getSelectedRow().getId() == listRow.getId()){
                                 updateRowCountLabel(index,adapter.getDbElementsCount());
                             }
