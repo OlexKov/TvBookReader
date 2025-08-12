@@ -289,7 +289,6 @@ public class MainFragment extends BrowseSupportFragment {
             });
 
             setAdapter(rowsAdapter);
-
         });
     }
 
@@ -358,13 +357,14 @@ public class MainFragment extends BrowseSupportFragment {
     }
 
     private void addNewCategories(List<CategoryDto> categories){
+
         List<Long> parentCategoryIds = categories.stream()
                 .map(cat->cat.parentId == null ? cat.id : cat.parentId)
                 .collect(Collectors.toList());
 
-        new CategoryRepository().getAllAsync().thenAccept(allCategories->{
+        categoryRepository.getAllParentCategoriesAsyncCF().thenAccept(allParentCategories->{
 
-            List<CategoryDto> parentCategories = allCategories.stream()
+            List<CategoryDto> parentCategories = allParentCategories.stream()
                     .filter(cat->parentCategoryIds.contains(cat.id))
                     .collect(Collectors.toList());
 
