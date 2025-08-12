@@ -19,11 +19,13 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class EditBookFragment extends GuidedStepSupportFragment {
@@ -45,6 +47,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     private String author;
     private CategoryDto category;
     private CategoryDto subCategory;
+    private final CategoryRepository categoryRepository = new CategoryRepository();
 
 
     public EditBookFragment(BookDto book) {
@@ -111,7 +114,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                         .title("Категорія")
                         .description(getParentCategoryName())
                         .hasNext(false)
-                        .subActions(getCategoryActions())
+                        .subActions(getCategoryActions().join())
                         .build()
         );
 
@@ -121,7 +124,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                 .description(getSubCategoryName())
                 .hasNext(false)
                 .subActions(
-                        getSubCategoryActions(category != null ? category.id : null)
+                        getSubCategoryActions(category != null ? category.id : null).join()
                 )
                 .build());
     }
@@ -151,15 +154,11 @@ public class EditBookFragment extends GuidedStepSupportFragment {
 
             default:
                 int parenActionId = action.getCheckSetId();
-                CategoryDto selectedCategory = app.getCategoriesCash().stream()
-                        .filter(cat -> cat.id == action.getId())
-                        .findFirst().orElse(null);
+                CategoryDto selectedCategory = categoryRepository.getCategoryByIdAsyncCF(action.getId()).join();
                 if(parenActionId == ACTION_ID_SUBCATEGORY){
                     subCategory = selectedCategory;
-                    if(selectedCategory != null){
-                        category = app.getCategoriesCash().stream()
-                                .filter(cat ->selectedCategory.parentId != null &&  cat.id == selectedCategory.parentId)
-                                .findFirst().orElse(null);
+                    if(selectedCategory != null && selectedCategory.parentId != null){
+                        category = categoryRepository.getCategoryByIdAsyncCF(selectedCategory.parentId).join();
                         updateCategoryActionChecked();
                     }
                 }
@@ -189,21 +188,23 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     }
 
     public void setDefaultCategoryAndSubCategory(){
-        CategoryDto category = app.getCategoriesCash().stream()
-                .filter(cat->book.categoryId != null && cat.id == book.categoryId).findFirst().orElse(null);
-        if(category != null){
-            if(category.parentId == null){
-                this.category = category;
+        categoryRepository.getCategoryByIdAsyncCF(book.categoryId).thenAccept((category)->{
+            if(category != null){
+                if(category.parentId == null){
+                    this.category = category;
+                }
+                else{
+                    this.subCategory = category;
+                    categoryRepository.getCategoryByIdAsyncCF(category.parentId).thenAccept(parentCategory->{
+                        this.category = parentCategory;
+                    });
+                }
+            }else{
+                this.subCategory = null;
+                this.category = null;
             }
-            else{
-                this.subCategory = category;
-                this.category = app.getCategoriesCash().stream()
-                        .filter(cat->cat.id == category.parentId).findFirst().orElse(null);
-            }
-        }else{
-            this.subCategory = null;
-            this.category = null;
-        }
+        });
+
     }
 
     private void checkChangedAndAddControls(){
@@ -242,7 +243,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     private void updateSubcategorySubActions(){
         GuidedAction subCategoryAction = findActionById(ACTION_ID_SUBCATEGORY);
         if(subCategoryAction != null){
-            subCategoryAction.setSubActions(getSubCategoryActions(category != null ? category.id : null));
+            subCategoryAction.setSubActions(getSubCategoryActions(category != null ? category.id : null).join());
             notifyActionChanged(getActions().indexOf(subCategoryAction));
         }
     }
@@ -255,51 +256,53 @@ public class EditBookFragment extends GuidedStepSupportFragment {
         }
     }
 
-    private List<GuidedAction> getCategoryActions(){
+    private CompletableFuture<List<GuidedAction>> getCategoryActions(){
         Context context = getContext();
-        List<GuidedAction> actions = app.getCategoriesCash().stream()
-                .filter(cat->cat.parentId == null)
-                .map(cat->
-                        new GuidedAction.Builder(context)
-                                .id(cat.id)
-                                .title(cat.name)
-                                .hasNext(false)
-                                .checkSetId(ACTION_ID_CATEGORY)
-                                .checked(category != null && cat.id == category.id)
-                                .build())
-                .collect(Collectors.toList());
-        actions.add(0,new GuidedAction.Builder(context)
-                        .id(-1)
-                        .title("Не встановлено")
-                        .hasNext(false)
-                        .checkSetId(ACTION_ID_CATEGORY)
-                        .checked(category == null)
-                        .build());
-        return  actions;
+        return  categoryRepository.getAllParentCategoriesAsyncCF().thenApply(categories->{
+            List<GuidedAction> actions = categories.stream()
+                      .map(cat->
+                            new GuidedAction.Builder(context)
+                                    .id(cat.id)
+                                    .title(cat.name)
+                                    .hasNext(false)
+                                    .checkSetId(ACTION_ID_CATEGORY)
+                                    .checked(category != null && cat.id == category.id)
+                                    .build())
+                    .collect(Collectors.toList());
+            actions.add(0,new GuidedAction.Builder(context)
+                    .id(-1)
+                    .title("Не встановлено")
+                    .hasNext(false)
+                    .checkSetId(ACTION_ID_CATEGORY)
+                    .checked(category == null)
+                    .build());
+            return  actions;
+        });
     }
 
-    private List<GuidedAction> getSubCategoryActions(Long parentId){
+    private CompletableFuture<List<GuidedAction>> getSubCategoryActions(Long parentId){
         Context context = getContext();
-        List<GuidedAction> actions = app.getCategoriesCash().stream()
-                .filter(cat->(parentId == null && cat.parentId != null) || (parentId != null && Objects.equals(cat.parentId,parentId)))
-                .map(cat->
-                        new GuidedAction.Builder(context)
-                                .id(cat.id)
-                                .title(cat.name)
-                                .hasNext(false)
-                                .checkSetId(ACTION_ID_SUBCATEGORY)
-                                .checked(subCategory != null && cat.id == subCategory.id)
-                                .build())
-                .collect(Collectors.toList());
+        return categoryRepository.getAllSubcategoriesByParentIdAsyncCF(parentId).thenApply(subCategories->{
+            List<GuidedAction> actions = subCategories.stream().map(cat->
+                            new GuidedAction.Builder(context)
+                                    .id(cat.id)
+                                    .title(cat.name)
+                                    .hasNext(false)
+                                    .checkSetId(ACTION_ID_SUBCATEGORY)
+                                    .checked(subCategory != null && cat.id == subCategory.id)
+                                    .build())
+                    .collect(Collectors.toList());
 
-        actions.add(0,new GuidedAction.Builder(context)
-                .id(-1)
-                .title("Не встановлено")
-                .hasNext(false)
-                .checkSetId(ACTION_ID_SUBCATEGORY)
-                .checked(subCategory == null)
-                .build());
-        return  actions;
+            actions.add(0,new GuidedAction.Builder(context)
+                    .id(-1)
+                    .title("Не встановлено")
+                    .hasNext(false)
+                    .checkSetId(ACTION_ID_SUBCATEGORY)
+                    .checked(subCategory == null)
+                    .build());
+            return  actions;
+        });
+
     }
 
     private String getParentCategoryName(){
@@ -400,9 +403,11 @@ public class EditBookFragment extends GuidedStepSupportFragment {
             BookRepository bookRepository = new BookRepository();
             bookRepository.updateAndGetAsync(updatedBook).thenAccept((book)->{
                 if(!Objects.equals(book.categoryId , oldCategoryId)){
-                    app.updateCategoryCash();
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_CATEGORY_CHANGED,book);
                 }
-                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
+                else{
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
+                }
                 closeFragment();
             });
         }

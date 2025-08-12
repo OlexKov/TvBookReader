@@ -39,7 +39,6 @@ import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.customclassses.NewCategoryList;
 import com.example.bookreader.customclassses.RowItemData;
-import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 
 import com.example.bookreader.data.database.repository.CategoryRepository;
@@ -76,7 +75,8 @@ public class MainFragment extends BrowseSupportFragment {
     private Runnable pendingBackgroundUpdate = null;
     private BrowserMode currentBrowserMode;
     private RowItemData selectedRowItem;
-    BookRepository bookRepository = new BookRepository();
+    private final BookRepository bookRepository = new BookRepository();
+    private final CategoryRepository categoryRepository = new CategoryRepository();
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -158,7 +158,7 @@ public class MainFragment extends BrowseSupportFragment {
         }
         LifecycleOwner owner = getViewLifecycleOwner();
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectedChangeHandler, RowItemData.class);
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, Long.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.TRY_ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,categoryDeleteHandler,Long.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_EMPTY_MAIN_CATEGORIES_COMMAND,removeEmptyCategoriesHandler,Object.class);
         app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,removeCategoryIsEmptyHandler,Long.class);
@@ -198,7 +198,7 @@ public class MainFragment extends BrowseSupportFragment {
 
     private void openMenu(View view){
         if (!app.isMenuOpen() && view != null) {
-            view.post(()->{startHeadersTransition(true);}) ;
+           // view.post(()->{startHeadersTransition(true);}) ;
         }
     }
 
@@ -215,13 +215,13 @@ public class MainFragment extends BrowseSupportFragment {
                     R.drawable.favorite)));
         }
         else{
-            app.getCategoriesCash().stream().filter(cat -> cat.id == categoryId)
-                    .findFirst().ifPresent(category ->
-                            rowsAdapter.add(rowsAdapter.size() - 2, new PageRow(new IconHeader(category.id,
-                            category.name,
-                            category.iconId == 0
-                                    ? R.drawable.unsorted
-                                    : category.iconId))));
+            categoryRepository.getCategoryByIdAsync(categoryId,(category->{
+                rowsAdapter.add(rowsAdapter.size() - 2, new PageRow(new IconHeader(category.id,
+                        category.name,
+                        category.iconId == 0
+                                ? R.drawable.unsorted
+                                : category.iconId)));
+            }));
         }
     };
 
@@ -257,7 +257,6 @@ public class MainFragment extends BrowseSupportFragment {
         if (!app.isMenuOpen()){
             startHeadersTransition(true);
         }
-        BookRepository bookRepository = new BookRepository();
         bookRepository.getFavoriteBooksCount((count)->{
 
             String allName = getString(R.string.all_category);
@@ -279,13 +278,16 @@ public class MainFragment extends BrowseSupportFragment {
             }
             rowsAdapter.add( new PageRow(new IconHeader(Constants.ALL_BOOKS_CATEGORY_ID,allName,R.drawable.books_stack)));
             setTitle(app.getSelectedMainCategoryInfo().getName());
-            for (CategoryDto category:app.getCategoriesCash()){
-                if(category.booksCount > 0 && category.parentId == null){
-                    rowsAdapter.add(new PageRow(new IconHeader(category.id, category.name,category.iconId)));
+            categoryRepository.getAllParentWithBookCountAsync().thenAccept(categories->{
+                for (CategoryDto category:categories){
+                    if(category.booksCount > 0 && category.parentId == null){
+                        rowsAdapter.add(new PageRow(new IconHeader(category.id, category.name,category.iconId)));
+                    }
                 }
-            }
-            rowsAdapter.add(new DividerRow());
-            rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getString(R.string.settings),R.drawable.settings)));
+                 rowsAdapter.add(new DividerRow());
+                 rowsAdapter.add(new PageRow(new IconHeader(Constants.SETTINGS_CATEGORY_ID, getString(R.string.settings),R.drawable.settings)));
+            });
+
             setAdapter(rowsAdapter);
 
         });
@@ -360,29 +362,32 @@ public class MainFragment extends BrowseSupportFragment {
                 .map(cat->cat.parentId == null ? cat.id : cat.parentId)
                 .collect(Collectors.toList());
 
-        List<CategoryDto> parentCategories = app.getCategoriesCash().stream()
-                .filter(cat->parentCategoryIds.contains(cat.id))
-                .collect(Collectors.toList());
+        new CategoryRepository().getAllAsync().thenAccept(allCategories->{
 
-        if(!parentCategories.isEmpty()){
-            List<Long> currentParentCategoryIds = rowsAdapter.unmodifiableList()
-                    .stream().map((obj)->{
-                        if(obj instanceof PageRow pageRow){
-                            return pageRow.getId();
-                        }
-                        else{
-                            return null;
-                        }
-                    }).filter(Objects::nonNull)
+            List<CategoryDto> parentCategories = allCategories.stream()
+                    .filter(cat->parentCategoryIds.contains(cat.id))
                     .collect(Collectors.toList());
 
-            List<PageRow> newCategories = parentCategories.stream()
-                    .filter(cat->!currentParentCategoryIds.contains(cat.id))
-                    .map(cat-> new PageRow(new IconHeader(cat.id, cat.name,cat.iconId)))
-                    .collect(Collectors.toList());
-            if(!newCategories.isEmpty()){
-                rowsAdapter.addAll(rowsAdapter.size() - 2,newCategories);
+            if(!parentCategories.isEmpty()){
+                List<Long> currentParentCategoryIds = rowsAdapter.unmodifiableList()
+                        .stream().map((obj)->{
+                            if(obj instanceof PageRow pageRow){
+                                return pageRow.getId();
+                            }
+                            else{
+                                return null;
+                            }
+                        }).filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+
+                List<PageRow> newCategories = parentCategories.stream()
+                        .filter(cat->!currentParentCategoryIds.contains(cat.id))
+                        .map(cat-> new PageRow(new IconHeader(cat.id, cat.name,cat.iconId)))
+                        .collect(Collectors.toList());
+                if(!newCategories.isEmpty()){
+                    rowsAdapter.addAll(rowsAdapter.size() - 2,newCategories);
+                }
             }
-        }
+        });
     }
 }

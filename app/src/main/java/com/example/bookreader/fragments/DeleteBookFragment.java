@@ -66,7 +66,7 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
                         app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED, null);
                         app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED, new RowItemData(app.getSelectedRow(), book));
                         Toast.makeText(requireContext(), getString(R.string.book_deleted, book.title), Toast.LENGTH_SHORT).show();
-                        app.updateCategoryCash();
+                        //app.updateCategoryCash();
                         requireActivity().finish();
                     } else {
                         requireActivity().getSupportFragmentManager().popBackStack();

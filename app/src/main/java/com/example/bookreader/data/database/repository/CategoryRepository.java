@@ -65,6 +65,13 @@ public class CategoryRepository {
         });
     }
 
+    public CompletableFuture<List<CategoryDto>> getAllParentWithBookCountAsync(){
+        return CompletableFuture.supplyAsync(categoryDao::getAllParentWithBookCount);
+    }
+
+    public CompletableFuture<List<CategoryDto>> getAllAsync(){
+        return CompletableFuture.supplyAsync(categoryDao::getAll);
+    }
 
    //getAllSubcategoriesByParentId
     public List<CategoryDto> getAllSubcategoriesByParentId(long parentId){

@@ -372,7 +372,7 @@ public class LoadFilesFragment extends Fragment {
                     List<Long> booksIds = booksFutures.stream()
                             .map(CompletableFuture::join)
                             .collect(Collectors.toList());
-                    app.updateCategoryCash();
+                  //  app.updateCategoryCash();
                     requireActivity().runOnUiThread(() -> {
                         progressBarManager.hide();
                         Intent result = new Intent();

@@ -14,6 +14,9 @@ public interface CategoryDao {
     @Insert
     long insert(Category category);
 
+    @Query("SELECT * FROM categories ")
+    List<CategoryDto> getAll();
+
     @Query("SELECT * " +
             "FROM categories " +
             "WHERE parentId IS NULL")

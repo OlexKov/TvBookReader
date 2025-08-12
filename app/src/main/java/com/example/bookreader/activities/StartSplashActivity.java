@@ -26,9 +26,9 @@ public class StartSplashActivity extends FragmentActivity {
         if (!app.isDataBaseInit()) {
             app.getGlobalEventListener().subscribe(this,GlobalEventType.DATABASE_DONE, startMainActivityHandler, Object.class);
             app.DataBaseInit();
-        } else {
-            app.updateCategoryCash();
-            app.getGlobalEventListener().subscribe(this,GlobalEventType.CATEGORIES_CASH_UPDATED, startMainActivityHandler, Object.class);
+        }
+        else {
+            tryStartMainActivity();
         }
     }
 

@@ -33,7 +33,6 @@ import lombok.Setter;
 
 public class BookReaderApp  extends Application {
     private  SharedPreferences prefs;
-    private final List<CategoryDto> categoriesCash = new ArrayList<>();
 
  // Глобальний доступ до інстансу MyApp
     @Getter
@@ -68,18 +67,6 @@ public class BookReaderApp  extends Application {
 
     public boolean isDataBaseInit(){
         return prefs.getBoolean("db_seeded", false);
-    }
-
-    public List<CategoryDto> getCategoriesCash(){
-        return Collections.unmodifiableList(categoriesCash);
-    }
-
-    public void updateCategoryCash(){
-        Executors.newSingleThreadExecutor().execute(() -> {
-            categoriesCash.clear();
-            categoriesCash.addAll(appDatabase.categoryDao().getAllParentWithBookCount());
-            globalEventListener.sendEvent(GlobalEventType.CATEGORIES_CASH_UPDATED,null);
-        });
     }
 
     public String getLocalLanguage(){
@@ -198,7 +185,6 @@ public class BookReaderApp  extends Application {
                         .build());
 
                 prefs.edit().putBoolean("db_seeded", true).apply();
-                categoriesCash.addAll(appDatabase.categoryDao().getAllParentWithBookCount());
                 globalEventListener.sendEvent(GlobalEventType.DATABASE_DONE,null);
             });
         }
