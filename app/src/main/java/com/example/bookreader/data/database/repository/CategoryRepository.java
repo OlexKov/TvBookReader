@@ -78,12 +78,6 @@ public class CategoryRepository {
         return categoryDao.getAllSubcategoryByCategoryId(parentId);
     }
 
-    public CompletableFuture<List<CategoryDto>> getAllSubcategoriesByParentIdCF(long parentId) {
-        return CompletableFuture.supplyAsync(()->categoryDao.getAllSubcategoryByCategoryId(parentId));
-    }
-
-
-    //getAllSubcategoriesByParentId
     public void getAllSubcategoriesByParentIdAsync(long parentId,Consumer<List<CategoryDto>> callback) {
         executorService.execute(() -> {
             List<CategoryDto> list = categoryDao.getAllSubcategoryByCategoryId(parentId);
@@ -97,8 +91,13 @@ public class CategoryRepository {
         return CompletableFuture.supplyAsync(()->categoryDao.getAllSubcategoryByCategoryId(parentId));
     }
 
+    //getAllSubcategories
 
-   //getAllParentCategories
+    public CompletableFuture<List<CategoryDto>> getAllSubcategoriesAsyncCF() {
+        return CompletableFuture.supplyAsync(categoryDao::getAllSubcategories);
+    }
+
+    //getAllParentCategories
     public List<CategoryDto> getAllParentCategories(){
         return categoryDao.getAllParent();
     }

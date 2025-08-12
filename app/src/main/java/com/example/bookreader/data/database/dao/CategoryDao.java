@@ -38,6 +38,11 @@ public interface CategoryDao {
             "WHERE parentId = :categoryId")
     List<CategoryDto> getAllSubcategoryByCategoryId(long categoryId);
 
+    @Query("SELECT * " +
+            "FROM categories " +
+            "WHERE parentId NOT NULL")
+    List<CategoryDto> getAllSubcategories();
+
     @Query("SELECT * FROM categories WHERE id = :categoryId")
     CategoryDto getById(long categoryId);
 }

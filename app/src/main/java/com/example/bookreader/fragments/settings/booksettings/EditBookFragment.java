@@ -281,28 +281,32 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     }
 
     private CompletableFuture<List<GuidedAction>> getSubCategoryActions(Long parentId){
+        if(parentId == null){
+            return categoryRepository.getAllSubcategoriesAsyncCF().thenApply(this::getSubCategoriesActions);
+        }
+        return categoryRepository.getAllSubcategoriesByParentIdAsyncCF(parentId).thenApply(this::getSubCategoriesActions);
+    }
+
+    private List<GuidedAction> getSubCategoriesActions(List<CategoryDto> subCategories){
         Context context = getContext();
-        return categoryRepository.getAllSubcategoriesByParentIdAsyncCF(parentId).thenApply(subCategories->{
-            List<GuidedAction> actions = subCategories.stream().map(cat->
-                            new GuidedAction.Builder(context)
-                                    .id(cat.id)
-                                    .title(cat.name)
-                                    .hasNext(false)
-                                    .checkSetId(ACTION_ID_SUBCATEGORY)
-                                    .checked(subCategory != null && cat.id == subCategory.id)
-                                    .build())
-                    .collect(Collectors.toList());
+        List<GuidedAction> actions = subCategories.stream().map(cat->
+                        new GuidedAction.Builder(context)
+                                .id(cat.id)
+                                .title(cat.name)
+                                .hasNext(false)
+                                .checkSetId(ACTION_ID_SUBCATEGORY)
+                                .checked(subCategory != null && cat.id == subCategory.id)
+                                .build())
+                .collect(Collectors.toList());
 
-            actions.add(0,new GuidedAction.Builder(context)
-                    .id(-1)
-                    .title("Не встановлено")
-                    .hasNext(false)
-                    .checkSetId(ACTION_ID_SUBCATEGORY)
-                    .checked(subCategory == null)
-                    .build());
-            return  actions;
-        });
-
+        actions.add(0,new GuidedAction.Builder(context)
+                .id(-1)
+                .title("Не встановлено")
+                .hasNext(false)
+                .checkSetId(ACTION_ID_SUBCATEGORY)
+                .checked(subCategory == null)
+                .build());
+        return  actions;
     }
 
     private String getParentCategoryName(){
