@@ -62,6 +62,7 @@ public class LoadFilesFragment extends Fragment {
     private ArrayObjectAdapter newFileAdapter;
     private ProgressBarManager progressBarManager;
     private Button loadButton;
+    private final BookRepository bookRepository = new BookRepository();
 
 
     @Nullable
@@ -194,7 +195,6 @@ public class LoadFilesFragment extends Fragment {
             }
         }
         if (isEmptyList(filePaths)) return;
-        BookRepository bookRepository = new BookRepository();
         bookRepository.getAllPathsAsync().thenAccept((paths)->{
             List<String> filteredPaths = filePaths.stream()
                     .filter(path->!paths.contains(path))
@@ -334,7 +334,6 @@ public class LoadFilesFragment extends Fragment {
                 .map(BookDto.class::cast)
                 .collect(Collectors.toList());
 
-        BookRepository bookRepository = new BookRepository();
         AtomicInteger count = new AtomicInteger(1);
         float pointPerPercent = 100F/booksInfos.size();
         @SuppressLint("SetTextI18n") List<CompletableFuture<Long>> booksFutures = booksInfos.stream()
@@ -372,7 +371,6 @@ public class LoadFilesFragment extends Fragment {
                     List<Long> booksIds = booksFutures.stream()
                             .map(CompletableFuture::join)
                             .collect(Collectors.toList());
-                  //  app.updateCategoryCash();
                     requireActivity().runOnUiThread(() -> {
                         progressBarManager.hide();
                         Intent result = new Intent();

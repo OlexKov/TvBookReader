@@ -57,7 +57,9 @@ public class PageRowsFragment extends RowsSupportFragment {
     private ProgressBarManager progressBarManager;
     private ArrayObjectAdapter rowsAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
-    private  VerticalGridView gridView;
+    private final CategoryRepository categoryRepository = new CategoryRepository();
+    private final BookRepository bookRepository = new BookRepository();
+    private VerticalGridView gridView;
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -90,7 +92,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     private CompletableFuture<List<ListRow>> getFavoriteRow(BookPreviewPresenter itemPresenter){
         return  CompletableFuture.supplyAsync(()->{
             List<ListRow> rows = new ArrayList<>();
-            if(new BookRepository().getRowBooksCount(Constants.FAVORITE_CATEGORY_ID,null) > 0){
+            if(bookRepository.getRowBooksCount(Constants.FAVORITE_CATEGORY_ID,null) > 0){
                 ArrayBookAdapter adapter = new ArrayBookAdapter(
                         itemPresenter,
                         Constants.FAVORITE_CATEGORY_ID,
@@ -279,7 +281,7 @@ public class PageRowsFragment extends RowsSupportFragment {
             }
             else{
 
-                List<CategoryDto> categories = new CategoryRepository().getAllParentWithBookCountAsync().join()
+                List<CategoryDto> categories = categoryRepository.getAllParentWithBookCountAsync().join()
                         .stream()
                         .filter(c->c.booksCount > 0).collect(Collectors.toList());
 
@@ -405,7 +407,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     };
 
     private final Consumer<BookDto> bookCategoryChangedHandler = (updatedBook)->{
-        CategoryRepository categoryRepository = new CategoryRepository();
+
         boolean isSameMainCategory;
         CategoryDto newCategory;
         Long currentMainCategory = app.getSelectedMainCategoryInfo().getId();
@@ -511,7 +513,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         cat.id,
                         gridView);
                 if(currentMainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID && cat.parentId != null){
-                    new CategoryRepository().getCategoryByIdAsync(cat.parentId,(parentCategory->{
+                    categoryRepository.getCategoryByIdAsync(cat.parentId,(parentCategory->{
                         if(parentCategory != null){
                             rowsAdapter.add(new ListRow(new HeaderItem(cat.parentId, parentCategory.name), adapter));
                         }
