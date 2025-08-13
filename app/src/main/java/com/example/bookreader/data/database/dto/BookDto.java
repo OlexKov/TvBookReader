@@ -2,7 +2,9 @@ package com.example.bookreader.data.database.dto;
 
 import androidx.leanback.widget.DiffCallback;
 
+import com.example.bookreader.R;
 import com.example.bookreader.data.database.entity.Book;
+import com.example.bookreader.utility.FileHelper;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -52,4 +54,5 @@ public class BookDto implements Serializable {
         book.creationDate = creationDate == null ? book.creationDate : creationDate;
         return book;
     }
+
 }

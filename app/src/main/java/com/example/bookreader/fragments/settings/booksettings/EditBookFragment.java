@@ -409,9 +409,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                 if(!Objects.equals(book.categoryId , oldCategoryId)){
                     app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_CATEGORY_CHANGED,book);
                 }
-                else{
-                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
-                }
+                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
                 closeFragment();
             });
         }

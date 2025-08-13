@@ -36,25 +36,24 @@ public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
             sb.append(book.year);
         }
         if(book.author!= null &&!book.author.equals(unknown)){
-            if(sb.length() > 0){
-                sb.append(" ● ");
-            }
+            addSeparator(sb);
             sb.append(book.author);
         }
 
         if(book.pageCount != 0){
-            if(sb.length() > 0){
-                sb.append(" ● ");
-            }
+            addSeparator(sb);
             sb.append(book.pageCount);
             sb.append(" ст.");
         }
 
         if(book.fileSize != 0){
-            if(sb.length() > 0){
-                sb.append(" ● ");
-            }
+            addSeparator(sb);
             sb.append(FileHelper.formatSize(book.fileSize));
+        }
+
+        if(book.filePath != null && !book.filePath.isEmpty()){
+            addSeparator(sb);
+            sb.append(FileHelper.getPathFileExtension( book.filePath.toUpperCase()));
         }
 
         viewHolder.getSubtitle().setText(sb.toString());
@@ -67,5 +66,11 @@ public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {
             description.setMaxLines(20);
             description.setLines(20);
         });
+    }
+
+    private void addSeparator(StringBuilder sb){
+        if(sb.length() > 0){
+            sb.append(" ● ");
+        }
     }
 }

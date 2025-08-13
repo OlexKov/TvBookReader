@@ -460,9 +460,9 @@ public class PageRowsFragment extends RowsSupportFragment {
                            removeBook(row, bookDto, false);
                         }
                     }
-                    else {
-                        updateBook(adapter,updatedBook);
-                    }
+//                    else {
+//                        updateBook(adapter,updatedBook);
+//                    }
                 }
             }
         });
