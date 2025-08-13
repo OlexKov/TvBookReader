@@ -321,13 +321,19 @@ public class PageRowsFragment extends RowsSupportFragment {
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.CATEGORIES_CASH_UPDATED, categoriesCashUpdatedHandler, Object.class);
     }
 
-    private void tryAddOrReinitCategoryRow(Long id, String name){
+    private void tryAddOrReinitCategoryRow(Long categoryId){
+        var category = categoryId != null ? categoryRepository.getCategoryByIdAsyncCF(categoryId).join() : null;
+        tryAddOrReinitCategoryRow(category);
+    }
+
+    private void tryAddOrReinitCategoryRow(CategoryDto category){
         Long selectedMainCategory = app.getSelectedMainCategoryInfo().getId();
-        boolean inUnsortedCategory = id == null || Objects.equals(id , selectedMainCategory);
+        if(selectedMainCategory == Constants.FAVORITE_CATEGORY_ID) return;
+        boolean isUnsortedCategory = category == null || Objects.equals(category.id , selectedMainCategory);
 
         for (int i = 0; i < rowsAdapter.size(); i++){
             if(rowsAdapter.get(i) instanceof ListRow row
-                    && (inUnsortedCategory ? row.getId() == Constants.UNSORTED_BOOKS_CATEGORY_ID  : row.getId() == id)
+                    && (isUnsortedCategory ? row.getId() == Constants.UNSORTED_BOOKS_CATEGORY_ID  : row.getId() == category.id)
                     && row.getAdapter() instanceof ArrayBookAdapter adapter){
                 adapter.reinit();
                 int index = rowsAdapter.indexOf(row);
@@ -340,18 +346,36 @@ public class PageRowsFragment extends RowsSupportFragment {
             }
         }
 
+        String categoryName;
+        long categoryId = category == null ? Constants.UNSORTED_BOOKS_CATEGORY_ID : category.id;
         int position = rowsAdapter.size();
-        if(inUnsortedCategory){
-            id = Constants.UNSORTED_BOOKS_CATEGORY_ID;
+        if(isUnsortedCategory){
             position = 1;
-            name = getString(R.string.unsorted_category);
+            categoryName = getString(R.string.unsorted_category);
+        }
+        else {
+            categoryName = category.name;
+            if (selectedMainCategory == Constants.ALL_BOOKS_CATEGORY_ID) {
+                if (category.parentId != null) {
+                    var parentCategory = categoryRepository.getCategoryByIdAsyncCF(category.parentId).join();
+                    if (parentCategory != null) {
+                        categoryId = parentCategory.id;
+                        categoryName = parentCategory.name;
+                    }
+                }
+            }
+            app.getGlobalEventListener().sendEvent(
+                    GlobalEventType.TRY_ADD_MAIN_CATEGORY_COMMAND,
+                    category.parentId != null
+                            ? category.parentId
+                            : category.id);
         }
         ArrayBookAdapter adapter = new ArrayBookAdapter(
                 new BookPreviewPresenter(),
                 selectedMainCategory,
-                id,
+                categoryId,
                 gridView);
-        rowsAdapter.add(position,new ListRow(new IconHeader(id, name,R.drawable.unsorted_book), adapter));
+        rowsAdapter.add(position,new ListRow(new IconHeader(categoryId, categoryName,R.drawable.unsorted_book), adapter));
     }
 
     private  String getCurrentCategoryName(){
@@ -407,16 +431,12 @@ public class PageRowsFragment extends RowsSupportFragment {
     };
 
     private final Consumer<BookDto> bookCategoryChangedHandler = (updatedBook)->{
-
         boolean isSameMainCategory;
         CategoryDto newCategory;
         Long currentMainCategory = app.getSelectedMainCategoryInfo().getId();
-        Log.d("UPDATECATEGORY","currentMainCategory - "+String.valueOf(currentMainCategory));
         if(currentMainCategory == Constants.FAVORITE_CATEGORY_ID) return;
-        Log.d("UPDATECATEGORY","updatedBook.categoryId - "+String.valueOf(updatedBook.categoryId));
         if(updatedBook.categoryId != null){
             newCategory = categoryRepository.getCategoryByIdAsyncCF(updatedBook.categoryId).join();
-            Log.d("UPDATECATEGORY","newCategory - "+String.valueOf(newCategory!=null?newCategory.name:"null"));
             if(newCategory != null) {
                 isSameMainCategory = currentMainCategory == Constants.ALL_BOOKS_CATEGORY_ID || newCategory.id == currentMainCategory || Objects.equals(newCategory.parentId, currentMainCategory );
             } else {
@@ -428,8 +448,6 @@ public class PageRowsFragment extends RowsSupportFragment {
             isSameMainCategory = currentMainCategory == Constants.ALL_BOOKS_CATEGORY_ID;
         }
 
-        Log.d("UPDATECATEGORY","isSameMainCategory - "+String.valueOf(isSameMainCategory));
-
         new ArrayList<>(rowsAdapter.unmodifiableList()).forEach(rowList-> {
             if (rowList instanceof ListRow row && row.getAdapter() instanceof ArrayBookAdapter adapter) {
                 var oldBook = adapter.unmodifiableList().stream()
@@ -438,91 +456,23 @@ public class PageRowsFragment extends RowsSupportFragment {
                 if(oldBook != null){
                     if (!isSameMainCategory || row.getId() != Constants.ALL_BOOKS_CATEGORY_ID) {
                         if (oldBook instanceof BookDto bookDto) {
-                            Log.d("UPDATECATEGORY","remove book from - "+String.valueOf(row.getHeaderItem().getName()));
-                            removeBook(row, bookDto, false);
+                           removeBook(row, bookDto, false);
                         }
                     }
                     else {
-                        Log.d("UPDATECATEGORY","update book at - "+String.valueOf(row.getHeaderItem().getName()));
-                        ((BookDto) oldBook).categoryId = updatedBook.categoryId;
+                        int index = adapter.indexOf(oldBook);
+                        adapter.replace(index, updatedBook);
+                        adapter.notifyItemRangeChanged(index,1);
                     }
                 }
             }
         });
-
-        if(newCategory != null) {
-            if(isSameMainCategory ){
-                Long categoryId = newCategory.id;
-                String categoryName = newCategory.name;
-                if (currentMainCategory == Constants.ALL_BOOKS_CATEGORY_ID) {
-                    if (newCategory.parentId != null) {
-                        var parentCategory = categoryRepository.getCategoryByIdAsyncCF(newCategory.parentId).join();
-                        if(parentCategory != null){
-                            categoryId = parentCategory.id;
-                            categoryName = parentCategory.name;
-                        }
-                    }
-                }
-                Log.d("UPDATECATEGORY","try add category - "+String.valueOf(categoryName));
-                tryAddOrReinitCategoryRow(categoryId, categoryName);
-            }
-            Log.d("UPDATECATEGORY","try add main categoryId - "+String.valueOf(newCategory.parentId != null
-                    ? newCategory.parentId
-                    : newCategory.id));
-            app.getGlobalEventListener().sendEvent(
-                    GlobalEventType.TRY_ADD_MAIN_CATEGORY_COMMAND,
-                    newCategory.parentId != null
-                            ? newCategory.parentId
-                            : newCategory.id);
-
-          }
-          else {
-              if (currentMainCategory == Constants.ALL_BOOKS_CATEGORY_ID) {
-                  Log.d("UPDATECATEGORY","try add unsorted category ");
-                  tryAddOrReinitCategoryRow(null, null);
-              }
-          }
-        Log.d("UPDATECATEGORY","----------------------------------------------");
+        tryAddOrReinitCategoryRow(newCategory);
     };
 
     private final Consumer<NewCategoryList> categoriesUpdateHandler = (categoriesList)->{
-        Long currentMainCategoryId = app.getSelectedMainCategoryInfo().getId();
-        for(int i = 0; i< rowsAdapter.size(); i++){
-            if( rowsAdapter.get(i) instanceof ListRow row && row.getAdapter() instanceof ArrayBookAdapter bookAdapter){
-                if(Objects.equals(bookAdapter.getMainCategoryId(),currentMainCategoryId)){
-                    long rowId = bookAdapter.getRowCategoryId();
-                    var categoryToUpdate = categoriesList.categories.stream().filter(cat->
-                                    Objects.equals(cat.parentId, rowId) || Objects.equals(cat.id,rowId))
-                            .findFirst().orElse(null);
-                    if(rowId == Constants.ALL_BOOKS_CATEGORY_ID || rowId == Constants.UNSORTED_BOOKS_CATEGORY_ID || categoryToUpdate != null){
-                        bookAdapter.reinit();
-                        updateRowCountLabel(i,bookAdapter.getDbElementsCount());
-                    }
-                    if(categoryToUpdate != null){
-                        categoriesList.categories.remove(categoryToUpdate);
-                    }
-                }
-                else return;
-            }
-        }
         if(!categoriesList.categories.isEmpty()){
-            for(CategoryDto cat:categoriesList.categories){
-                ArrayBookAdapter adapter = new ArrayBookAdapter(
-                        new BookPreviewPresenter(),
-                        currentMainCategoryId,
-                        cat.id,
-                        gridView);
-                if(currentMainCategoryId == Constants.ALL_BOOKS_CATEGORY_ID && cat.parentId != null){
-                    categoryRepository.getCategoryByIdAsync(cat.parentId,(parentCategory->{
-                        if(parentCategory != null){
-                            rowsAdapter.add(new ListRow(new HeaderItem(cat.parentId, parentCategory.name), adapter));
-                        }
-                    }));
-                }
-                else{
-                    rowsAdapter.add(new ListRow(new IconHeader(cat.id, cat.name,cat.iconId), adapter));
-                }
-            }
+            categoriesList.categories.forEach(this::tryAddOrReinitCategoryRow);
         }
     };
 

@@ -188,8 +188,8 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     }
 
     public void setDefaultCategoryAndSubCategory(){
-        categoryRepository.getCategoryByIdAsyncCF(book.categoryId).thenAccept((category)->{
-            if(category != null){
+        if(book.categoryId != null){
+            categoryRepository.getCategoryByIdAsyncCF(book.categoryId).thenAccept((category)->{
                 if(category.parentId == null){
                     this.category = category;
                 }
@@ -199,12 +199,12 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                         this.category = parentCategory;
                     });
                 }
-            }else{
-                this.subCategory = null;
-                this.category = null;
-            }
-        });
-
+            });
+        }
+        else{
+            this.subCategory = null;
+            this.category = null;
+        }
     }
 
     private void checkChangedAndAddControls(){
