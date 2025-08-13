@@ -321,9 +321,11 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     private void tryAddOrReinitCategoryRow(CategoryDto category){
+        String categoryName;
+        long categoryId;
         Long selectedMainCategory = app.getSelectedMainCategoryInfo().getId();
         if(selectedMainCategory == Constants.FAVORITE_CATEGORY_ID) return;
-        boolean isUnsortedCategory = category == null || Objects.equals(category.id , selectedMainCategory);
+        boolean isUnsortedCategory = category == null  || Objects.equals(category.id , selectedMainCategory);
 
         for (int i = 0; i < rowsAdapter.size(); i++){
             if(rowsAdapter.get(i) instanceof ListRow row
@@ -333,15 +335,15 @@ public class PageRowsFragment extends RowsSupportFragment {
             }
         }
 
-        String categoryName;
-        long categoryId = category == null ? Constants.UNSORTED_BOOKS_CATEGORY_ID : category.id;
         int position = rowsAdapter.size();
         if(isUnsortedCategory){
+            categoryId = Constants.UNSORTED_BOOKS_CATEGORY_ID;
             position = 1;
             categoryName = getString(R.string.unsorted_category);
         }
         else {
             categoryName = category.name;
+            categoryId = category.id;
             if (selectedMainCategory == Constants.ALL_BOOKS_CATEGORY_ID) {
                 if (category.parentId != null) {
                     var parentCategory = categoryRepository.getCategoryByIdAsyncCF(category.parentId).join();

@@ -329,6 +329,7 @@ public class LoadFilesFragment extends Fragment {
         disableFocus();
         progressBarManager.show();
         title.setText(getString(R.string.saving));
+        titleValue.setText("");
         List<BookDto> booksInfos = newFileAdapter.unmodifiableList().stream()
                 .filter(BookDto.class::isInstance)
                 .map(BookDto.class::cast)
