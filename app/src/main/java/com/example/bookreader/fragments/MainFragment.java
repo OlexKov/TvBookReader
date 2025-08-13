@@ -343,7 +343,6 @@ public class MainFragment extends BrowseSupportFragment {
                         if(newIds != null){
                             List<Long> newBooksIds = Arrays.stream(newIds)
                                     .boxed().collect(Collectors.toList());
-                            CategoryRepository categoryRepository = new CategoryRepository();
                             categoryRepository.getCategoriesByBooksIdsAsync(newBooksIds)
                                     .thenAccept((categories)->{
                                         if(!categories.isEmpty()){
