@@ -107,7 +107,6 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     private CompletableFuture<List<ListRow>> getSettingRows() {
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.ITEM_SELECTED_CHANGE, itemSelectChangeListenerHandler);
         return CompletableFuture.supplyAsync(() -> {
             ArrayObjectAdapter settingsAdapter = new ArrayObjectAdapter(new TextIconPresenter());
             settingsAdapter.add(new TextIcon(ActionType.SETTING_1.getId(), R.drawable.settings, "Налаштування категорій"));
@@ -312,12 +311,12 @@ public class PageRowsFragment extends RowsSupportFragment {
         setOnItemViewClickedListener(new ItemViewClickedListener(this));
         setOnItemViewSelectedListener(new RowItemSelectedListener());
         LifecycleOwner  owner = getViewLifecycleOwner();
-        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_DELETED,bookDeletedHandler,RowItemData.class);
-        app.getGlobalEventListener().subscribe(owner,GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectChangeListenerHandler,RowItemData.class);
-        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_UPDATED,bookUpdatedHandler,BookDto.class);
-        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_CATEGORY_CHANGED,bookCategoryChangedHandler,BookDto.class);
-        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_FAVORITE_UPDATED, bookFavoriteUpdateHandler,BookDto.class);
-        app.getGlobalEventListener().subscribe(owner,GlobalEventType.UPDATE_CATEGORIES_COMMAND, categoriesUpdateHandler, NewCategoryList.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_DELETED, this::bookDeletedHandler,RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.ITEM_SELECTED_CHANGE,this::itemSelectChangeListenerHandler,RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_UPDATED,this::bookUpdatedHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_CATEGORY_CHANGED,this::bookCategoryChangedHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_FAVORITE_UPDATED, this::bookFavoriteUpdateHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(owner,GlobalEventType.UPDATE_CATEGORIES_COMMAND, this::categoriesUpdateHandler, NewCategoryList.class);
     }
 
     private void tryAddOrReinitCategoryRow(CategoryDto category){
@@ -431,7 +430,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
     }
 
-    private final Consumer<BookDto> bookCategoryChangedHandler = (updatedBook)->{
+    private void bookCategoryChangedHandler(BookDto updatedBook){
         boolean isSameMainCategory;
         CategoryDto newCategory;
         Long currentMainCategory = app.getSelectedMainCategoryInfo().getId();
@@ -469,10 +468,10 @@ public class PageRowsFragment extends RowsSupportFragment {
         tryAddOrReinitCategoryRow(newCategory);
     };
 
-    private final Consumer<NewCategoryList> categoriesUpdateHandler = (categoriesList)->{
+    private void categoriesUpdateHandler(NewCategoryList categoriesList){
         var currentMainCategory = app.getSelectedMainCategoryInfo().getId();
         if(currentMainCategory != Constants.FAVORITE_CATEGORY_ID || currentMainCategory != Constants.SETTINGS_CATEGORY_ID ){
-            if(rowsAdapter.get(0) instanceof  ListRow row){
+            if(rowsAdapter.get(0) instanceof ListRow row){
                 reinitRowAdapter(row);
             }
         }
@@ -484,7 +483,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
     };
 
-    private final Consumer<BookDto> bookFavoriteUpdateHandler = (book)->{
+    private void bookFavoriteUpdateHandler(BookDto book){
         var favoriteRow = rowsAdapter.unmodifiableList().stream()
                 .filter(listRow->listRow instanceof ListRow row && row.getId() == Constants.FAVORITE_CATEGORY_ID)
                 .findFirst().orElse(null);
@@ -503,14 +502,14 @@ public class PageRowsFragment extends RowsSupportFragment {
         }
     };
 
-    private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
+    private void bookUpdatedHandler(BookDto updatedBook){
        for (int i = 0; i < rowsAdapter.size(); i++){
             if(!(rowsAdapter.get(i) instanceof ListRow row) || !(row.getAdapter() instanceof ArrayBookAdapter adapter)) return;
             updateBook(adapter,updatedBook);
         }
     };
 
-    private final Consumer<RowItemData> bookDeletedHandler = (bookData)->{
+    private void bookDeletedHandler(RowItemData bookData){
         BookDto book = bookData.getBook();
         removeBook(rowsAdapter.get(0),book,true);
         rowsAdapter.unmodifiableList().stream().filter(row->
@@ -520,7 +519,7 @@ public class PageRowsFragment extends RowsSupportFragment {
         ).findFirst().ifPresent(row->removeBook(row,book,true));
     };
 
-    private final Consumer<RowItemData> itemSelectChangeListenerHandler = (rowBookData)->{
+    private void itemSelectChangeListenerHandler(RowItemData rowBookData){
          if( !(rowBookData.getRow().getAdapter() instanceof ArrayBookAdapter bookAdapter)) return;
          bookAdapter.tryPaginateRow(rowBookData.getBook());
     };

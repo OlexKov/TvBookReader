@@ -157,11 +157,11 @@ public class MainFragment extends BrowseSupportFragment {
             });
         }
         LifecycleOwner owner = getViewLifecycleOwner();
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,itemSelectedChangeHandler, RowItemData.class);
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.TRY_ADD_MAIN_CATEGORY_COMMAND,addCategoryHandler, Long.class);
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,categoryDeleteHandler,Long.class);
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_EMPTY_MAIN_CATEGORIES_COMMAND,removeEmptyCategoriesHandler,Object.class);
-        app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,removeCategoryIsEmptyHandler,Long.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.ITEM_SELECTED_CHANGE,this::itemSelectedChangeHandler, RowItemData.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.TRY_ADD_MAIN_CATEGORY_COMMAND,this::addCategoryHandler, Long.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.DELETE_MAIN_CATEGORY_COMMAND,this::categoryDeleteHandler,Long.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_EMPTY_MAIN_CATEGORIES_COMMAND,this::removeEmptyCategoriesHandler,Object.class);
+        app.getGlobalEventListener().subscribe(owner, GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,this::removeCategoryIsEmptyHandler,Long.class);
     }
 
     private void removeIsEmpty(PageRow pageRow){
@@ -181,14 +181,14 @@ public class MainFragment extends BrowseSupportFragment {
         }
     }
 
-    private final Consumer<Long> removeCategoryIsEmptyHandler = (categoryId)->{
+    private void removeCategoryIsEmptyHandler(Long categoryId){
         var categoryRow = rowsAdapter.unmodifiableList().stream()
                 .filter(row->row instanceof PageRow pageRow && pageRow.getId() == categoryId )
                 .findFirst().orElse(null);
         removeIsEmpty((PageRow) categoryRow);
     };
 
-    private final Consumer<Object> removeEmptyCategoriesHandler = (v)->{
+    private void removeEmptyCategoriesHandler(Object v){
         rowsAdapter.unmodifiableList().forEach(row->{
             if(row instanceof PageRow pageRow){
                 removeIsEmpty(pageRow);
@@ -202,7 +202,7 @@ public class MainFragment extends BrowseSupportFragment {
         }
     }
 
-    private final Consumer<Long> addCategoryHandler = (Long categoryId)->{
+    private void addCategoryHandler(Long categoryId){
         for (int i = 0; i < rowsAdapter.size(); i++) {
             if(rowsAdapter.get(i) instanceof PageRow pageRow){
                 if(pageRow.getId() == categoryId) return;
@@ -225,7 +225,7 @@ public class MainFragment extends BrowseSupportFragment {
         }
     };
 
-    private final Consumer<RowItemData> itemSelectedChangeHandler = (RowItemData rowItemData)->{
+    private void itemSelectedChangeHandler(RowItemData rowItemData){
         selectedRowItem = rowItemData;
         if (pendingBackgroundUpdate != null) {
             handler.removeCallbacks(pendingBackgroundUpdate);
@@ -238,7 +238,7 @@ public class MainFragment extends BrowseSupportFragment {
         handler.postDelayed(pendingBackgroundUpdate, 2000);
     };
 
-    private final Consumer<Long> categoryDeleteHandler = (categoryToDeleteId)->{
+    private void categoryDeleteHandler(Long categoryToDeleteId){
         if(categoryToDeleteId == Constants.ALL_BOOKS_CATEGORY_ID || categoryToDeleteId == Constants.SETTINGS_CATEGORY_ID) return;
         var item = rowsAdapter.unmodifiableList().stream()
                 .filter(row-> row instanceof PageRow pageRow && pageRow.getHeaderItem().getId() == categoryToDeleteId)
