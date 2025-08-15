@@ -386,7 +386,6 @@ public class PageRowsFragment extends RowsSupportFragment {
         else {
             rowsAdapter.notifyItemRangeChanged(index,1);
         }
-
     }
 
     private void removeBook(Object row,BookDto book,boolean favoriteCheck){
@@ -408,7 +407,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                         if(favoriteCheck){
                             app.getGlobalEventListener().sendEvent(GlobalEventType.REMOVE_IS_EMPTY_MAIN_CATEGORY_COMMAND,Constants.FAVORITE_CATEGORY_ID);
                         }
-                        updateRowCountLabel( listRow,adapter.getDbElementsCount());
+                        updateRowCountLabel(listRow,adapter.getDbElementsCount());
                     }
                 }
             }
@@ -459,9 +458,9 @@ public class PageRowsFragment extends RowsSupportFragment {
                            removeBook(row, bookDto, false);
                         }
                     }
-//                    else {
-//                        updateBook(adapter,updatedBook);
-//                    }
+                    else {
+                        updateBook(adapter,updatedBook);
+                    }
                 }
             }
         });

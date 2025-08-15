@@ -9,6 +9,7 @@ import androidx.room.Update;
 import androidx.sqlite.db.SupportSQLiteQuery;
 
 import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.data.database.entity.Book;
 
 import java.util.List;
@@ -55,8 +56,43 @@ public interface BookDao {
             "LIMIT :size OFFSET (:page -1) * :size" )
     List<BookDto> getFavoriteBooks(int page,int size);
 
+    /// --------------Book tags query -----------------------------
+
+
+    @Query("""
+            SELECT * FROM books AS bks  
+            JOIN books_tags as bt ON bt.bookId = bks.id 
+            WHERE bt.tagId = :tagId
+            """)
+    List<BookDto> getBookByTagId(Long tagId);
+
+    @Query("""
+    SELECT *
+    FROM books b
+    JOIN books_tags bt ON bt.bookId = b.id
+    WHERE bt.tagId IN (:tagIds)
+    GROUP BY b.id
+    HAVING COUNT(DISTINCT bt.tagId) = :tagCount
+""")
+    List<BookDto> getBooksByAllTags(List<Integer> tagIds, int tagCount);
+
 
     /// --------------Count query -----------------------------
+    @Query("SELECT COUNT(*) FROM books AS b " +
+            "JOIN books_tags as bt ON bt.bookId = b.id "+
+            "WHERE bt.tagId = :tagId")
+    Long getBookByTagIdCount(Long tagId);
+
+    @Query("""
+    SELECT COUNT(*)
+    FROM books b
+    JOIN books_tags bt ON bt.bookId = b.id
+    WHERE bt.tagId IN (:tagIds)
+    GROUP BY b.id
+    HAVING COUNT(DISTINCT bt.tagId) = :tagCount
+""")
+    Long getBooksByAllTagsCount(List<Integer> tagIds, int tagCount);
+
 
     @Query("SELECT COUNT(*) FROM books WHERE isFavorite = 1 ")
     Long getFavoriteBooksCount();

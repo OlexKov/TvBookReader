@@ -1,31 +1,44 @@
 package com.example.bookreader.fragments.settings.booksettings;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
+import androidx.leanback.widget.VerticalGridView;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.activities.BookDetailsActivity;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
+import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.data.database.entity.Book;
+import com.example.bookreader.data.database.entity.Tag;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.data.database.repository.TagRepository;
+import com.example.bookreader.utility.eventlistener.GlobalEventListener;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class EditBookFragment extends GuidedStepSupportFragment {
@@ -47,7 +60,12 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     private String author;
     private CategoryDto category;
     private CategoryDto subCategory;
+    private List<Long> currentBookTagsIds;
+    private final List<Long> bookTagsIds;
+    private final String defaultTagsDescription;
     private final CategoryRepository categoryRepository = new CategoryRepository();
+    private final TagRepository tagRepository = new TagRepository();
+    private final GlobalEventListener globalEventListener = app.getGlobalEventListener();
 
 
     public EditBookFragment(BookDto book) {
@@ -55,7 +73,33 @@ public class EditBookFragment extends GuidedStepSupportFragment {
         title = book.title;
         year = book.year;
         author = book.author;
+        List<TagDto> tags = tagRepository.getByBookIdAsync(book.id).join();
+        defaultTagsDescription = tags.isEmpty() ? "Не встановлено" : tags.stream().map(tag->tag.name).collect(Collectors.joining(" | "));
+        this.bookTagsIds = tags.stream().map(tag->tag.id).collect(Collectors.toList());
+        currentBookTagsIds = new ArrayList<>(this.bookTagsIds);
         setDefaultCategoryAndSubCategory();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getParentFragmentManager().setFragmentResultListener(
+                "tags_result",
+                this,
+                (requestKey, bundle) -> {
+                    long[] tagsIds = bundle.getLongArray("tags");
+                    currentBookTagsIds = tagsIds != null
+                            ? Arrays.stream(tagsIds)
+                            .boxed()
+                            .collect(Collectors.toList())
+                            : new ArrayList<>();
+                    currentBookTagsIds.forEach(id->{
+                        Log.d("TagsUpdate" ,"currentBookTagsIds - " + String.valueOf(id));
+                    });
+                    checkChangedAndAddControls();
+                    updateCurrentTagDescription(currentBookTagsIds);
+                }
+        );
     }
 
     @NonNull
@@ -102,10 +146,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
         actions.add(new GuidedAction.Builder(context)
                 .id(ACTION_ID_TAGS)
                 .title("Теги")
-                .description("Теги")
-                .hasNext(false)
-                //.checkSetId(1)
-                //.checked(true)
+                .description(defaultTagsDescription)
                 .build());
 
         actions.add(
@@ -131,18 +172,29 @@ public class EditBookFragment extends GuidedStepSupportFragment {
 
     @Override
     public void onGuidedActionEditCanceled(@NonNull GuidedAction action) {
-        processTextEditActions(action);
+        switch ((int) action.getId()) {
+            case ACTION_ID_TITLE:
+                action.setDescription(title);
+                break;
+            case ACTION_ID_YEAR:
+                action.setDescription(year);
+                break;
+            case ACTION_ID_AUTHOR:
+                action.setDescription(author);
+                break;
+        }
     }
 
     @Override
     public long onGuidedActionEditedAndProceed(@NonNull GuidedAction action) {
         processTextEditActions(action);
+        checkChangedAndAddControls();
         updateActions();
         return ACTION_ID_NO_ACTION; // залишитись на поточній дії
     }
 
     @Override
-    public boolean onSubGuidedActionClicked(GuidedAction action) {
+    public boolean onSubGuidedActionClicked(@NonNull GuidedAction action) {
         switch ((int) action.getId()) {
             case ACTION_ID_SAVE:
                 saveToDatabase();
@@ -179,11 +231,8 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     public void onGuidedActionClicked(GuidedAction action) {
         switch ((int) action.getId()) {
             case ACTION_ID_TAGS:
-                // Відкриваємо діалог вибору тегів
-//                TagSelectionDialog dialog = TagSelectionDialog.newInstance(new ArrayList<>(book.getTags()));
-//                dialog.setTargetFragment(this, 100); // requestCode = 100
-//                dialog.show(getFragmentManager(), "tag_dialog");
-                break;
+                  GuidedStepSupportFragment.add(getParentFragmentManager(), new TagsSelectFragment(currentBookTagsIds));
+               break;
         }
     }
 
@@ -221,13 +270,14 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     }
 
     private boolean isSettingChanged(){
-        return !Objects.equals(title,book.title)
+        return     !Objects.equals(title,book.title)
                 || !Objects.equals(year,book.year)
                 || !Objects.equals(author,book.author)
-                || !Objects.equals(book.categoryId, getCurrentCategoryId());
+                || !Objects.equals(book.categoryId, getCurrentCategoryId())
+                || isTagsChanged();
     }
 
-    public void updateCategoryActionChecked(){
+    public  void updateCategoryActionChecked(){
         GuidedAction categoryAction = findActionById(ACTION_ID_CATEGORY);
         if(categoryAction != null){
             List<GuidedAction> categorySubActions = categoryAction.getSubActions();
@@ -287,6 +337,10 @@ public class EditBookFragment extends GuidedStepSupportFragment {
         return categoryRepository.getAllSubcategoriesByParentIdAsyncCF(parentId).thenApply(this::getSubCategoriesActions);
     }
 
+    private boolean isTagsChanged(){
+        return !new HashSet<>(bookTagsIds).equals(new HashSet<>(currentBookTagsIds));
+    }
+
     private List<GuidedAction> getSubCategoriesActions(List<CategoryDto> subCategories){
         Context context = getContext();
         List<GuidedAction> actions = subCategories.stream().map(cat->
@@ -335,6 +389,12 @@ public class EditBookFragment extends GuidedStepSupportFragment {
             action.setDescription(book.year);
             notifyActionChanged(1);
         }
+
+        action = findActionById(ACTION_ID_TAGS);
+        if(action != null){
+            setDefaultTags(action);
+        }
+
         setDefaultCategoryAndSubCategory();
         updateCategoryActionDescription(category,ACTION_ID_CATEGORY);
         updateCategoryActionDescription(subCategory,ACTION_ID_SUBCATEGORY);
@@ -343,18 +403,22 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     }
 
     private void processTextEditActions(GuidedAction action){
-        switch ((int) action.getId()) {
-            case ACTION_ID_TITLE:
-                title = action.getDescription().toString();
-                break;
-            case ACTION_ID_YEAR:
-                year = action.getDescription().toString();
-                break;
-            case ACTION_ID_AUTHOR:
-                author =  action.getDescription().toString();
-                break;
+        var description = action.getDescription();
+        if(description != null){
+            String descriptionString = description.toString();
+            switch ((int) action.getId()) {
+                case ACTION_ID_TITLE:
+                    title = descriptionString;
+                    break;
+                case ACTION_ID_YEAR:
+                    year = descriptionString;
+                    break;
+                case ACTION_ID_AUTHOR:
+                    author =  descriptionString;
+                    break;
+            }
         }
-        checkChangedAndAddControls();
+
     }
 
     private void removeControlActions(){
@@ -402,27 +466,41 @@ public class EditBookFragment extends GuidedStepSupportFragment {
             book.categoryId  = subCategory == null ? category.id : subCategory.id;
         }
 
+        if(isTagsChanged()){
+            List<Long> existingTagIds = new ArrayList<>(bookTagsIds);
+            existingTagIds.retainAll(currentBookTagsIds);
+            existingTagIds.forEach(id->{
+                bookTagsIds.remove(id);
+                currentBookTagsIds.remove(id);
+            });
+            tagRepository.removeTagsFromBookAsync(bookTagsIds,book.id).thenAccept(count->{
+                currentBookTagsIds.forEach(tagId->{
+                   tagRepository.addTagToBook(tagId,book.id);
+                });
+                globalEventListener.sendEvent(GlobalEventType.BOOK_TAGS_CHANGED,book);
+            });
+        }
         if(requireActivity() instanceof BookDetailsActivity){
             Book updatedBook = book.getBook();
             BookRepository bookRepository = new BookRepository();
             bookRepository.updateAndGetAsync(updatedBook).thenAccept((book)->{
                 if(!Objects.equals(book.categoryId , oldCategoryId)){
-                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_CATEGORY_CHANGED,book);
+                    globalEventListener.sendEvent(GlobalEventType.BOOK_CATEGORY_CHANGED,book);
+                }else{
+                    globalEventListener.sendEvent(GlobalEventType.BOOK_UPDATED,book);
                 }
-                app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_UPDATED,book);
-                closeFragment();
+                globalEventListener.sendEvent(GlobalEventType.UPDATE_BOOK_DETAILS,book);
             });
         }
         else{
-            app.getGlobalEventListener().sendEvent(GlobalEventType.LOAD_BOOK_UPDATED,book);
-            closeFragment();
+            globalEventListener.sendEvent(GlobalEventType.LOAD_BOOK_UPDATED,book);
         }
-
+        closeFragment();
     }
 
     private void closeFragment(){
         requireActivity().runOnUiThread(()->{
-            Toast.makeText(getContext(), "Збережено!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Зміни Збережено!", Toast.LENGTH_SHORT).show();
             getParentFragmentManager().popBackStack();
         });
     }
@@ -435,5 +513,25 @@ public class EditBookFragment extends GuidedStepSupportFragment {
             //  notifyActionChanged(tagAction);
         }
     }
+
+    private void setDefaultTags(GuidedAction tagAction){
+        tagAction.setDescription(defaultTagsDescription);
+        currentBookTagsIds = new ArrayList<>(bookTagsIds);
+        notifyActionChanged(3);
+    }
+
+    private void updateCurrentTagDescription(List<Long> tagsIds){
+        tagRepository.getByIdsAsync(tagsIds).thenAccept((tags)->{
+            String description = tagsIds.isEmpty()
+                    ? "Не встановлено"
+                    : tags.stream().map(tag->tag.name).collect(Collectors.joining(" | "));
+            var action = findActionById(ACTION_ID_TAGS);
+            if(action != null){
+                action.setDescription(description);
+                notifyActionChanged(3);
+            }
+        });
+    }
+
 }
 

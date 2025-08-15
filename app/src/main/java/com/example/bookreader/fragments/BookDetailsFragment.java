@@ -61,7 +61,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     @Override
     public @Nullable View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
-        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_UPDATED,bookUpdatedHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.UPDATE_BOOK_DETAILS,this::bookUpdatedHandler,BookDto.class);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -86,7 +86,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         // getView().post(() -> setSelectedPosition(1, true));
     }
 
-    private final Consumer<BookDto> bookUpdatedHandler = (updatedBook)->{
+    private void bookUpdatedHandler(BookDto updatedBook){
             if (updatedBook == null) return;
             if (detailsOverviewRow != null) {
                 detailsOverviewRow.setItem(updatedBook);

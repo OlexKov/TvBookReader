@@ -10,6 +10,8 @@ import androidx.room.Room;
 
 import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.customclassses.MainStorage;
+import com.example.bookreader.data.database.dao.TagDao;
+import com.example.bookreader.data.database.entity.Tag;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
@@ -22,11 +24,15 @@ import com.example.bookreader.data.database.entity.Category;
 //import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -93,14 +99,24 @@ public class BookReaderApp  extends Application {
             Executors.newSingleThreadExecutor().execute(() -> {
                 CategoryDao сdao = appDatabase.categoryDao();
                 BookDao bdao = appDatabase.bookDao();
-                Random random = new Random();
+                TagDao tdao = appDatabase.tagDao();
 
-                for (int i = 0; i < 10;i++){
-                     bdao.insert( Book.builder()
+                List<Tag> tags = IntStream.rangeClosed(1, 25)
+                        .mapToObj(number -> {
+                            Tag tag = new Tag();
+                            tag.name = "Тег" + number;
+                            return tag;
+                        }).collect(Collectors.toList());
+
+                tdao.insertAll(tags);
+
+                for (int i = 0; i < 10 ; i++){
+                    bdao.insert( Book.builder()
                             .title("книга - " + i)
-                            .isFavorite(i%2==0)
+                            .isFavorite(i % 2==0)
                             .categoryId(null)
                             .build());
+
                 }
                 long categoryId =  сdao.insert(Category.builder()
                         .name( "Категорія 1")
@@ -114,7 +130,7 @@ public class BookReaderApp  extends Application {
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
                             .title("Категорія 1 - Субкатегорія 1 - книга - " + i)
-                            .isFavorite(i%2==0)
+                            .isFavorite(i % 2==0)
                             .categoryId(subcategoryId)
                             .build());
                 }
