@@ -1,23 +1,16 @@
 package com.example.bookreader.fragments.settings.booksettings;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.text.InputType;
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
-
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.data.database.entity.Tag;
 import com.example.bookreader.data.database.repository.TagRepository;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +43,7 @@ public class TagsSelectFragment extends GuidedStepSupportFragment {
                 "Оберіть теги",
                 "Теги допомагають при пошуку книги",
                 "Змінюйте інформацію",
-                ContextCompat.getDrawable(getContext(), R.drawable.book_tag)
+                ContextCompat.getDrawable(requireContext(), R.drawable.book_tag)
         );
     }
 
@@ -64,10 +57,8 @@ public class TagsSelectFragment extends GuidedStepSupportFragment {
 
     @Override
     public void onGuidedActionEditCanceled(@NonNull GuidedAction action) {
-        switch ((int) action.getId()) {
-            case ACTION_ID_NEW_TAG:
-                action.setDescription("");
-                break;
+        if ((int) action.getId() == ACTION_ID_NEW_TAG) {
+            action.setDescription("");
         }
     }
 
@@ -76,21 +67,19 @@ public class TagsSelectFragment extends GuidedStepSupportFragment {
         var description = action.getDescription();
         if(description != null){
             String descriptionString = description.toString();
-            switch ((int) action.getId()) {
-                case ACTION_ID_NEW_TAG:
-                    tagRepository.insertAsync(Tag.builder().name(descriptionString).build()).thenAccept(newTagId->{
-                        int index = tagsIds.isEmpty() ? 1:2;
-                        tagsActions.add(index,new GuidedAction.Builder(getContext())
-                                .id(newTagId)
-                                .title(descriptionString)
-                                .hasNext(false)
-                                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                                .checked(false)
-                                .build());
-                        setActions(tagsActions);
-                        action.setDescription("");
-                    });
-                    break;
+            if ((int) action.getId() == ACTION_ID_NEW_TAG) {
+                tagRepository.insertAsync(Tag.builder().name(descriptionString).build()).thenAccept(newTagId -> {
+                    int index = tagsIds.isEmpty() ? 1 : 2;
+                    tagsActions.add(index, new GuidedAction.Builder(getContext())
+                            .id(newTagId)
+                            .title(descriptionString)
+                            .hasNext(false)
+                            .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                            .checked(false)
+                            .build());
+                    setActions(tagsActions);
+                    action.setDescription("");
+                });
             }
         }
         return ACTION_ID_NO_ACTION;
@@ -105,19 +94,12 @@ public class TagsSelectFragment extends GuidedStepSupportFragment {
                     tagsIds.add(action.getId());
                 }
             }
-            else{
-                if(tagsIds.contains(actionId)) {
-                    tagsIds.remove(action.getId());
-                }
+            else if(tagsIds.contains(actionId)){
+                tagsIds.remove(action.getId());
             }
-
         }
-        else{
-            switch ((int) action.getId()) {
-                case ACTION_ID_CLEAR_TAGS:
-                    clearActionsChecked(getActions());
-
-            }
+        else if ((int) action.getId() == ACTION_ID_CLEAR_TAGS){
+            clearActionsChecked(getActions());
         }
         checkAndSetClearTagsButton(getActions());
     }

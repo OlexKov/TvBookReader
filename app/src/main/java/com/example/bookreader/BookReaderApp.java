@@ -101,7 +101,7 @@ public class BookReaderApp  extends Application {
                 BookDao bdao = appDatabase.bookDao();
                 TagDao tdao = appDatabase.tagDao();
 
-                List<Tag> tags = IntStream.rangeClosed(1, 25)
+                List<Tag> tags = IntStream.rangeClosed(1, 10)
                         .mapToObj(number -> {
                             Tag tag = new Tag();
                             tag.name = "Тег" + number;
