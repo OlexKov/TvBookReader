@@ -43,7 +43,10 @@ import com.example.bookreader.presenters.StringPresenter;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
     private static final int DETAIL_THUMB_WIDTH = 270;
@@ -57,18 +60,34 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     private DetailsOverviewRow detailsOverviewRow;
     private ArrayObjectAdapter rowsAdapter;
     private BackgroundManager mBackgroundManager;
+    private CustomBookDetailsPresenter rowPresenter;
     private final BookReaderApp app = BookReaderApp.getInstance();
 
     @Override
     public @Nullable View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
-        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.UPDATE_BOOK_DETAILS,this::bookUpdatedHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_TAGS_CHANGED,(book)->rowPresenter.updateTags(),BookDto.class);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getParentFragmentManager().setFragmentResultListener(
+                "book_edit_result",
+                this,
+                (requestKey, bundle) -> {
+                    var book = bundle.getSerializable("updated_book");
+                    if(book instanceof BookDto updatedBook){
+                        updateBookUIData(updatedBook);
+                    }
+                }
+        );
         buildDetails();
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
     }
 
     @Override
@@ -86,7 +105,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         // getView().post(() -> setSelectedPosition(1, true));
     }
 
-    private void bookUpdatedHandler(BookDto updatedBook){
+    private void updateBookUIData(BookDto updatedBook){
             if (updatedBook == null) return;
             if (detailsOverviewRow != null) {
                 detailsOverviewRow.setItem(updatedBook);
@@ -98,7 +117,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                     if (rowsAdapter != null) {
                         int index = rowsAdapter.indexOf(detailsOverviewRow);
                         if (index >= 0) {
-                            rowsAdapter.notifyArrayItemRangeChanged(index, 1);
+                            rowsAdapter.notifyItemRangeChanged(index, 1);
                         }
                     }
                     if(!Objects.equals(updatedBook.previewPath, book.previewPath)){
@@ -167,8 +186,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     private ArrayObjectAdapter  AttachBookDetailsPresenter(BookActionClickListener clickListener){
         ClassPresenterSelector selector = new ClassPresenterSelector();
-        FullWidthDetailsOverviewRowPresenter rowPresenter =
-                new CustomBookDetailsPresenter(new BookDetailsPresenter());
+        rowPresenter = new CustomBookDetailsPresenter(new BookDetailsPresenter());
         rowPresenter.setOnActionClickedListener(clickListener);
         selector.addClassPresenter(DetailsOverviewRow.class, rowPresenter);
         selector.addClassPresenter(ListRow.class,  new ListRowPresenter());

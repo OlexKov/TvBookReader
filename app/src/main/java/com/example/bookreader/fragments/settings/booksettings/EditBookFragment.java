@@ -93,9 +93,6 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                             .boxed()
                             .collect(Collectors.toList())
                             : new ArrayList<>();
-                    currentBookTagsIds.forEach(id->{
-                        Log.d("TagsUpdate" ,"currentBookTagsIds - " + String.valueOf(id));
-                    });
                     checkChangedAndAddControls();
                     updateCurrentTagDescription(currentBookTagsIds);
                 }
@@ -492,9 +489,9 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                 globalEventListener.sendEvent(GlobalEventType.UPDATE_BOOK_DETAILS,book);
             });
         }
-        else{
-            globalEventListener.sendEvent(GlobalEventType.LOAD_BOOK_UPDATED,book);
-        }
+        Bundle result = new Bundle();
+        result.putSerializable("updated_book", book);
+        getParentFragmentManager().setFragmentResult("book_edit_result", result);
         closeFragment();
     }
 
