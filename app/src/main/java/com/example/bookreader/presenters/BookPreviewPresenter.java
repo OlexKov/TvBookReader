@@ -64,7 +64,7 @@ public class BookPreviewPresenter extends Presenter {
     @Override
     public void onUnbindViewHolder(ViewHolder viewHolder) {
         if (viewHolder.view instanceof ImageCardView cardView && cardView.getMainImageView() != null) {
-            Glide.with(cardView.getContext()).clear(cardView.getMainImageView());
+            Glide.with(cardView.getContext().getApplicationContext()).clear(cardView.getMainImageView());
         }
     }
 

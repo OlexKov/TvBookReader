@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.core.util.Consumer;
 import androidx.leanback.app.ProgressBarManager;
 import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -34,7 +33,7 @@ import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.extentions.IconHeader;
 import com.example.bookreader.extentions.StableIdArrayObjectAdapter;
-import com.example.bookreader.listeners.ItemViewClickedListener;
+import com.example.bookreader.listeners.BookClickedListener;
 import com.example.bookreader.listeners.RowItemSelectedListener;
 import com.example.bookreader.presenters.BookPreviewPresenter;
 import com.example.bookreader.presenters.TextIconPresenter;
@@ -308,7 +307,7 @@ public class PageRowsFragment extends RowsSupportFragment {
     }
 
     private void setupEventListeners(){
-        setOnItemViewClickedListener(new ItemViewClickedListener(this));
+        setOnItemViewClickedListener(new BookClickedListener(getActivity()));
         setOnItemViewSelectedListener(new RowItemSelectedListener());
         LifecycleOwner  owner = getViewLifecycleOwner();
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.BOOK_DELETED, this::bookDeletedHandler,RowItemData.class);

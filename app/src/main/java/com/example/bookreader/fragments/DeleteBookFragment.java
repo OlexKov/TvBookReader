@@ -3,6 +3,8 @@ package com.example.bookreader.fragments;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.widget.Toast;
+
+import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
@@ -52,6 +54,8 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
 
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
+        FragmentManager supportFragmentManager = requireActivity().getSupportFragmentManager();
+
         if (action.getId() == 1) {
             new BookRepository().deleteBookByIdAsyncCF(book.id).thenAccept( deletedRowsCount->{
                 requireActivity().runOnUiThread(() -> {
@@ -66,16 +70,23 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
                         app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED, null);
                         app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED, new RowItemData(app.getSelectedRow(), book));
                         Toast.makeText(requireContext(), getString(R.string.book_deleted, book.title), Toast.LENGTH_SHORT).show();
-                        requireActivity().finish();
-                    } else {
-                        requireActivity().getSupportFragmentManager().popBackStack();
+                        int backStackCount = supportFragmentManager.getBackStackEntryCount();
+                        if(backStackCount < 2){
+                            requireActivity().finish();
+                        }
+                        else{
+                            supportFragmentManager.popBackStackImmediate(supportFragmentManager.getBackStackEntryAt(backStackCount - 2).getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        }
+                    }
+                    else {
+                        supportFragmentManager.popBackStack();
                         Toast.makeText(requireContext(), getString(R.string.oops_error), Toast.LENGTH_SHORT).show();
                     }
                 });
             });
         }
         else {
-            requireActivity().getSupportFragmentManager().popBackStack();
+            supportFragmentManager.popBackStack();
         }
     }
 }

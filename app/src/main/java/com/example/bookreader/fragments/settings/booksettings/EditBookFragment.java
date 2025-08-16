@@ -104,8 +104,8 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
         return new GuidanceStylist.Guidance(
                 "Редагування книги",
-                book.title,
                 "Змінюйте інформацію",
+                book.title,
                 Drawable.createFromPath(book.previewPath)
         );
     }
@@ -463,20 +463,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
             book.categoryId  = subCategory == null ? category.id : subCategory.id;
         }
 
-        if(isTagsChanged()){
-            List<Long> existingTagIds = new ArrayList<>(bookTagsIds);
-            existingTagIds.retainAll(currentBookTagsIds);
-            existingTagIds.forEach(id->{
-                bookTagsIds.remove(id);
-                currentBookTagsIds.remove(id);
-            });
-            tagRepository.removeTagsFromBookAsync(bookTagsIds,book.id).thenAccept(count->{
-                currentBookTagsIds.forEach(tagId->{
-                   tagRepository.addTagToBook(tagId,book.id);
-                });
-                globalEventListener.sendEvent(GlobalEventType.BOOK_TAGS_CHANGED,book);
-            });
-        }
+
         if(requireActivity() instanceof BookDetailsActivity){
             Book updatedBook = book.getBook();
             BookRepository bookRepository = new BookRepository();
@@ -488,6 +475,24 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                 }
                 globalEventListener.sendEvent(GlobalEventType.UPDATE_BOOK_DETAILS,book);
             });
+
+            if(isTagsChanged()){
+                List<Long> existingTagIds = new ArrayList<>(bookTagsIds);
+                existingTagIds.retainAll(currentBookTagsIds);
+                existingTagIds.forEach(id->{
+                    bookTagsIds.remove(id);
+                    currentBookTagsIds.remove(id);
+                });
+                tagRepository.removeTagsFromBookAsync(bookTagsIds,book.id).thenAccept(count->{
+                    currentBookTagsIds.forEach(tagId->{
+                        tagRepository.addTagToBook(tagId,book.id);
+                    });
+                    globalEventListener.sendEvent(GlobalEventType.BOOK_TAGS_CHANGED,book);
+                });
+            }
+        }
+        else{
+           book.tagsIds = new ArrayList<>(currentBookTagsIds);
         }
         Bundle result = new Bundle();
         result.putSerializable("updated_book", book);

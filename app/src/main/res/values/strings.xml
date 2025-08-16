@@ -30,6 +30,7 @@
     <string name="searching">Searching...</string>
     <string name="scanning">Scanning...</string>
     <string name="saving">Saving...</string>
+    <string name="similar_books">Similar books</string>
 
     <!-- Error messages -->
 </resources>

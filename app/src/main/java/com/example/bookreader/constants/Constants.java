@@ -5,6 +5,7 @@ public final class Constants {
     public static long ALL_BOOKS_CATEGORY_ID      = 111111111111111111L;
     public static long UNSORTED_BOOKS_CATEGORY_ID = 111111111111111112L;
     public static long SETTINGS_CATEGORY_ID       = 111111111111111113L;
+    public static long SIMILAR_ROW_ID             = 111111111111111114L;
 
     // Row page setting
 

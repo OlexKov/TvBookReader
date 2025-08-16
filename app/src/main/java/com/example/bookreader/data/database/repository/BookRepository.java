@@ -203,71 +203,90 @@ public class BookRepository {
         return CompletableFuture.supplyAsync(() -> bookDao.deleteById(bookId));
     }
 
+    // getByTags
+
+    public CompletableFuture<List<BookDto>> getByTagsListAsync(List<Long> tagsIds){
+        return CompletableFuture.supplyAsync(() -> bookDao.getBooksByTagsList(tagsIds,tagsIds.size()));
+    }
+    public List<BookDto> getByTagsList(List<Long> tagsIds){
+        return  bookDao.getBooksByTagsList(tagsIds,tagsIds.size());
+    }
+
+    public CompletableFuture<Long> getRangeByTagsListCountAsync(List<Long> tagsIds){
+        return CompletableFuture.supplyAsync(() -> bookDao.getBooksByTagsListCount(tagsIds,tagsIds.size()));
+    }
+    public Long getRangeByTagsListCount(List<Long> tagsIds){
+        return  bookDao.getBooksByTagsListCount(tagsIds,tagsIds.size());
+    }
+
+
 
     public CompletableFuture<List<BookDto>> loadRowBooksAsync(Long mainCategoryId, Long rowCategoryId, int offset, int limit ) {
         if (Objects.equals(mainCategoryId, Constants.FAVORITE_CATEGORY_ID) || Objects.equals(rowCategoryId, Constants.FAVORITE_CATEGORY_ID)) {
             return getRangeFavoriteBooksAsync(offset, limit);
-        } else if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+        }
+        if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
             if (Objects.equals(rowCategoryId,  Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return getRangeAllBooksAsync(offset, limit);
-            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
+            }
+            if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return getRangeUnsortedBooksAsync(offset, limit);
-            } else {
-                return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
             }
-        } else {
-            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
-                return getRangeAllBooksInCategoryIdAsync(mainCategoryId, offset, limit);
-            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
-                return getRageUnsortedBooksByCategoryIdAsync(mainCategoryId, offset, limit);
-            } else {
-                return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
-            }
+            return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
         }
+        if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+            return getRangeAllBooksInCategoryIdAsync(mainCategoryId, offset, limit);
+        }
+        if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
+            return getRageUnsortedBooksByCategoryIdAsync(mainCategoryId, offset, limit);
+        }
+        return getRangeAllBooksInCategoryIdAsync(rowCategoryId, offset, limit);
     }
 
     public CompletableFuture<Long> getRowBooksCountAsync(Long mainCategoryId, Long rowCategoryId) {
         if (Objects.equals(mainCategoryId,Constants.FAVORITE_CATEGORY_ID) || Objects.equals(rowCategoryId,Constants.FAVORITE_CATEGORY_ID)) {
             return CompletableFuture.supplyAsync(bookDao::getFavoriteBooksCount);
-        } else if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+        }
+        if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
             if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return CompletableFuture.supplyAsync(bookDao::getAllCount);
-            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
+            }
+            if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return CompletableFuture.supplyAsync(bookDao::getUnsortedCount);
-            } else {
-                return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
             }
-        } else {
-            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
-                return  CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(mainCategoryId));
-            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
-                return CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId));
-            } else {
-                return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
-            }
+            return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
         }
+
+        if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+            return  CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(mainCategoryId));
+        }
+        if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
+            return CompletableFuture.supplyAsync(()->bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId));
+        }
+        return CompletableFuture.supplyAsync(()->bookDao.getAllByCategoryIdCount(rowCategoryId));
     }
 
     public Long getRowBooksCount(Long mainCategoryId, Long rowCategoryId) {
         if (Objects.equals(mainCategoryId,Constants.FAVORITE_CATEGORY_ID) || Objects.equals(rowCategoryId,Constants.FAVORITE_CATEGORY_ID)) {
             return bookDao.getFavoriteBooksCount();
-        } else if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+        }
+        if (Objects.equals(mainCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
             if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
                 return bookDao.getAllCount();
-            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
+            }
+            if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
                 return bookDao.getUnsortedCount();
-            } else {
-                return bookDao.getAllByCategoryIdCount(rowCategoryId);
             }
-        } else {
-            if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
-                return  bookDao.getAllByCategoryIdCount(mainCategoryId);
-            } else if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
-                return bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId);
-            } else {
-                return bookDao.getAllByCategoryIdCount(rowCategoryId);
-            }
+            return bookDao.getAllByCategoryIdCount(rowCategoryId);
         }
+
+        if (Objects.equals(rowCategoryId, Constants.ALL_BOOKS_CATEGORY_ID)) {
+            return  bookDao.getAllByCategoryIdCount(mainCategoryId);
+        }
+        if (Objects.equals(rowCategoryId, Constants.UNSORTED_BOOKS_CATEGORY_ID)) {
+            return bookDao.getUnsortedByCategoryIdCountAsync(mainCategoryId);
+        }
+        return bookDao.getAllByCategoryIdCount(rowCategoryId);
     }
 }
 

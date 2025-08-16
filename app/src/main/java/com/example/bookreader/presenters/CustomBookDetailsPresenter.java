@@ -19,7 +19,9 @@ import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.TagRepository;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class CustomBookDetailsPresenter extends FullWidthDetailsOverviewRowPresenter {
@@ -66,7 +68,6 @@ public class CustomBookDetailsPresenter extends FullWidthDetailsOverviewRowPrese
         ViewGroup descFrame = dovh.getDetailsDescriptionFrame();
         if (descFrame == null || descFrame.getChildCount() == 0) return;
 
-        // усередині FrameLayout перша дитина — лейаут з title/subtitle/body
         ViewGroup descLayout = (ViewGroup) descFrame.getChildAt(0);
 
         TextView body = descLayout.findViewById(androidx.leanback.R.id.lb_details_description_body);
@@ -74,7 +75,6 @@ public class CustomBookDetailsPresenter extends FullWidthDetailsOverviewRowPrese
 
         tagsView = descLayout.findViewById(R.id.lb_details_description_tags);
         if (tagsView == null) {
-            // ще не вставляли — додаємо ПЕРЕД body
             View tags = LayoutInflater.from(descLayout.getContext())
                     .inflate(R.layout.lb_details_tags, descLayout, false);
             int insertIndex = descLayout.indexOfChild(body);
@@ -88,9 +88,9 @@ public class CustomBookDetailsPresenter extends FullWidthDetailsOverviewRowPrese
         }
     }
 
-    public void updateTags(){
-        if (detailsRow != null && detailsRow.getItem() instanceof BookDto book) {
-            new TagRepository().getByBookIdAsync(book.id).thenAccept(tags->{
+    public CompletableFuture<List<Long>> updateTags(){
+        if ( detailsRow.getItem() instanceof BookDto book) {
+           return new TagRepository().getByBookIdAsync(book.id).thenApply(tags->{
                 String tagsText = tags.stream().map(tag->tag.name).collect(Collectors.joining(" • "));
                 viewHolder.view.post(()->{
                     if(TextUtils.isEmpty(tagsText)){
@@ -101,7 +101,9 @@ public class CustomBookDetailsPresenter extends FullWidthDetailsOverviewRowPrese
                         tagsView.setVisibility(View.VISIBLE);
                     }
                 });
+                return tags.stream().map(tag->tag.id).collect(Collectors.toList());
             });
         }
+        return CompletableFuture.completedFuture(Collections.emptyList());
     }
 }

@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.fragments.BookDetailsFragment;
 import com.example.bookreader.utility.LocaleHelper;
 
@@ -26,5 +27,13 @@ public class BookDetailsActivity extends FragmentActivity {
                     .replace(R.id.details_fragment, new BookDetailsFragment())
                     .commitNow();
         }
+    }
+
+    public void changeBook(BookDto book) {
+        BookDetailsFragment fragment = BookDetailsFragment.newInstance(book);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.details_fragment, fragment)
+                .addToBackStack(null) // дозволяє повернутися назад
+                .commit();
     }
 }

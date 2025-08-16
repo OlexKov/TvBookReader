@@ -60,38 +60,42 @@ public interface BookDao {
 
 
     @Query("""
-            SELECT * FROM books AS bks  
-            JOIN books_tags as bt ON bt.bookId = bks.id 
+            SELECT * FROM books AS bks
+            JOIN books_tags as bt ON bt.bookId = bks.id
             WHERE bt.tagId = :tagId
             """)
     List<BookDto> getBookByTagId(Long tagId);
 
     @Query("""
-    SELECT *
-    FROM books b
-    JOIN books_tags bt ON bt.bookId = b.id
-    WHERE bt.tagId IN (:tagIds)
-    GROUP BY b.id
-    HAVING COUNT(DISTINCT bt.tagId) = :tagCount
-""")
-    List<BookDto> getBooksByAllTags(List<Integer> tagIds, int tagCount);
+            SELECT b.*
+            FROM books b
+            WHERE
+                 (SELECT COUNT(DISTINCT bt.tagId) FROM books_tags bt WHERE bt.bookId = b.id) = :tagCount
+                 AND NOT EXISTS (
+                      SELECT 1
+                      FROM books_tags bt
+                      WHERE bt.bookId = b.id AND bt.tagId NOT IN (:tagIds));
+    """)
+    List<BookDto> getBooksByTagsList(List<Long> tagIds, int tagCount);
 
 
     /// --------------Count query -----------------------------
-    @Query("SELECT COUNT(*) FROM books AS b " +
+    @Query("SELECT COUNT(b.id) FROM books AS b " +
             "JOIN books_tags as bt ON bt.bookId = b.id "+
             "WHERE bt.tagId = :tagId")
     Long getBookByTagIdCount(Long tagId);
 
     @Query("""
-    SELECT COUNT(*)
-    FROM books b
-    JOIN books_tags bt ON bt.bookId = b.id
-    WHERE bt.tagId IN (:tagIds)
-    GROUP BY b.id
-    HAVING COUNT(DISTINCT bt.tagId) = :tagCount
-""")
-    Long getBooksByAllTagsCount(List<Integer> tagIds, int tagCount);
+            SELECT COUNT(b.id)
+            FROM books b
+            WHERE
+                 (SELECT COUNT(DISTINCT bt.tagId) FROM books_tags bt WHERE bt.bookId = b.id) = :tagCount
+                 AND NOT EXISTS (
+                      SELECT 1
+                      FROM books_tags bt
+                      WHERE bt.bookId = b.id AND bt.tagId NOT IN (:tagIds));
+    """)
+    Long getBooksByTagsListCount(List<Long> tagIds, int tagCount);
 
 
     @Query("SELECT COUNT(*) FROM books WHERE isFavorite = 1 ")

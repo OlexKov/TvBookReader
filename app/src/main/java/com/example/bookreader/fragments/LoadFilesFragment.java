@@ -33,6 +33,7 @@ import com.example.bookreader.R;
 import com.example.bookreader.customclassses.EmptyItem;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.data.database.repository.TagRepository;
 import com.example.bookreader.fragments.settings.booksettings.EditBookFragment;
 import com.example.bookreader.presenters.BookInfoPresenter;
 import com.example.bookreader.presenters.EmptyItemPresenter;
@@ -44,6 +45,8 @@ import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -86,7 +89,16 @@ public class LoadFilesFragment extends Fragment {
         if(filePaths != null){
             prepareAndScanFileList(filePaths);
         }
-       app.getGlobalEventListener().subscribe(getViewLifecycleOwner(), GlobalEventType.LOAD_BOOK_UPDATED,loadBookUpdatedHandler,BookDto.class);
+        getParentFragmentManager().setFragmentResultListener(
+                "book_edit_result",
+                this,
+                (requestKey, bundle) -> {
+                    var book = bundle.getSerializable("updated_book");
+                    if(book instanceof BookDto updatedBook){
+                        loadBookUpdated(updatedBook);
+                    }
+                }
+        );
     }
 
     @Override
@@ -151,7 +163,7 @@ public class LoadFilesFragment extends Fragment {
         );
     };
 
-    private final Consumer<BookDto> loadBookUpdatedHandler = (updatedBook)->{
+    private void loadBookUpdated(BookDto updatedBook){
         int index = newFileAdapter.indexOf(updatedBook);
         if(index >= 0){
             newFileAdapter.notifyItemRangeChanged(index,1);
@@ -337,6 +349,7 @@ public class LoadFilesFragment extends Fragment {
 
         AtomicInteger count = new AtomicInteger(1);
         float pointPerPercent = 100F/booksInfos.size();
+        TagRepository tagRepository = new TagRepository();
         @SuppressLint("SetTextI18n") List<CompletableFuture<Long>> booksFutures = booksInfos.stream()
                 .map(bookInfo -> {
                     BookProcessor bookProcessor = new BookProcessor(requireContext(),bookInfo.filePath);
@@ -352,7 +365,11 @@ public class LoadFilesFragment extends Fragment {
                                         }
                                     });
                                     try{
-                                        return bookRepository.insert(bookInfo.getBook());
+                                        Long bookId =  bookRepository.insert(bookInfo.getBook());
+                                        bookInfo.tagsIds.forEach(tagId->{
+                                            tagRepository.addTagToBook(tagId,bookId);
+                                        });
+                                        return bookId;
                                     }
                                     catch (Exception e){
                                         FileHelper.deleteFile(path);

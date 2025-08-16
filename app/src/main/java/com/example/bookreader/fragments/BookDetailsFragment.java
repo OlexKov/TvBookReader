@@ -2,27 +2,22 @@ package com.example.bookreader.fragments;
 
 import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.core.util.Consumer;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ClassPresenterSelector;
 import androidx.leanback.widget.DetailsOverviewRow;
-import androidx.leanback.widget.FullWidthDetailsOverviewRowPresenter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
@@ -35,16 +30,21 @@ import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ActionType;
 
+import com.example.bookreader.constants.Constants;
+import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.data.database.repository.TagRepository;
+import com.example.bookreader.diffcallbacks.BookDtoDiffCallback;
 import com.example.bookreader.listeners.BookActionClickListener;
+import com.example.bookreader.listeners.BookClickedListener;
 import com.example.bookreader.presenters.BookDetailsPresenter;
+import com.example.bookreader.presenters.BookPreviewPresenter;
 import com.example.bookreader.presenters.CustomBookDetailsPresenter;
-import com.example.bookreader.presenters.StringPresenter;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -61,11 +61,24 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     private ArrayObjectAdapter rowsAdapter;
     private BackgroundManager mBackgroundManager;
     private CustomBookDetailsPresenter rowPresenter;
+    private ArrayObjectAdapter similarBooksAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
+    private final BookRepository bookRepository = new BookRepository();
+    private final TagRepository tagRepository = new TagRepository();
+
+    public static BookDetailsFragment newInstance(BookDto book) {
+        BookDetailsFragment fragment = new BookDetailsFragment();
+        Bundle args = new Bundle();
+        args.putSerializable("BOOK", book);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
 
     @Override
     public @Nullable View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
-        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_TAGS_CHANGED,(book)->rowPresenter.updateTags(),BookDto.class);
+        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_TAGS_CHANGED,this::tagsUpdated,BookDto.class);
+        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_DELETED,(b->setSimilarBooks()), RowItemData.class);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -83,6 +96,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                 }
         );
         buildDetails();
+        setOnItemViewClickedListener(new BookClickedListener(getActivity()));
     }
 
     @Override
@@ -101,6 +115,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     @Override
     public void onResume() {
         super.onResume();
+        getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
         //Переміщення фокусу на опис якщо зверху є рядок
         // getView().post(() -> setSelectedPosition(1, true));
     }
@@ -129,16 +144,24 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     };
 
     private void prepareBackgroundManager() {
-
         mBackgroundManager = BackgroundManager.getInstance(requireActivity());
-        mBackgroundManager.attach(requireActivity().getWindow());
+        if (!mBackgroundManager.isAttached()) {
+            mBackgroundManager.attach(requireActivity().getWindow());
+        }
         DisplayMetrics mMetrics = new DisplayMetrics();
         requireActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
         getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
     }
 
+    private void tagsUpdated(BookDto book){
+        rowPresenter.updateTags().thenAccept(this::updateSimilarBooks);
+    }
+
     private void buildDetails() {
-        Object serializedBook = getActivity().getIntent().getSerializableExtra("BOOK");
+        Object serializedBook = getArguments() != null
+                ? getArguments().getSerializable("BOOK")
+                : getActivity().getIntent().getSerializableExtra("BOOK");
+
         if(!(serializedBook instanceof  BookDto bookDto)) return;
         book = bookDto;
         clickListener = new BookActionClickListener(getContext(),book,actionAdapter);
@@ -189,7 +212,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         rowPresenter = new CustomBookDetailsPresenter(new BookDetailsPresenter());
         rowPresenter.setOnActionClickedListener(clickListener);
         selector.addClassPresenter(DetailsOverviewRow.class, rowPresenter);
-        selector.addClassPresenter(ListRow.class,  new ListRowPresenter());
+        selector.addClassPresenter(ListRow.class, new ListRowPresenter());
         return new ArrayObjectAdapter(selector);
     }
 
@@ -201,11 +224,24 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void setAdditionalMediaRow(ArrayObjectAdapter rowsAdapter){
-        ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(new StringPresenter());
-        listRowAdapter.add("Media Item 3");
-        listRowAdapter.add("Media Item 4");
-        listRowAdapter.add("Media Item 5");
-        HeaderItem header = new HeaderItem(0, "Подібні книги");
-        rowsAdapter.add(new ListRow(header, listRowAdapter));
+        similarBooksAdapter = new ArrayObjectAdapter(new BookPreviewPresenter());
+        setSimilarBooks();
+        HeaderItem header = new HeaderItem(Constants.SIMILAR_ROW_ID, getString(R.string.similar_books));
+        rowsAdapter.add(new ListRow(header, similarBooksAdapter));
     }
+
+    private void setSimilarBooks(){
+        tagRepository.getByBookIdAsync(book.id).thenAccept(tags->{
+            var tagsIds = tags.stream().map(tag->tag.id).collect(Collectors.toList());
+            updateSimilarBooks(tagsIds);
+        });
+    }
+
+    private void updateSimilarBooks(List<Long> tagsIds){
+        bookRepository.getByTagsListAsync(tagsIds).thenAccept(similarBooks->{
+            similarBooks.removeIf(similarBook->Objects.equals(similarBook.id, book.id));
+            similarBooksAdapter.setItems(similarBooks,new BookDtoDiffCallback());
+        });
+    }
+
 }
