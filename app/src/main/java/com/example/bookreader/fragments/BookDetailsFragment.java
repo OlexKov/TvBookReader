@@ -78,12 +78,6 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         return fragment;
     }
 
-
-    @Override
-    public @Nullable View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
-       return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

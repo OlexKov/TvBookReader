@@ -2,16 +2,11 @@ package com.example.bookreader.activities;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
+
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.fragments.BookDetailsFragment;
 import com.example.bookreader.utility.LocaleHelper;
 
