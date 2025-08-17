@@ -5,7 +5,10 @@ import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +58,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     private static final String TAG = "MediaItemDetailsFragment";
     private final SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
-    private BookDto book;
+    private  BookDto book;
     private BookActionClickListener clickListener;
     private DetailsOverviewRow detailsOverviewRow;
     private ArrayObjectAdapter rowsAdapter;
@@ -65,11 +68,12 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     private final BookReaderApp app = BookReaderApp.getInstance();
     private final BookRepository bookRepository = new BookRepository();
     private final TagRepository tagRepository = new TagRepository();
+    private boolean firstStart = true;
 
-    public static BookDetailsFragment newInstance(BookDto book) {
+    public static BookDetailsFragment newInstance(Long bookId) {
         BookDetailsFragment fragment = new BookDetailsFragment();
         Bundle args = new Bundle();
-        args.putSerializable("BOOK", book);
+        args.putSerializable("BOOK_ID", bookId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -77,9 +81,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     @Override
     public @Nullable View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
-        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_TAGS_CHANGED,this::tagsUpdated,BookDto.class);
-        app.getGlobalEventListener().subscribe(getViewLifecycleOwner(),GlobalEventType.BOOK_DELETED,(b->setSimilarBooks()), RowItemData.class);
-        return super.onCreateView(inflater, container, savedInstanceState);
+       return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
@@ -102,6 +104,8 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     @Override
     public void onStart(){
         super.onStart();
+        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_TAGS_CHANGED,this::tagsUpdateHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,this::bookDeleteHandler, RowItemData.class);
     }
 
     @Override
@@ -113,11 +117,31 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_TAGS_CHANGED,this::tagsUpdateHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_DELETED,this::bookDeleteHandler);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-        getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
-        //Переміщення фокусу на опис якщо зверху є рядок
-        // getView().post(() -> setSelectedPosition(1, true));
+
+        if(!firstStart){
+            if (book == null || setBook(book.id) == null) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if(!requireActivity().getSupportFragmentManager().popBackStackImmediate()){
+                        requireActivity().finish();
+                    }
+                });
+            }
+            else{
+                getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
+            }
+        }
+        else{
+            firstStart = false;
+        }
     }
 
     private void updateBookUIData(BookDto updatedBook){
@@ -143,6 +167,22 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
             this.book = updatedBook;
     };
 
+    private void bookDeleteHandler(RowItemData data) {
+        if(book != null){
+            setBook(book.id);
+            setSimilarBooks();
+        }
+    }
+
+    private void tagsUpdateHandler(BookDto book) {
+        tagsUpdated(book);
+    }
+
+    private BookDto setBook(Long bookId){
+        book = bookRepository.getByIdAsync(bookId).join();
+        return book;
+    }
+
     private void prepareBackgroundManager() {
         mBackgroundManager = BackgroundManager.getInstance(requireActivity());
         if (!mBackgroundManager.isAttached()) {
@@ -154,16 +194,20 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void tagsUpdated(BookDto book){
-        rowPresenter.updateTags().thenAccept(this::updateSimilarBooks);
+        if(book != null){
+            rowPresenter.updateTags().thenAccept(this::updateSimilarBooks);
+        }
     }
 
     private void buildDetails() {
-        Object serializedBook = getArguments() != null
-                ? getArguments().getSerializable("BOOK")
-                : getActivity().getIntent().getSerializableExtra("BOOK");
+        Object serializedBookId = getArguments() != null
+                ? getArguments().getSerializable("BOOK_ID")
+                : getActivity().getIntent().getSerializableExtra("BOOK_ID");
 
-        if(!(serializedBook instanceof  BookDto bookDto)) return;
-        book = bookDto;
+        if(!(serializedBookId instanceof  Long bookId)) return;
+
+        setBook(bookId);
+        if(book == null) return;
         clickListener = new BookActionClickListener(getContext(),book,actionAdapter);
         rowsAdapter = AttachBookDetailsPresenter(clickListener);
         setDetailsOverview(rowsAdapter,book);
@@ -231,17 +275,23 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void setSimilarBooks(){
-        tagRepository.getByBookIdAsync(book.id).thenAccept(tags->{
-            var tagsIds = tags.stream().map(tag->tag.id).collect(Collectors.toList());
-            updateSimilarBooks(tagsIds);
-        });
+        if(book != null){
+            tagRepository.getByBookIdAsync(book.id).thenAccept(tags->{
+                var tagsIds = tags.stream().map(tag->tag.id).collect(Collectors.toList());
+                updateSimilarBooks(tagsIds);
+            });
+        }
     }
 
     private void updateSimilarBooks(List<Long> tagsIds){
-        bookRepository.getByTagsListAsync(tagsIds).thenAccept(similarBooks->{
-            similarBooks.removeIf(similarBook->Objects.equals(similarBook.id, book.id));
-            similarBooksAdapter.setItems(similarBooks,new BookDtoDiffCallback());
-        });
+        if(tagsIds.isEmpty()){
+            similarBooksAdapter.clear();
+        }
+        else{
+            bookRepository.getByTagsListAsync(tagsIds).thenAccept(similarBooks->{
+                similarBooks.removeIf(similarBook->Objects.equals(similarBook.id, book.id));
+                similarBooksAdapter.setItems(similarBooks,new BookDtoDiffCallback());
+            });
+        }
     }
-
 }

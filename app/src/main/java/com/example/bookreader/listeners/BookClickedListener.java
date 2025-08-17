@@ -20,11 +20,11 @@ public class BookClickedListener implements OnItemViewClickedListener {
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if (item instanceof BookDto book){
             if(activity instanceof BookDetailsActivity bookDetailsActivity){
-               bookDetailsActivity.changeBook(book);
+               bookDetailsActivity.changeBook(book.id);
             }
             else{
                 Intent intent = new Intent(activity, BookDetailsActivity.class);
-                intent.putExtra("BOOK", book);
+                intent.putExtra("BOOK_ID", book.id);
                 activity.startActivity(intent);
             }
         }
