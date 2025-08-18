@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.Consumer;
+import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
 import androidx.leanback.widget.Action;
@@ -69,6 +71,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     private final BookRepository bookRepository = new BookRepository();
     private final TagRepository tagRepository = new TagRepository();
     private boolean firstStart = true;
+    private FragmentManager fragmentManager;
 
     public static BookDetailsFragment newInstance(Long bookId) {
         BookDetailsFragment fragment = new BookDetailsFragment();
@@ -81,6 +84,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fragmentManager = requireActivity().getSupportFragmentManager();
         getParentFragmentManager().setFragmentResultListener(
                 "book_edit_result",
                 this,
@@ -93,13 +97,14 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
         );
         buildDetails();
         setOnItemViewClickedListener(new BookClickedListener(getActivity()));
+        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_TAGS_CHANGED,tagsUpdateHandler,BookDto.class);
+        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,bookDeleteHandler, RowItemData.class);
     }
 
     @Override
     public void onStart(){
         super.onStart();
-        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_TAGS_CHANGED,this::tagsUpdateHandler,BookDto.class);
-        app.getGlobalEventListener().subscribe(GlobalEventType.BOOK_DELETED,this::bookDeleteHandler, RowItemData.class);
+
     }
 
     @Override
@@ -113,18 +118,17 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_TAGS_CHANGED,this::tagsUpdateHandler);
-        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_DELETED,this::bookDeleteHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_TAGS_CHANGED,tagsUpdateHandler);
+        app.getGlobalEventListener().unSubscribe(GlobalEventType.BOOK_DELETED,bookDeleteHandler);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
         if(!firstStart){
-            if (book == null || setBook(book.id) == null) {
+            if (book == null) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    if(!requireActivity().getSupportFragmentManager().popBackStackImmediate()){
+                    if(!fragmentManager.popBackStackImmediate()){
                         requireActivity().finish();
                     }
                 });
@@ -161,16 +165,14 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
             this.book = updatedBook;
     };
 
-    private void bookDeleteHandler(RowItemData data) {
+    private final Consumer<RowItemData> bookDeleteHandler = (data) ->{
         if(book != null){
             setBook(book.id);
             setSimilarBooks();
         }
-    }
+    };
 
-    private void tagsUpdateHandler(BookDto book) {
-        tagsUpdated(book);
-    }
+    private final Consumer<BookDto> tagsUpdateHandler = this::tagsUpdated;
 
     private BookDto setBook(Long bookId){
         book = bookRepository.getByIdAsync(bookId).join();
@@ -245,7 +247,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                 });
     }
 
-    private ArrayObjectAdapter  AttachBookDetailsPresenter(BookActionClickListener clickListener){
+    private ArrayObjectAdapter AttachBookDetailsPresenter(BookActionClickListener clickListener){
         ClassPresenterSelector selector = new ClassPresenterSelector();
         rowPresenter = new CustomBookDetailsPresenter(new BookDetailsPresenter());
         rowPresenter.setOnActionClickedListener(clickListener);

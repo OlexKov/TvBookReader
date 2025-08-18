@@ -1,23 +1,18 @@
 package com.example.bookreader.fragments.settings.booksettings;
 
 
-import android.annotation.SuppressLint;
+
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentManager;
+
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
-import androidx.leanback.widget.VerticalGridView;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.activities.BookDetailsActivity;
@@ -25,7 +20,6 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.data.database.entity.Book;
-import com.example.bookreader.data.database.entity.Tag;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.data.database.repository.TagRepository;
@@ -38,7 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class EditBookFragment extends GuidedStepSupportFragment {

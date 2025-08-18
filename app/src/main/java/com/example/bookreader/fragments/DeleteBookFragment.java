@@ -2,6 +2,7 @@ package com.example.bookreader.fragments;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.fragment.app.FragmentManager;
@@ -58,32 +59,33 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
 
         if (action.getId() == 1) {
             new BookRepository().deleteBookByIdAsyncCF(book.id).thenAccept( deletedRowsCount->{
-                requireActivity().runOnUiThread(() -> {
-                    if (deletedRowsCount != 0) {
-//                        FileHelper.deleteFile(book.previewPath);
-//                        if(BooksArchiveReader.isArchivePath(book.filePath)){
+                if (deletedRowsCount != 0) {
+                    FileHelper.deleteFile(book.previewPath);
+ //                        if(BooksArchiveReader.isArchivePath(book.filePath)){
 //                            new BooksArchiveReader().deleteFileFromArchive(book.filePath);
 //                        }
 //                        else{
 //                            FileHelper.deleteFile(book.filePath);
 //                        }
-                        app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED, null);
-                        app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED, new RowItemData(app.getSelectedRow(), book));
-                        Toast.makeText(requireContext(), getString(R.string.book_deleted, book.title), Toast.LENGTH_SHORT).show();
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.ROW_CHANGED, null);
+                    app.getGlobalEventListener().sendEvent(GlobalEventType.BOOK_DELETED, new RowItemData(app.getSelectedRow(), book));
 
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), getString(R.string.book_deleted, book.title), Toast.LENGTH_SHORT).show();
                         int backStackCount = supportFragmentManager.getBackStackEntryCount();
-                        if(backStackCount < 2){
+                        if (backStackCount < 2) {
                             requireActivity().finish();
-                        }
-                        else{
+                        } else {
                             supportFragmentManager.popBackStackImmediate(supportFragmentManager.getBackStackEntryAt(backStackCount - 2).getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                         }
-                    }
-                    else {
+                    });
+                }
+                else {
+                    requireActivity().runOnUiThread(() -> {
                         supportFragmentManager.popBackStack();
                         Toast.makeText(requireContext(), getString(R.string.oops_error), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    });
+                }
             });
         }
         else {

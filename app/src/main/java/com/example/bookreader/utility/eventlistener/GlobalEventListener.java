@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GlobalEventListener {
-
+    private static final String TAG = "GlobalEventLog";
     private final ConcurrentHashMap<GlobalEventType, CopyOnWriteArrayList<Consumer<?>>> events = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<GlobalEventType, Object> lastEventData = new ConcurrentHashMap<>();
 
@@ -32,56 +32,63 @@ public class GlobalEventListener {
 
     /** Типобезпечна підписка без lifecycle */
     @MainThread
-    public <T> void subscribe(GlobalEventType eventType, Consumer<T> handler, Class<T> clazz) {
-        Log.d("GlobalEventLog", "Subscribe " + eventType.name());
-
+    public <T> boolean subscribe(GlobalEventType eventType, Consumer<T> handler, Class<T> clazz) {
         CopyOnWriteArrayList<Consumer<?>> list =  events.get(eventType);
         if (list != null && !list.contains(handler)) {
+            Log.d(TAG, "Subscribe " + eventType.name());
             list.add(handler);
             // Якщо є остання подія - відправляємо і очищуємо її
             if (lastEventData.containsKey(eventType)) {
                 Object data = lastEventData.get(eventType);
                 if (clazz.isInstance(data)) {
                     handler.accept(clazz.cast(data));
-                    Log.d("GlobalEventLog", "LastEventAccept and clear " + eventType.name());
+                    Log.d(TAG, "Last event accept and clear " + eventType.name());
                     lastEventData.remove(eventType);
                 }
             }
+            return true;
         }
+        Log.e(TAG, "ERROR " + eventType.name() +" SUBSCRIBE ! ! ! ");
+        return false;
     }
 
     /** Підписка з автоматичною відпискою по lifecycle */
     @MainThread
-    public <T> void subscribe(LifecycleOwner owner, GlobalEventType eventType, Consumer<T> handler, Class<T> clazz) {
-        subscribe(eventType, handler, clazz);
-
-        owner.getLifecycle().addObserver(new DefaultLifecycleObserver() {
-            @Override
-            public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
-                unSubscribe(eventType, handler);
-                Log.d("GlobalEventLog", "AutoUnsubscribe " + eventType.name());
-            }
-        });
+    public <T> boolean subscribe(LifecycleOwner owner, GlobalEventType eventType, Consumer<T> handler, Class<T> clazz) {
+        if(subscribe(eventType, handler, clazz)){
+            owner.getLifecycle().addObserver(new DefaultLifecycleObserver() {
+                @Override
+                public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
+                    if(unSubscribe(eventType, handler)){
+                        Log.d(TAG, "Auto unsubscribe " + eventType.name());
+                    }
+                }
+            });
+            return true;
+        }
+        Log.e(TAG, "ERROR " + eventType.name() +" SUBSCRIBE ! ! ! ");
+        return false;
     }
 
     /** Відписка */
     @MainThread
-    public <T> void unSubscribe(GlobalEventType eventType, Consumer<T> handler) {
-        Log.d("GlobalEventLog", "UnsubscribeEvent " + eventType.name());
-
+    public <T> boolean unSubscribe(GlobalEventType eventType, Consumer<T> handler) {
         CopyOnWriteArrayList<Consumer<?>> list =  events.get(eventType);
-        if (list != null) {
-            list.remove(handler);
+        if(list != null && list.remove(handler)) {
+            Log.d(TAG, "Unsubscribe event " + eventType.name());
+            return true;
         }
+        Log.e(TAG, "ERROR " + eventType.name() +" UNSUBSCRIBE ! ! ! ");
+        return false;
     }
 
     @SuppressWarnings("unchecked")
     /** Відправка події — можна з будь-якого потоку */
     public <T> void sendEvent(GlobalEventType eventType, T data) {
-        Log.d("GlobalEventLog", "SendEvent " + eventType.name());
         if (data == null) data = (T) new Object();
         List<Consumer<?>> list =  events.get(eventType);
         if (list != null && !list.isEmpty()) {
+            Log.d(TAG, "Send event " + eventType.name());
             T finalData = data;
             mainHandler.post(() -> {
                 for (Object consumerObj : list) {
@@ -92,6 +99,7 @@ public class GlobalEventListener {
         }
         else{
             lastEventData.put(eventType, data);
+            Log.d(TAG, "Event put to last event array " + eventType.name());
         }
     }
 

@@ -60,7 +60,7 @@ public interface BookDao {
 
 
     @Query("""
-            SELECT * FROM books AS bks
+            SELECT bks.* FROM books AS bks
             JOIN books_tags as bt ON bt.bookId = bks.id
             WHERE bt.tagId = :tagId
             """)
