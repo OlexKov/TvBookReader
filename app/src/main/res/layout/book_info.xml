@@ -31,31 +31,56 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:ellipsize="end"
-               android:textSize="14sp"/>
+                android:textSize="14sp"/>
 
             <TextView
                 android:id="@+id/book_preview_author"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"/>
+                android:textSize="12sp"
+                android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/book_preview_year"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="13sp"/>
+                android:textSize="13sp"
+                android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/book_preview_pages"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="13sp"/>
+                android:textSize="13sp"
+                android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/book_preview_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="13sp"/>
+
+            <TextView
+                android:id="@+id/book_preview_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/book_preview_tags"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/book_preview_description_exist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:text="@string/description_exist"
+                android:visibility="gone"/>
 
         </LinearLayout>
 

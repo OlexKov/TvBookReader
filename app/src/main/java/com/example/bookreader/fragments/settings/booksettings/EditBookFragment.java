@@ -66,7 +66,9 @@ public class EditBookFragment extends GuidedStepSupportFragment {
         title = book.title;
         year = book.year;
         author = book.author;
-        List<TagDto> tags = tagRepository.getByBookIdAsync(book.id).join();
+        List<TagDto> tags = book.tagsIds.isEmpty()
+                ? tagRepository.getByBookIdAsync(book.id).join()
+                : tagRepository.getByIdsAsync(book.tagsIds).join() ;
         defaultTagsDescription = tags.isEmpty() ? "Не встановлено" : tags.stream().map(tag->tag.name).collect(Collectors.joining(" | "));
         this.bookTagsIds = tags.stream().map(tag->tag.id).collect(Collectors.toList());
         currentBookTagsIds = new ArrayList<>(this.bookTagsIds);
@@ -219,10 +221,9 @@ public class EditBookFragment extends GuidedStepSupportFragment {
 
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
-        switch ((int) action.getId()) {
-            case ACTION_ID_TAGS:
-                  GuidedStepSupportFragment.add(getParentFragmentManager(), new TagsSelectFragment(currentBookTagsIds));
-               break;
+        if ((int) action.getId() == ACTION_ID_TAGS) {
+            GuidedStepSupportFragment.add(getParentFragmentManager(),
+                    new TagsSelectFragment(currentBookTagsIds));
         }
     }
 

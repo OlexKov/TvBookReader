@@ -1,6 +1,7 @@
 package com.example.bookreader.presenters;
 
 import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -18,6 +19,10 @@ import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.Presenter;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.data.database.entity.Category;
+import com.example.bookreader.data.database.repository.BookRepository;
+import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.data.database.repository.TagRepository;
 import com.example.bookreader.fragments.settings.booksettings.EditBookFragment;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.FileHelper;
@@ -27,6 +32,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 public class BookInfoPresenter extends Presenter {
 
@@ -83,6 +89,9 @@ public class BookInfoPresenter extends Presenter {
         TextView year = root.findViewById(R.id.book_preview_year);
         TextView pages = root.findViewById(R.id.book_preview_pages);
         TextView size = root.findViewById(R.id.book_preview_size);
+        TextView bookTags = root.findViewById(R.id.book_preview_tags);
+        TextView category = root.findViewById(R.id.book_preview_category);
+        TextView descExist = root.findViewById(R.id.book_preview_description_exist);
         BookProcessor bookProcessor = new BookProcessor(context,info.filePath);
         try {
             bookProcessor.getPreviewAsync(0,400,280).thenAccept(bitmap ->{
@@ -90,33 +99,60 @@ public class BookInfoPresenter extends Presenter {
                     root.post(()-> preview.setImageBitmap(bitmap));
                 }
                 else{
-                    root.post(()->  preview.setImageResource(R.drawable.books_logo));
+                    root.post(()-> preview.setImageResource(R.drawable.books_logo));
                 }
             });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        title.setText(info.title);
-        if(info.author.equals(context.getString(R.string.unknown))){
-            author.setVisibility(GONE);
+        setText(context,title,info.title);
+        setText(context,author,info.author);
+        setText(context,year,info.year);
+        setText(context,pages,info.pageCount == 0 ? "" : String.valueOf(info.pageCount));
+        size.setText(FileHelper.formatSize(info.fileSize));
+        int descVisibility = info.description.isBlank() ? GONE : VISIBLE;
+        descExist.setVisibility(descVisibility);
+
+        if(!info.tagsIds.isEmpty()){
+            new TagRepository().getByIdsAsync(info.tagsIds).thenAccept((tags)->{
+                String description =  tags.stream().map(tag->tag.name).collect(Collectors.joining(" | "));
+                root.post(()->{
+                    setText(context,bookTags,description);
+                });
+            });
         }
         else{
-            author.setText(info.author);
-        }
-        if(info.year.equals(context.getString(R.string.unknown))){
-            year.setVisibility(GONE);
-        }
-        else{
-            year.setText(String.valueOf(info.year));
+            bookTags.setVisibility(GONE);
         }
 
-        if(info.pageCount == 0){
-            pages.setVisibility(GONE);
+        if(info.categoryId != null){
+            CategoryRepository categoryRepository = new CategoryRepository();
+            categoryRepository.getCategoryByIdAsync(info.categoryId,(bookCategory->{
+                String categoryText = "";
+                if(bookCategory.parentId != null){
+                    var parentCategory = categoryRepository.getCategoryByIdAsyncCF(bookCategory.parentId).join();
+                    categoryText += parentCategory.name + " - ";
+                }
+                categoryText += bookCategory.name;
+                String finalCategoryText = categoryText;
+                root.post(()->{
+                    setText(context,category, finalCategoryText);
+                });
+            }));
         }
         else{
-            pages.setText(info.pageCount + " ст.");
+            category.setVisibility(GONE);
         }
-        size.setText(FileHelper.formatSize(info.fileSize));
+    }
+
+    private void setText(Context context,TextView textView, String text){
+        if(text.isBlank() || text.equals(context.getString(R.string.unknown))){
+            textView.setVisibility(GONE);
+        }
+        else{
+            textView.setVisibility(VISIBLE);
+            textView.setText(text);
+        }
     }
 }

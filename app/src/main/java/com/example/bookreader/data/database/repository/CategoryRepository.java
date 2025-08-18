@@ -45,6 +45,10 @@ public class CategoryRepository {
         });
     }
 
+    public CategoryDto getCategoryById(long categoryId){
+        return categoryDao.getById(categoryId);
+    }
+
     public CompletableFuture<CategoryDto> getCategoryByIdAsyncCF(long categoryId) {
         return CompletableFuture.supplyAsync(()->categoryDao.getById(categoryId));
     }

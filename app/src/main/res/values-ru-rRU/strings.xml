@@ -32,4 +32,5 @@
     <string name="scanning">Сканирование...</string>
     <string name="saving">Сохранение...</string>
     <string name="similar_books">Похожие книги</string>
+    <string name="description_exist">Описание присутствуєт</string>
 </resources>
