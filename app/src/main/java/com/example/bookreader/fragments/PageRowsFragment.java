@@ -318,28 +318,34 @@ public class PageRowsFragment extends RowsSupportFragment {
         app.getGlobalEventListener().subscribe(owner,GlobalEventType.UPDATE_CATEGORIES_COMMAND, this::categoriesUpdateHandler, NewCategoryList.class);
     }
 
-    private void tryAddOrReinitCategoryRow(CategoryDto category){
+    private void tryAddOrReinitCategoryRow(@Nullable CategoryDto category){
         String categoryName;
         long categoryId;
+        int categoryIcon;
         Long selectedMainCategory = app.getSelectedMainCategoryInfo().getId();
         if(selectedMainCategory == Constants.FAVORITE_CATEGORY_ID) return;
         boolean isUnsortedCategory = category == null  || Objects.equals(category.id , selectedMainCategory);
 
         for (int i = 0; i < rowsAdapter.size(); i++){
             if(rowsAdapter.get(i) instanceof ListRow row
-                    && (isUnsortedCategory ? row.getId() == Constants.UNSORTED_BOOKS_CATEGORY_ID  : row.getId() == category.id)){
+                    && (isUnsortedCategory
+                    ? row.getId() == Constants.UNSORTED_BOOKS_CATEGORY_ID
+                    :(Objects.equals(row.getId(), category.id) || Objects.equals(row.getId(), category.parentId)))){
                 reinitRowAdapter(row);
                 return;
             }
         }
+
 
         int position = rowsAdapter.size();
         if(isUnsortedCategory){
             categoryId = Constants.UNSORTED_BOOKS_CATEGORY_ID;
             position = 1;
             categoryName = getString(R.string.unsorted_category);
+            categoryIcon = R.drawable.unsorted_book;
         }
         else {
+            categoryIcon = category.iconId;
             categoryName = category.name;
             categoryId = category.id;
             if (selectedMainCategory == Constants.ALL_BOOKS_CATEGORY_ID) {
@@ -362,7 +368,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                 selectedMainCategory,
                 categoryId,
                 gridView);
-        rowsAdapter.add(position,new ListRow(new IconHeader(categoryId, categoryName,R.drawable.unsorted_book), adapter));
+        rowsAdapter.add(position,new ListRow(new IconHeader(categoryId, categoryName,categoryIcon), adapter));
     }
 
     private  String getCurrentCategoryName(){
