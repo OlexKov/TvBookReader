@@ -63,8 +63,6 @@ public class BookInfoPresenter extends Presenter {
             });
         }
 
-
-
         root.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
