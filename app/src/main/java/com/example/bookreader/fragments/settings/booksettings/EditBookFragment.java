@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class EditBookFragment extends GuidedStepSupportFragment {
@@ -43,9 +42,7 @@ public class EditBookFragment extends GuidedStepSupportFragment {
     private static final int ACTION_ID_SAVE = 111111114;
     private static final int ACTION_ID_AUTHOR = 111111115;
     private static final int ACTION_ID_CANCEL = 111111116;
-    private static final int ACTION_ID_CONTROL_ACTIONS = 111111117;
     private static final int ACTION_ID_CATEGORY = 111111119;
-    private static final int ACTION_ID_SUBCATEGORY = 111111120;
     private static final long ACTION_ID_NO_ACTION = -1;
 
     private final BookReaderApp app = BookReaderApp.getInstance();
