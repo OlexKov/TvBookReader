@@ -124,12 +124,13 @@ public class BookReaderApp  extends Application {
                 }
                 long categoryId =  сdao.insert(Category.builder()
                         .name( "Категорія 1")
-                        .iconId(R.drawable.settings)
+                        .iconId(R.drawable.auction)
                         .build());
 
                 long subcategoryId  = сdao.insert(Category.builder()
                         .name("Субкатегорія 1")
                         .parentId(categoryId)
+                        .iconId(R.drawable.cake)
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
@@ -142,6 +143,7 @@ public class BookReaderApp  extends Application {
                 subcategoryId  = сdao.insert(Category.builder()
                         .name("Субкатегорія 2")
                         .parentId(categoryId)
+                        .iconId(R.drawable.dna_structure)
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
@@ -164,12 +166,13 @@ public class BookReaderApp  extends Application {
 
                 categoryId =  сdao.insert(Category.builder()
                         .name( "Категорія 2")
-                        .iconId(R.drawable.books_stack)
+                        .iconId(R.drawable.front_bus)
                         .build());
 
                 subcategoryId  = сdao.insert(Category.builder()
                         .name("Субкатегорія 1")
                         .parentId(categoryId)
+                        .iconId(R.drawable.bear)
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
@@ -180,6 +183,7 @@ public class BookReaderApp  extends Application {
                 subcategoryId  = сdao.insert(Category.builder()
                         .name("Субкатегорія 2")
                         .parentId(categoryId)
+                        .iconId(R.drawable.crown)
                         .build());
                 for (int i = 0; i < 10;i++){
                     bdao.insert( Book.builder()
@@ -196,12 +200,13 @@ public class BookReaderApp  extends Application {
 
                 categoryId =  сdao.insert(Category.builder()
                         .name( "Категорія 3")
-                        .iconId(R.drawable.books_stack)
+                        .iconId(R.drawable.bowl)
                         .build());
 
                  сdao.insert(Category.builder()
                         .name("Субкатегорія 1")
                         .parentId(categoryId)
+                        .iconId(R.drawable.city_buildings_silhouette)
                         .build());
 
                 prefs.edit().putBoolean("db_seeded", true).apply();

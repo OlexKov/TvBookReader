@@ -155,7 +155,7 @@ public class PageRowsFragment extends RowsSupportFragment {
                                             Constants.ALL_BOOKS_CATEGORY_ID,
                                             cat.id,
                                             gridView);
-                                    return new ListRow(new HeaderItem(cat.id, cat.name), adapter);
+                                    return new ListRow(new IconHeader(cat.id, cat.name,cat.iconId), adapter);
                              });
                     futures.add(futureRow);
                 }

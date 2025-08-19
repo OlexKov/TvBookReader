@@ -49,7 +49,6 @@ public class BookInfoPresenter extends Presenter {
         return new Presenter.ViewHolder(view);
     }
 
-
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, @Nullable Object item) {
         View root = viewHolder.view;
