@@ -8,11 +8,14 @@ import androidx.core.content.ContextCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
+import androidx.leanback.widget.GuidedActionsStylist;
 
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BookCategories;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.CategoryRepository;
+import com.example.bookreader.extentions.BookGuidedStepFragment;
+import com.example.bookreader.fragments.settings.categorysetting.CategoryCreateFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 
-public class CategorySelectFragment extends GuidedStepSupportFragment {
+public class CategorySelectFragment extends BookGuidedStepFragment {
     private final BookCategories oldBookCategories;
     private final BookCategories bookCategories;
     private final CategoryRepository categoryRepository = new CategoryRepository();
@@ -29,12 +32,12 @@ public class CategorySelectFragment extends GuidedStepSupportFragment {
     private static final int ACTION_ID_SUBCATEGORY = 111111120;
     private static final int ACTION_ID_SAVE = 111111114;
     private static final int ACTION_ID_CANCEL = 111111116;
+    private static final int ACTION_ID_ADD_CATEGORY = 111111117;
 
     public CategorySelectFragment(BookCategories categories){
         this.bookCategories = categories;
         this.oldBookCategories = new BookCategories(categories.category,categories.subCategory);
     }
-
 
     @NonNull
     @Override
@@ -47,15 +50,37 @@ public class CategorySelectFragment extends GuidedStepSupportFragment {
         );
     }
 
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getParentFragmentManager().setFragmentResultListener(
+                "new_category_result",
+                this,
+                (requestKey, bundle) -> {
+                    var data = bundle.getSerializable("new_category");
+                    if(data instanceof CategoryDto newCategory){
+                        if(newCategory.parentId == null){
+                            updateCategoryActions();
+                        }
+                        else{
+                            updateSubcategoryActions();
+                        }
+                    }
+                }
+        );
     }
 
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
         Context context = getContext();
+
+        actions.add(
+                new GuidedAction.Builder(context)
+                        .id(ACTION_ID_ADD_CATEGORY)
+                        .title("Нова категорія")
+                        .icon(R.drawable.add)
+                        .build()
+        );
 
         actions.add(
                 new GuidedAction.Builder(context)
@@ -111,6 +136,10 @@ public class CategorySelectFragment extends GuidedStepSupportFragment {
             case ACTION_ID_CANCEL:
                 setDefault();
                 break;
+            case ACTION_ID_ADD_CATEGORY:
+                GuidedStepSupportFragment.add(getParentFragmentManager(),
+                        new CategoryCreateFragment(null));
+                break;
         }
     }
 
@@ -153,10 +182,12 @@ public class CategorySelectFragment extends GuidedStepSupportFragment {
                     new GuidedAction.Builder(context)
                             .id(ACTION_ID_SAVE)
                             .title(getString(R.string.save))
+                            .icon(R.drawable.save)
                             .build(),
                     new GuidedAction.Builder(context)
                             .id(ACTION_ID_CANCEL)
                             .title(getString(R.string.cancel))
+                            .icon(R.drawable.redo)
                             .build());
             actions.addAll(controlActions);
             setActions(actions);
@@ -188,6 +219,14 @@ public class CategorySelectFragment extends GuidedStepSupportFragment {
         }
     }
 
+    private void updateCategoryActions(){
+        GuidedAction categoryAction = findActionById(ACTION_ID_CATEGORY);
+        if(categoryAction != null){
+            categoryAction.setSubActions(getCategoryActions().join());
+            notifyActionChanged(getActions().indexOf(categoryAction));
+        }
+    }
+
     public  void updateCategoryActionChecked(){
         GuidedAction categoryAction = findActionById(ACTION_ID_CATEGORY);
         if(categoryAction != null){
@@ -216,6 +255,7 @@ public class CategorySelectFragment extends GuidedStepSupportFragment {
                                 .id(cat.id)
                                 .title(cat.name)
                                 .hasNext(false)
+                                .icon(cat.iconId)
                                 .checkSetId(ACTION_ID_SUBCATEGORY)
                                 .checked(bookCategories.subCategory != null && cat.id == bookCategories.subCategory.id)
                                 .build())
@@ -234,11 +274,13 @@ public class CategorySelectFragment extends GuidedStepSupportFragment {
     private CompletableFuture<List<GuidedAction>> getCategoryActions(){
         Context context = getContext();
         return  categoryRepository.getAllParentCategoriesAsyncCF().thenApply(categories->{
+
             List<GuidedAction> actions = categories.stream()
                     .map(cat->
                             new GuidedAction.Builder(context)
                                     .id(cat.id)
                                     .title(cat.name)
+                                    .icon(cat.iconId)
                                     .hasNext(false)
                                     .checkSetId(ACTION_ID_CATEGORY)
                                     .checked(bookCategories.category != null && cat.id == bookCategories.category.id)

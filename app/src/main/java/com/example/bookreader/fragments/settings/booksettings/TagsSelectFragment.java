@@ -7,15 +7,19 @@ import androidx.core.content.ContextCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
+import androidx.leanback.widget.GuidedActionsStylist;
+
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.data.database.entity.Tag;
 import com.example.bookreader.data.database.repository.TagRepository;
+import com.example.bookreader.extentions.BookGuidedStepFragment;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TagsSelectFragment extends GuidedStepSupportFragment {
+public class TagsSelectFragment extends BookGuidedStepFragment {
     private final List<Long> tagsIds;
     private List<GuidedAction> tagsActions;
     private final TagRepository tagRepository = new TagRepository();
@@ -121,24 +125,26 @@ public class TagsSelectFragment extends GuidedStepSupportFragment {
                 .id(ACTION_ID_NEW_TAG)
                 .title("Додати тег")
                 .descriptionEditable(true)
+                .icon(R.drawable.add)
                 .build());
         if(!tagsIds.isEmpty()){
-            actions.add(1, new GuidedAction.Builder(getContext())
-                    .id(ACTION_ID_CLEAR_TAGS)
-                    .title("Очистити")
-                    .build());
+            addClearButton(actions);
         }
         return actions;
+    }
+    private void addClearButton(List<GuidedAction> actions){
+        actions.add(1, new GuidedAction.Builder(getContext())
+                .id(ACTION_ID_CLEAR_TAGS)
+                .title("Очистити")
+                .icon(R.drawable.clear)
+                .build());
     }
 
     private void checkAndSetClearTagsButton(List<GuidedAction> actions) {
         boolean changed = false;
         if (!tagsIds.isEmpty()) {
             if (actions.stream().noneMatch(action -> (int)action.getId() == ACTION_ID_CLEAR_TAGS)) {
-                actions.add(1, new GuidedAction.Builder(getContext())
-                        .id(ACTION_ID_CLEAR_TAGS)
-                        .title("Очистити")
-                        .build());
+                addClearButton(actions);
                 changed = true;
             }
         } else if (actions.stream().anyMatch(action -> (int)action.getId() == ACTION_ID_CLEAR_TAGS)) {

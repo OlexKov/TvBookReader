@@ -24,6 +24,7 @@ import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.data.database.repository.TagRepository;
+import com.example.bookreader.extentions.BookGuidedStepFragment;
 import com.example.bookreader.utility.eventlistener.GlobalEventListener;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class EditBookFragment extends GuidedStepSupportFragment {
+public class EditBookFragment extends BookGuidedStepFragment {
     private final BookDto book;
     private static final int ACTION_ID_TITLE = 1111111111;
     private static final int ACTION_ID_YEAR = 111111112;
@@ -332,10 +333,12 @@ public class EditBookFragment extends GuidedStepSupportFragment {
                     new GuidedAction.Builder(context)
                             .id(ACTION_ID_SAVE)
                             .title(getString(R.string.save))
+                            .icon(R.drawable.save)
                             .build(),
                     new GuidedAction.Builder(context)
                             .id(ACTION_ID_CANCEL)
                             .title(getString(R.string.cancel))
+                            .icon(R.drawable.redo)
                             .build());
             actions.addAll(controlActions);
             setActions(actions);

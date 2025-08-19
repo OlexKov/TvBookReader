@@ -16,4 +16,12 @@
         <item name="android:backgroundDimEnabled">true</item>
     </style>
 
+    <style name="App.GuidedStep" parent="Theme.Leanback.GuidedStep">
+        <!-- Підміняємо стилі елементів GuidedAction -->
+        <item name="guidedActionItemTitleStyle">@style/App.GuidedActionItemTitle</item>
+        <item name="guidedActionItemDescriptionStyle">@style/App.GuidedActionItemDescription</item>
+        <item name="guidedActionItemIconStyle">@style/App_GuidedActionItemIcon</item>
+        <item name="guidedActionItemCheckmarkStyle">@style/App.GuidedActionCheckmark</item>
+    </style>
+
 </resources>

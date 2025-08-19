@@ -11,6 +11,25 @@
 <!--        <item name="android:activityCloseExitAnimation">@anim/slide_out_bottom</item>-->
 <!--    </style>-->
 
+    <!-- GuidedAction style settings-->
+    <style name="App.GuidedActionItemTitle" parent="Widget.Leanback.GuidedActionItemTitleStyle">
+        <item name="android:textSize">16sp</item>
+    </style>
 
+    <style name="App_GuidedActionItemIcon" parent="Widget.Leanback.GuidedActionItemIconStyle">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:paddingEnd">5dp</item>
+    </style>
 
+    <style name="App.GuidedActionItemDescription" parent="Widget.Leanback.GuidedActionItemDescriptionStyle">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="App.GuidedActionCheckmark" parent="Widget.Leanback.GuidedActionItemCheckmarkStyle">
+        <item name="android:layout_width">26dp</item>
+        <item name="android:layout_height">26dp</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
 </resources>

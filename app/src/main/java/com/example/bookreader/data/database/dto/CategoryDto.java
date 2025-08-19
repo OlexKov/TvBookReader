@@ -2,13 +2,24 @@ package com.example.bookreader.data.database.dto;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public class CategoryDto implements Serializable {
     public long id;
     public String name;
-    public Long parentId = null; // NULL для основних категорій
+    public Long parentId = null;
     public int iconId;
     public Integer booksCount = null;
 
+    public CategoryDto(){}
+    public CategoryDto(CategoryDto category){
+        id = category.id;
+        name = category.name;
+        parentId = category.parentId;
+        iconId = category.iconId;
+        booksCount = category.booksCount;
+    }
 
     public boolean equals(Object o) {
         if (this == o) return true;
