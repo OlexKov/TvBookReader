@@ -94,8 +94,8 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
     public long onGuidedActionEditedAndProceed(@NonNull GuidedAction action) {
         if ((int) action.getId() == ACTION_ID_TITLE && action.getDescription() != null) {
             String name = action.getDescription().toString();
-            if (name.length() > 13 || name.length() < 3) {
-                Toast.makeText(getContext(), "Назва категорії повинна містити від 3 до 13 символів", Toast.LENGTH_SHORT).show();
+            if (name.length() > 50 || name.length() < 3) {
+                Toast.makeText(getContext(), "Назва категорії повинна містити від 3 до 50 символів", Toast.LENGTH_SHORT).show();
                 action.setDescription(category.name);
             } else {
                  category.name = name;

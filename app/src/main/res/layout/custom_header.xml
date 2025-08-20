@@ -65,19 +65,20 @@
         android:layout_gravity="end|center"
         tools:ignore="UseCompoundDrawables">
 
-    <TextView
-        android:id="@+id/vTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAllCaps="true"
-        android:textSize="40sp"
-        android:textColor="@android:color/white"
-        android:visibility="visible"
-        android:paddingEnd="16dp"
-        android:paddingStart="6dp"
-        />
+        <TextView
+            android:gravity="end"
+            android:id="@+id/vTitle"
+            android:layout_width="600dp"
+            android:layout_height="wrap_content"
+            android:textAllCaps="true"
+            android:textSize="40sp"
+            android:paddingEnd="16dp"
+            android:paddingStart="6dp"
+            android:ellipsize="marquee"
+            android:singleLine="true"/>
 
-    <ImageView
+
+   <ImageView
         android:id="@+id/title_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
