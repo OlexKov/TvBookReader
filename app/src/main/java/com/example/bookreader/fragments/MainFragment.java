@@ -20,7 +20,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.core.util.Consumer;
 import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
@@ -215,7 +214,7 @@ public class MainFragment extends BrowseSupportFragment {
                     R.drawable.favorite)));
         }
         else{
-            categoryRepository.getCategoryByIdAsync(categoryId,(category->{
+            categoryRepository.getByIdAsync(categoryId,(category->{
                 rowsAdapter.add(rowsAdapter.size() - 2, new PageRow(new IconHeader(category.id,
                         category.name,
                         category.iconId == 0

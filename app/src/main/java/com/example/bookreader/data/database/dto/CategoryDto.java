@@ -1,5 +1,7 @@
 package com.example.bookreader.data.database.dto;
 
+import com.example.bookreader.data.database.entity.Category;
+
 import java.io.Serializable;
 
 import lombok.AllArgsConstructor;
@@ -19,6 +21,10 @@ public class CategoryDto implements Serializable {
         parentId = category.parentId;
         iconId = category.iconId;
         booksCount = category.booksCount;
+    }
+
+    public Category getCategory(){
+        return new Category(id,name,parentId,iconId);
     }
 
     public boolean equals(Object o) {

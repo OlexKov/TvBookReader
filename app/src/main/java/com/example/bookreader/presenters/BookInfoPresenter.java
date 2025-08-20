@@ -14,16 +14,11 @@ import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
-import androidx.fragment.app.FragmentActivity;
-import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.Presenter;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.data.database.entity.Category;
-import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.data.database.repository.TagRepository;
-import com.example.bookreader.fragments.settings.booksettings.EditBookFragment;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.BookProcessor;
@@ -125,7 +120,7 @@ public class BookInfoPresenter extends Presenter {
 
         if(info.categoryId != null){
             CategoryRepository categoryRepository = new CategoryRepository();
-            categoryRepository.getCategoryByIdAsync(info.categoryId,(bookCategory->{
+            categoryRepository.getByIdAsync(info.categoryId,(bookCategory->{
                 String categoryText = "";
                 if(bookCategory.parentId != null){
                     var parentCategory = categoryRepository.getCategoryByIdAsyncCF(bookCategory.parentId).join();

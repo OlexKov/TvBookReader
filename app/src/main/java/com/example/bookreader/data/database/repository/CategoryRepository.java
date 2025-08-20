@@ -25,7 +25,7 @@ public class CategoryRepository {
         this.categoryDao = BookReaderApp.getInstance().getAppDatabase().categoryDao();
     }
 
-    public void insert(Category category, Consumer<Long> callback) {
+    public void insertAsync(Category category, Consumer<Long> callback) {
         executorService.execute(() -> {
             long id = categoryDao.insert(category);
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -34,9 +34,36 @@ public class CategoryRepository {
         });
     }
 
+    public void updateAsync(Category category, Consumer<Void> callback){
+        executorService.execute(() -> {
+            categoryDao.update(category);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(null);
+            });
+        });
+    }
+
+    //Get by name
+
+    public CategoryDto getByName(String categoryName){
+        return categoryDao.getByName(categoryName);
+    }
+
+    public void getByNameAsync(String categoryName, Consumer<CategoryDto> callback) {
+        executorService.execute(() -> {
+            CategoryDto category = categoryDao.getByName(categoryName);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.accept(category);
+            });
+        });
+    }
+
+    public CompletableFuture<CategoryDto> getByNameAsync(String categoryName) {
+        return CompletableFuture.supplyAsync(()->categoryDao.getByName(categoryName));
+    }
 
     //getCategoryByIdAsync
-    public void getCategoryByIdAsync(long categoryId, Consumer<CategoryDto> callback) {
+    public void getByIdAsync(long categoryId, Consumer<CategoryDto> callback) {
         executorService.execute(() -> {
             CategoryDto category = categoryDao.getById(categoryId);
             new Handler(Looper.getMainLooper()).post(() -> {

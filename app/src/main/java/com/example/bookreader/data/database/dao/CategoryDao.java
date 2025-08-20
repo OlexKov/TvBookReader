@@ -3,6 +3,7 @@ package com.example.bookreader.data.database.dao;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.entity.Category;
@@ -13,6 +14,9 @@ import java.util.List;
 public interface CategoryDao {
     @Insert
     long insert(Category category);
+
+    @Update
+    void update(Category category);
 
     @Query("SELECT * FROM categories ")
     List<CategoryDto> getAll();
@@ -45,4 +49,7 @@ public interface CategoryDao {
 
     @Query("SELECT * FROM categories WHERE id = :categoryId")
     CategoryDto getById(long categoryId);
+
+    @Query("SELECT * FROM categories WHERE name = :categoryName")
+    CategoryDto getByName(String categoryName);
 }
