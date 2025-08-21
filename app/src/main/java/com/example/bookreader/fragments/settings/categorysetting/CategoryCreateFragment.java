@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
+import androidx.leanback.widget.GuidedActionsStylist;
 
 import com.example.bookreader.R;
 import com.example.bookreader.constants.ResourcesIcons;
@@ -18,6 +19,7 @@ import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.BookGuidedStepFragment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -55,6 +57,12 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
         );
     }
 
+    @NonNull
+    @Override
+    public GuidedActionsStylist onCreateActionsStylist() {
+        return new  IconActionsStylist();
+    }
+
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
         Context context = getContext();
@@ -72,6 +80,7 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
                 .id(ACTION_ID_ICON)
                 .icon(category.iconId)
                 .title("Іконка")
+                .subActions( getIconsActions())
                 .build());
 
         actions.add(new GuidedAction.Builder(context)
@@ -94,10 +103,11 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
     public long onGuidedActionEditedAndProceed(@NonNull GuidedAction action) {
         if ((int) action.getId() == ACTION_ID_TITLE && action.getDescription() != null) {
             String name = action.getDescription().toString();
-            if (name.length() > 50 || name.length() < 3) {
-                Toast.makeText(getContext(), "Назва категорії повинна містити від 3 до 50 символів", Toast.LENGTH_SHORT).show();
+            if (name.length() > 25 || name.length() < 3) {
+                Toast.makeText(getContext(), "Назва категорії повинна містити від 3 до 25 символів", Toast.LENGTH_SHORT).show();
                 action.setDescription(category.name);
-            } else {
+            }
+            else {
                  category.name = name;
             }
             checkChangedAndAddControls();
@@ -238,6 +248,15 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
                 .build();
     }
 
+    private GuidedAction createCategoryAction(int id, int checkSetId,int iconId,boolean isChecked){
+        return new GuidedAction.Builder(getContext())
+                .id(id)
+                .checkSetId(checkSetId)
+                .icon(iconId)
+                .checked(isChecked)
+                .build();
+    }
+
     private GuidedAction createDividerAction(){
         return new GuidedAction.Builder(getContext())
                 .id(ACTION_ID_DIVIDER)
@@ -336,4 +355,15 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
             return  actions;
         });
     }
+
+    private List<GuidedAction> getIconsActions(){
+        return  Arrays.stream(ResourcesIcons.IconsArray).mapToObj(iconId->
+                createCategoryAction(
+                        iconId,
+                        ACTION_ID_ICON,
+                        iconId,
+                        iconId == category.iconId))
+                .collect(Collectors.toList());
+    }
 }
+
