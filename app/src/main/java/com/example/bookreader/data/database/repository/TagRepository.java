@@ -105,6 +105,14 @@ public class TagRepository {
         return CompletableFuture.supplyAsync(()->tagDao.getTagsByIds(ids));
     }
 
+    public TagDto getByName(String name){
+        return tagDao.getByName(name);
+    }
+
+    public CompletableFuture<TagDto> getByNameAsync(String name){
+        return CompletableFuture.supplyAsync(()->tagDao.getByName(name));
+    }
+
 
 
 }

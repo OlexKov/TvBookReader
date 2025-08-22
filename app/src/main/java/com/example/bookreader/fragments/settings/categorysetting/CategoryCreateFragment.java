@@ -117,7 +117,7 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
         switch ((int) action.getId()) {
             case ACTION_ID_SAVE:
                 if(oldCategory == null){
-                    categoryRepository.getByNameAsync(getActionDescription(ACTION_ID_PARENT_CATEGORY)).thenAccept(cat->{
+                    categoryRepository.getByNameAsync(getDescription(ACTION_ID_PARENT_CATEGORY)).thenAccept(cat->{
                         if(cat == null){
                             categoryRepository.insertAsync(category.getCategory(),(id->{
                                 if(category.parentId == null){

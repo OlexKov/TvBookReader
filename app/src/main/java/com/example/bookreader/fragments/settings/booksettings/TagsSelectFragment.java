@@ -1,11 +1,14 @@
 package com.example.bookreader.fragments.settings.booksettings;
 
 import static com.example.bookreader.constants.Constants.ACTION_ID_CLEAR_TAGS;
+import static com.example.bookreader.constants.Constants.ACTION_ID_DIVIDER;
 import static com.example.bookreader.constants.Constants.ACTION_ID_NEW_TAG;
 import static com.example.bookreader.constants.Constants.ACTION_ID_NO_ACTION;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.GuidedStepSupportFragment;
@@ -21,6 +24,7 @@ import com.example.bookreader.extentions.BookGuidedStepFragment;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TagsSelectFragment extends BookGuidedStepFragment {
@@ -54,7 +58,7 @@ public class TagsSelectFragment extends BookGuidedStepFragment {
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
         tagRepository.getAllAsync().thenAccept(tags->{
-            this.tagsActions = getTagActions(tags);
+            this.tagsActions = getTagActions(tags,tagsIds);
             actions.addAll(tagsActions);
         });
     }
@@ -72,17 +76,25 @@ public class TagsSelectFragment extends BookGuidedStepFragment {
         if(description != null){
             String descriptionString = description.toString();
             if ((int) action.getId() == ACTION_ID_NEW_TAG) {
-                tagRepository.insertAsync(Tag.builder().name(descriptionString).build()).thenAccept(newTagId -> {
-                    int index = tagsIds.isEmpty() ? 1 : 2;
-                    tagsActions.add(index, new GuidedAction.Builder(getContext())
-                            .id(newTagId)
-                            .title(descriptionString)
-                            .hasNext(false)
-                            .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                            .checked(false)
-                            .build());
-                    setActions(tagsActions);
-                    action.setDescription("");
+                tagRepository.getByNameAsync(descriptionString).thenAccept(tag->{
+                    requireActivity().runOnUiThread(()->setDescription("",action));
+                    if(tag == null){
+                        Long newTagId = tagRepository.insert(Tag.builder().name(descriptionString).build());
+                        int index = tagsIds.isEmpty() ? 3 : 4;
+                        tagsActions.add(index, new GuidedAction.Builder(getContext())
+                                .id(newTagId)
+                                .title(descriptionString)
+                                .hasNext(false)
+                                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                                .checked(false)
+                                .build());
+                        setActions(tagsActions);
+                    }
+                    else{
+                        requireActivity().runOnUiThread(()->{
+                            Toast.makeText(getContext(), "Тег з такою назвою вже існує", Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 });
             }
         }
@@ -103,68 +115,22 @@ public class TagsSelectFragment extends BookGuidedStepFragment {
             }
         }
         else if ((int) action.getId() == ACTION_ID_CLEAR_TAGS){
-            clearActionsChecked(getActions());
+           clearCheckedActions(getActions());
         }
         checkAndSetClearTagsButton(getActions());
     }
 
-    private List<GuidedAction> getTagActions(List<TagDto> tags){
-        Context context = getContext();
-        List<GuidedAction> actions = tags.stream()
-                .sorted(Comparator.comparing((tag)->tag.name))
-                .map(tag->
-                        new GuidedAction.Builder(context)
-                                .id(tag.id)
-                                .title(tag.name)
-                                .hasNext(false)
-                                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
-                                .checked(tagsIds.contains(tag.id))
-                                .build())
-                .collect(Collectors.toList());
-        actions.add(0, new GuidedAction.Builder(context)
-                .id(ACTION_ID_NEW_TAG)
-                .title("Додати тег")
-                .descriptionEditable(true)
-                .icon(R.drawable.add)
-                .build());
-        if(!tagsIds.isEmpty()){
-            addClearButton(actions);
-        }
-        return actions;
-    }
-    private void addClearButton(List<GuidedAction> actions){
-        actions.add(1, new GuidedAction.Builder(getContext())
-                .id(ACTION_ID_CLEAR_TAGS)
-                .title("Очистити")
-                .icon(R.drawable.clear)
-                .build());
-    }
-
     private void checkAndSetClearTagsButton(List<GuidedAction> actions) {
-        boolean changed = false;
-        if (!tagsIds.isEmpty()) {
-            if (actions.stream().noneMatch(action -> (int)action.getId() == ACTION_ID_CLEAR_TAGS)) {
-                addClearButton(actions);
-                changed = true;
-            }
-        } else if (actions.stream().anyMatch(action -> (int)action.getId() == ACTION_ID_CLEAR_TAGS)) {
-            actions.removeIf(action -> action.getId() == ACTION_ID_CLEAR_TAGS);
-            changed = true;
-        }
+        boolean changed = !tagsIds.isEmpty() ? addTagsClearButton(actions) : removeTagsClearButton(actions);
         if (changed) {
             setActions(actions);
         }
     }
 
-    private void clearActionsChecked(List<GuidedAction> tagActions){
-        for(int i = 0;i < tagActions.size(); i++){
-            var action = tagActions.get(i);
-            if(action.isChecked()){
-                action.setChecked(false);
-                notifyActionChanged(i);
-            }
-        }
-        tagsIds.clear();
-        checkAndSetClearTagsButton(tagActions);
+    private void clearCheckedActions(List<GuidedAction> tagActions){
+        clearActionsChecked(tagActions,()->{
+            tagsIds.clear();
+            checkAndSetClearTagsButton(tagActions);
+        });
     }
 }
