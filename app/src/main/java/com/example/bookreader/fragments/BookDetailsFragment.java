@@ -8,10 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,7 +29,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.constants.ActionType;
+import com.example.bookreader.constants.BookInfoActionType;
 
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.RowItemData;
@@ -213,11 +209,11 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void setActions(DetailsOverviewRow detailsOverview){
-        actionAdapter.set(ActionType.BOOK_READ.getId(), new Action(ActionType.BOOK_READ.getId(), getString(R.string.read)));
-        actionAdapter.set(ActionType.BOOK_EDIT.getId(), new Action(ActionType.BOOK_EDIT.getId(), getString(R.string.edit)));
-        actionAdapter.set(ActionType.BOOK_DELETE.getId(), new Action(ActionType.BOOK_DELETE.getId(), getString(R.string.delete)));
-        actionAdapter.set(ActionType.BOOK_TOGGLE_FAVORITE.getId(), new Action(
-                ActionType.BOOK_TOGGLE_FAVORITE.getId(),
+        actionAdapter.set(BookInfoActionType.BOOK_READ.getId(), new Action(BookInfoActionType.BOOK_READ.getId(), getString(R.string.read)));
+        actionAdapter.set(BookInfoActionType.BOOK_EDIT.getId(), new Action(BookInfoActionType.BOOK_EDIT.getId(), getString(R.string.edit)));
+        actionAdapter.set(BookInfoActionType.BOOK_DELETE.getId(), new Action(BookInfoActionType.BOOK_DELETE.getId(), getString(R.string.delete)));
+        actionAdapter.set(BookInfoActionType.BOOK_TOGGLE_FAVORITE.getId(), new Action(
+                BookInfoActionType.BOOK_TOGGLE_FAVORITE.getId(),
                 book.isFavorite
                 ? getString(R.string.remove_from_favorite)
                 : getString(R.string.add_to_favorite)

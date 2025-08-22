@@ -1,7 +1,7 @@
 package com.example.bookreader.constants;
 
 
-public enum ActionType {
+public enum BookInfoActionType {
     BOOK_READ(0),
     BOOK_EDIT(1),
     BOOK_DELETE(2),
@@ -12,7 +12,7 @@ public enum ActionType {
 
     private final int id;
 
-    ActionType(int id) {
+    BookInfoActionType(int id) {
         this.id = id;
     }
 
@@ -20,8 +20,8 @@ public enum ActionType {
         return id;
     }
 
-    public static ActionType fromId(long id) {
-        for (ActionType type : values()) {
+    public static BookInfoActionType fromId(long id) {
+        for (BookInfoActionType type : values()) {
             if (type.id == id) return type;
         }
         return null;

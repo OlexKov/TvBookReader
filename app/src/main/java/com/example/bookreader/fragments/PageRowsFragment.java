@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.constants.ActionType;
+import com.example.bookreader.constants.BookInfoActionType;
 import com.example.bookreader.constants.Constants;
 import com.example.bookreader.customclassses.NewCategoryList;
 import com.example.bookreader.data.database.repository.CategoryRepository;
@@ -108,9 +108,9 @@ public class PageRowsFragment extends RowsSupportFragment {
     private CompletableFuture<List<ListRow>> getSettingRows() {
         return CompletableFuture.supplyAsync(() -> {
             ArrayObjectAdapter settingsAdapter = new ArrayObjectAdapter(new TextIconPresenter());
-            settingsAdapter.add(new TextIcon(ActionType.SETTING_1.getId(), R.drawable.settings, "Налаштування категорій"));
-            settingsAdapter.add(new TextIcon(ActionType.SETTING_2.getId(), R.drawable.settings, "Додати книгу"));
-            settingsAdapter.add(new TextIcon(ActionType.SETTING_3.getId(), R.drawable.settings, "Додати папку"));
+            settingsAdapter.add(new TextIcon(BookInfoActionType.SETTING_1.getId(), R.drawable.settings, "Налаштування категорій"));
+            settingsAdapter.add(new TextIcon(BookInfoActionType.SETTING_2.getId(), R.drawable.settings, "Додати книгу"));
+            settingsAdapter.add(new TextIcon(BookInfoActionType.SETTING_3.getId(), R.drawable.settings, "Додати папку"));
             return List.of(new ListRow(new HeaderItem(Constants.SETTINGS_CATEGORY_ID, "Налаштування"), settingsAdapter));
         });
     }

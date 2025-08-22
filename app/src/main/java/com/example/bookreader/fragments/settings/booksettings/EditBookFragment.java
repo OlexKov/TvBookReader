@@ -1,6 +1,13 @@
 package com.example.bookreader.fragments.settings.booksettings;
 
-
+import static com.example.bookreader.constants.Constants.ACTION_ID_AUTHOR;
+import static com.example.bookreader.constants.Constants.ACTION_ID_CANCEL;
+import static com.example.bookreader.constants.Constants.ACTION_ID_CATEGORY;
+import static com.example.bookreader.constants.Constants.ACTION_ID_NO_ACTION;
+import static com.example.bookreader.constants.Constants.ACTION_ID_SAVE;
+import static com.example.bookreader.constants.Constants.ACTION_ID_TAGS;
+import static com.example.bookreader.constants.Constants.ACTION_ID_TITLE;
+import static com.example.bookreader.constants.Constants.ACTION_ID_YEAR;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -14,7 +21,6 @@ import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 import com.example.bookreader.BookReaderApp;
-import com.example.bookreader.R;
 import com.example.bookreader.activities.BookDetailsActivity;
 import com.example.bookreader.customclassses.BookCategories;
 import com.example.bookreader.data.database.dto.BookDto;
@@ -37,15 +43,6 @@ import java.util.stream.Collectors;
 
 public class EditBookFragment extends BookGuidedStepFragment {
     private final BookDto book;
-    private static final int ACTION_ID_TITLE = 1111111111;
-    private static final int ACTION_ID_YEAR = 111111112;
-    private static final int ACTION_ID_TAGS = 111111113;
-    private static final int ACTION_ID_SAVE = 111111114;
-    private static final int ACTION_ID_AUTHOR = 111111115;
-    private static final int ACTION_ID_CANCEL = 111111116;
-    private static final int ACTION_ID_CATEGORY = 111111119;
-    private static final long ACTION_ID_NO_ACTION = -1;
-
     private final BookReaderApp app = BookReaderApp.getInstance();
     private String title;
     private String year;
@@ -87,7 +84,7 @@ public class EditBookFragment extends BookGuidedStepFragment {
                             .boxed()
                             .collect(Collectors.toList())
                             : new ArrayList<>();
-                    checkChangedAndAddControls();
+                    checkChangedAndAddControls(isSettingChanged());
                     updateCurrentTagDescription(currentBookTagsIds);
                 }
         );
@@ -100,8 +97,8 @@ public class EditBookFragment extends BookGuidedStepFragment {
                     if(data instanceof BookCategories categories ){
                         category = categories.category;
                         subCategory = categories.subCategory;
-                        updateCategoriesActionDescription();
-                        checkChangedAndAddControls();
+                        setDescription(getCategoryDescription(),ACTION_ID_CATEGORY);
+                        checkChangedAndAddControls(isSettingChanged());
                     }
                 }
         );
@@ -181,7 +178,7 @@ public class EditBookFragment extends BookGuidedStepFragment {
     @Override
     public long onGuidedActionEditedAndProceed(@NonNull GuidedAction action) {
         processTextEditActions(action);
-        checkChangedAndAddControls();
+        checkChangedAndAddControls(isSettingChanged());
         return ACTION_ID_NO_ACTION; // залишитись на поточній дії
     }
 
@@ -193,7 +190,7 @@ public class EditBookFragment extends BookGuidedStepFragment {
                 break;
             case ACTION_ID_CANCEL:
                 setDefault();
-                removeControlActions();
+                removeConfirmAction();
                 break;
             case ACTION_ID_TAGS:
                 GuidedStepSupportFragment.add(getParentFragmentManager(),
@@ -223,22 +220,6 @@ public class EditBookFragment extends BookGuidedStepFragment {
         else{
             this.subCategory = null;
             this.category = null;
-        }
-    }
-
-    private void updateCategoriesActionDescription(){
-        GuidedAction action = findActionById(ACTION_ID_CATEGORY);
-        if(action != null){
-            action.setDescription(getCategoryDescription());
-        }
-    }
-
-    private void checkChangedAndAddControls(){
-        if(isSettingChanged()){
-            addControlActions();
-        }
-        else{
-            removeControlActions();
         }
     }
 
@@ -295,7 +276,7 @@ public class EditBookFragment extends BookGuidedStepFragment {
         }
 
         setDefaultCategoryAndSubCategory();
-        updateCategoriesActionDescription();
+        setDescription(getCategoryDescription(),ACTION_ID_CATEGORY);
     }
 
     private void processTextEditActions(GuidedAction action){
@@ -315,34 +296,6 @@ public class EditBookFragment extends BookGuidedStepFragment {
             }
         }
 
-    }
-
-    private void removeControlActions(){
-        List<GuidedAction>  actions = new ArrayList<>(getActions());
-        if(actions.removeIf(act->act.getId() == ACTION_ID_SAVE)){
-            actions.removeIf(act->act.getId() ==  ACTION_ID_CANCEL);
-            setActions(actions);
-        }
-    }
-
-    private void addControlActions(){
-        List<GuidedAction>  actions = new ArrayList<>(getActions());
-        if(actions.stream().noneMatch(act->act.getId() == ACTION_ID_SAVE)){
-            Context context = getContext();
-            List<GuidedAction> controlActions = List.of(
-                    new GuidedAction.Builder(context)
-                            .id(ACTION_ID_SAVE)
-                            .title(getString(R.string.save))
-                            .icon(R.drawable.save)
-                            .build(),
-                    new GuidedAction.Builder(context)
-                            .id(ACTION_ID_CANCEL)
-                            .title(getString(R.string.cancel))
-                            .icon(R.drawable.redo)
-                            .build());
-            actions.addAll(controlActions);
-            setActions(actions);
-        }
     }
 
     private void saveToDatabase(){

@@ -1,5 +1,11 @@
 package com.example.bookreader.fragments.settings.categorysetting;
 
+import static com.example.bookreader.constants.Constants.ACTION_ID_CANCEL;
+import static com.example.bookreader.constants.Constants.ACTION_ID_ICON;
+import static com.example.bookreader.constants.Constants.ACTION_ID_PARENT_CATEGORY;
+import static com.example.bookreader.constants.Constants.ACTION_ID_SAVE;
+import static com.example.bookreader.constants.Constants.ACTION_ID_TITLE;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.text.InputType;
@@ -18,24 +24,15 @@ import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.extentions.BookGuidedStepFragment;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 
 public class CategoryCreateFragment extends BookGuidedStepFragment {
-    private CategoryDto category;
+    private final CategoryDto category;
     private final CategoryDto oldCategory;
     private final CategoryRepository categoryRepository = new CategoryRepository();
-    private static final int ACTION_ID_TITLE = 111111111;
-    private static final int ACTION_ID_ICON = 111111112;
-    private static final int ACTION_ID_PARENT_CATEGORY = 111111113;
-    private static final int ACTION_ID_SAVE = 111111114;
-    private static final int ACTION_ID_CANCEL = 111111115;
-    private static final int ACTION_ID_DIVIDER = 111111116;
+
 
     public CategoryCreateFragment(@Nullable CategoryDto category){
         this.category = category == null ? new CategoryDto() : category;
@@ -60,7 +57,7 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
     @NonNull
     @Override
     public GuidedActionsStylist onCreateActionsStylist() {
-        return new  IconActionsStylist();
+        return new CategoryCreateFragmentActionsStylist();
     }
 
     @Override
@@ -80,14 +77,14 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
                 .id(ACTION_ID_ICON)
                 .icon(category.iconId)
                 .title("Іконка")
-                .subActions( getIconsActions())
+                .subActions( getIconsActions(category))
                 .build());
 
         actions.add(new GuidedAction.Builder(context)
                 .id(ACTION_ID_PARENT_CATEGORY)
                 .title("Батьківська категорія")
                 .description(getCategoryDescription())
-                .subActions(getCategoryActions().join())
+                .subActions(getCategoryActions(category,ACTION_ID_PARENT_CATEGORY).join())
                 .build());
 
     }
@@ -110,7 +107,7 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
             else {
                  category.name = name;
             }
-            checkChangedAndAddControls();
+            checkChangedAndAddControls(isSettingChanged());
         }
         return -1;
     }
@@ -120,7 +117,7 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
         switch ((int) action.getId()) {
             case ACTION_ID_SAVE:
                 if(oldCategory == null){
-                    categoryRepository.getByNameAsync(getActionName()).thenAccept(cat->{
+                    categoryRepository.getByNameAsync(getActionDescription(ACTION_ID_PARENT_CATEGORY)).thenAccept(cat->{
                         if(cat == null){
                             categoryRepository.insertAsync(category.getCategory(),(id->{
                                 if(category.parentId == null){
@@ -129,11 +126,22 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
                                         var actions = parentCategoryAction.getSubActions();
                                         if(actions != null){
                                             category.id = id;
-                                            actions.add(1,createCategoryAction(category,ACTION_ID_PARENT_CATEGORY,false));
+                                            actions.add(1,
+                                                    new GuidedAction.Builder(getContext())
+                                                    .id(category.id)
+                                                    .title(category.name)
+                                                    .icon(category.iconId)
+                                                    .hasNext(false)
+                                                    .checkSetId(ACTION_ID_PARENT_CATEGORY)
+                                                    .checked(false)
+                                                    .build());
                                             parentCategoryAction.setSubActions(actions);
                                         }
                                     }
                                 }
+                                requireActivity().runOnUiThread(()->{
+                                    Toast.makeText(getContext(), "Категорія " + '"' + category.name + '"' + " збережена", Toast.LENGTH_SHORT).show();
+                                });
                                 setDefault();
                             }));
                         }
@@ -149,6 +157,9 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
                         Bundle result = new Bundle();
                         result.putSerializable("new_categories", category);
                         getParentFragmentManager().setFragmentResult("new_categories_result", result);
+                        requireActivity().runOnUiThread(()->{
+                            Toast.makeText(getContext(), "Категорія " + '"' + category.name + '"' + " збережена", Toast.LENGTH_SHORT).show();
+                        });
                         getParentFragmentManager().popBackStack();
                     });
                 }
@@ -172,13 +183,17 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
                 description = selectedCategory.name;
             }
             category.parentId = parentCategoryId;
-            setCategoryDescription(description);
-            checkChangedAndAddControls();
+            setDescription(description,ACTION_ID_PARENT_CATEGORY);
         }
+        else{
+            category.iconId = Math.toIntExact(action.getId());
+            setIcon(category.iconId,ACTION_ID_ICON);
+        }
+        checkChangedAndAddControls(isSettingChanged());
         return true;
     }
 
-    private void  setDefault(){
+    private void setDefault(){
         if(oldCategory == null){
             category.id = 0;
             category.parentId = null;
@@ -193,94 +208,20 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
         }
         removeConfirmAction();
         updateParentCategoryDescription();
-        updateCategoryName();
-        updateCategoryActionChecked();
+        setDescription(oldCategory == null ? "Нова категорія" : oldCategory.name,ACTION_ID_TITLE);
+        updateCategoryActionChecked(category);
+        setIcon(category.iconId,ACTION_ID_ICON);
     }
 
-    public void updateCategoryName(){
-        var action = findActionById(ACTION_ID_TITLE);
-        String title = oldCategory == null ? "Нова категорія" : oldCategory.name;
-        if(action != null){
-            action.setDescription(title);
-            int index = getActions().indexOf(action);
-            notifyActionChanged(index);
-        }
-    }
-
-    public  void updateCategoryActionChecked(){
-        GuidedAction categoryAction = findActionById(ACTION_ID_PARENT_CATEGORY);
-        if(categoryAction != null){
-            List<GuidedAction> actions = categoryAction.getSubActions();
-            if(actions != null){
-                actions.forEach(act->{
-                    act.setChecked((category == null && act.getId() == -1)
-                            || (category != null && Objects.equals(act.getId(), category.parentId)));
-                });
-            }
-        }
-    }
-
-    private GuidedAction createCategoryAction(CategoryDto category, int actionId, boolean isChecked){
-        return new GuidedAction.Builder(getContext())
-                .id(category.id)
-                .title(category.name)
-                .icon(category.iconId)
-                .hasNext(false)
-                .checkSetId(actionId)
-                .checked(isChecked)
-                .build();
-    }
-
-    private GuidedAction createCategoryAction(int id, String title,int checkSetId, boolean isChecked){
-        return new GuidedAction.Builder(getContext())
-                .id(id)
-                .title(title)
-                .checkSetId(checkSetId)
-                .checked(isChecked)
-                .build();
-    }
-
-    private GuidedAction createCategoryAction(int id, String title,int iconId){
-        return new GuidedAction.Builder(getContext())
-                .id(id)
-                .title(title)
-                .icon(iconId)
-                .build();
-    }
-
-    private GuidedAction createCategoryAction(int id, int checkSetId,int iconId,boolean isChecked){
-        return new GuidedAction.Builder(getContext())
-                .id(id)
-                .checkSetId(checkSetId)
-                .icon(iconId)
-                .checked(isChecked)
-                .build();
-    }
-
-    private GuidedAction createDividerAction(){
-        return new GuidedAction.Builder(getContext())
-                .id(ACTION_ID_DIVIDER)
-                .title("____________________________________________")
-                .infoOnly(true)
-                .focusable(false)
-                .build();
-    }
-
-    private void checkChangedAndAddControls(){
-        boolean changed = (oldCategory == null
+    private boolean isSettingChanged(){
+        return (oldCategory == null
                 && (category.parentId != null
                 || !category.name.equals("Нова категорія")
                 || category.iconId != ResourcesIcons.IconsArray[0]))
-                       || (oldCategory != null
+                || (oldCategory != null
                 && (category.iconId != oldCategory.iconId
                 || !category.name.equals(oldCategory.name)
                 || !Objects.equals(category.parentId,oldCategory.parentId)));
-        if(changed){
-            addConfirmActions();
-        }
-        else{
-            removeConfirmAction();
-        }
     }
 
     private String getCategoryDescription(){
@@ -293,77 +234,9 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
         return "Не встановлено";
     }
 
-    private void setCategoryDescription(String description){
-        var categoryAction = findActionById(ACTION_ID_PARENT_CATEGORY);
-        if(categoryAction != null){
-            categoryAction.setDescription(description);
-            var index = getActions().indexOf(categoryAction);
-            notifyActionChanged(index);
-        }
-    }
-
     private void updateParentCategoryDescription(){
         String description = getCategoryDescription();
-        setCategoryDescription(description);
-    }
-
-    private String getActionName(){
-        var action = findActionById(ACTION_ID_TITLE);
-        if(action != null && action.getDescription() != null){
-            return action.getDescription().toString();
-        }
-        return "";
-    }
-
-    private int getCategoryIconId(){
-        return category != null && category.iconId != 0 ? category.iconId : ResourcesIcons.IconsArray[0];
-    }
-
-    private void removeConfirmAction(){
-        List<GuidedAction>  actions = new ArrayList<>(getActions());
-        if(actions.removeIf(act->act.getId() == ACTION_ID_SAVE)){
-            actions.removeIf(act->act.getId() ==  ACTION_ID_CANCEL);
-            actions.removeIf(act->act.getId() ==  ACTION_ID_DIVIDER);
-            setActions(actions);
-        }
-    }
-
-    private void addConfirmActions(){
-        List<GuidedAction>  actions = new ArrayList<>(getActions());
-        if(actions.stream().noneMatch(act->act.getId() == ACTION_ID_SAVE)){
-            actions.add(createDividerAction());
-            actions.add(createCategoryAction(ACTION_ID_SAVE,getString(R.string.save),R.drawable.save));
-            actions.add(createCategoryAction(ACTION_ID_CANCEL,getString(R.string.cancel),R.drawable.redo));
-            setActions(actions);
-        }
-    }
-
-    private CompletableFuture<List<GuidedAction>> getCategoryActions(){
-        return  categoryRepository.getAllParentCategoriesAsyncCF().thenApply(categories->{
-            List<GuidedAction> actions = categories.stream()
-                    .map(cat->
-                            createCategoryAction(
-                                    cat,
-                                    ACTION_ID_PARENT_CATEGORY,
-                                    oldCategory != null && cat.id == category.id))
-                    .collect(Collectors.toList());
-            actions.add(0,
-                    createCategoryAction(-1,
-                            "Не встановлено",
-                            ACTION_ID_PARENT_CATEGORY,
-                            oldCategory == null));
-            return  actions;
-        });
-    }
-
-    private List<GuidedAction> getIconsActions(){
-        return  Arrays.stream(ResourcesIcons.IconsArray).mapToObj(iconId->
-                createCategoryAction(
-                        iconId,
-                        ACTION_ID_ICON,
-                        iconId,
-                        iconId == category.iconId))
-                .collect(Collectors.toList());
+        setDescription(description,ACTION_ID_PARENT_CATEGORY);
     }
 }
 

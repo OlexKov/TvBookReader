@@ -1,5 +1,9 @@
 package com.example.bookreader.fragments.settings.booksettings;
 
+import static com.example.bookreader.constants.Constants.ACTION_ID_CLEAR_TAGS;
+import static com.example.bookreader.constants.Constants.ACTION_ID_NEW_TAG;
+import static com.example.bookreader.constants.Constants.ACTION_ID_NO_ACTION;
+
 import android.content.Context;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -23,10 +27,6 @@ public class TagsSelectFragment extends BookGuidedStepFragment {
     private final List<Long> tagsIds;
     private List<GuidedAction> tagsActions;
     private final TagRepository tagRepository = new TagRepository();
-
-    private static final int ACTION_ID_NEW_TAG = 11111110;
-    private static final int ACTION_ID_CLEAR_TAGS = 11111111;
-    private static final long ACTION_ID_NO_ACTION = -1;
 
     public TagsSelectFragment(List<Long> tagsIds){
         this.tagsIds = tagsIds;

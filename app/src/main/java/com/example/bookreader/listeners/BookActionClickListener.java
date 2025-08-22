@@ -1,7 +1,6 @@
 package com.example.bookreader.listeners;
 
 import android.content.Context;
-import android.content.Intent;
 import android.widget.Toast;
 
 import androidx.core.util.Consumer;
@@ -13,8 +12,7 @@ import androidx.leanback.widget.SparseArrayObjectAdapter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
-import com.example.bookreader.activities.SettingActivity;
-import com.example.bookreader.constants.ActionType;
+import com.example.bookreader.constants.BookInfoActionType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.fragments.DeleteBookFragment;
@@ -37,7 +35,7 @@ public class BookActionClickListener implements OnActionClickedListener {
 
     @Override
     public void onActionClicked(Action action) {
-        ActionType type = ActionType.fromId(action.getId());
+        BookInfoActionType type = BookInfoActionType.fromId(action.getId());
         if(type == null) return;
         switch (type) {
             case BOOK_READ:
