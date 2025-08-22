@@ -73,7 +73,7 @@ public class CategorySelectFragment extends BookGuidedStepFragment {
         actions.add(
                 new GuidedAction.Builder(context)
                         .id(ACTION_ID_ADD_CATEGORY)
-                        .title("Нова категорія")
+                        .title("Додати категорію")
                         .icon(R.drawable.add)
                         .build()
         );
