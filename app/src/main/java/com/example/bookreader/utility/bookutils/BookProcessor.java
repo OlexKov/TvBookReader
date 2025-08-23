@@ -31,20 +31,22 @@ public class BookProcessor {
         bookProcessor = getBookProcessor(context,ext);
     }
 
-    public  CompletableFuture<String> savePreviewAsync() throws IOException{
+    public  CompletableFuture<String> savePreviewAsync() {
         return bookProcessor.savePreviewAsync(bookPath,400,300);
     }
 
-    public CompletableFuture<BookDto> getInfoAsync() throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync() {
         return bookProcessor.getInfoAsync(bookPath).thenApply((info)->{
-            info.filePath = bookPath;
-            info.fileSize = BooksArchiveReader.isArchivePath(bookPath) ? new BooksArchiveReader().getFileSize(bookPath) : new File(bookPath).length();
-            info.fileHash = HashHelper.getStringHash(info.author + info.pageCount + info.description + info.year + info.fileSize);
+            if(info != null){
+                info.filePath = bookPath;
+                info.fileSize = BooksArchiveReader.isArchivePath(bookPath) ? new BooksArchiveReader().getFileSize(bookPath) : new File(bookPath).length();
+                info.fileHash = HashHelper.getStringHash(info.author + info.pageCount + info.description + info.year + info.fileSize);
+            }
             return  info;
         });
     }
 
-    public CompletableFuture<Bitmap> getPreviewAsync( int pageIndex, int height, int wight) throws IOException{
+    public CompletableFuture<Bitmap> getPreviewAsync( int pageIndex, int height, int wight) {
         return bookProcessor.getPreviewAsync(bookPath, pageIndex, height, wight);
     }
 

@@ -1,10 +1,15 @@
 package com.example.bookreader.utility.bookutils.pdf;
+import static com.example.bookreader.utility.ToastHelper.createToast;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import com.example.bookreader.R;
@@ -20,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -33,15 +39,16 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<String> savePreviewAsync(String bookPath, int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(String bookPath, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
                     InputStream stream = reader.openFile(bookPath);
-                    return savePreview(stream,FileHelper.getFileName(bookPath), bookPath, height,wight);
+                    return savePreview(stream, height,wight);
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error " + '"' + FileHelper.getFileName(bookPath) + '"' + " book preview saving";
+                    Log.e(TAG, message, e);
                     return null;
                 }
             });
@@ -52,33 +59,36 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight) throws IOException{
+    public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight) {
         return   CompletableFuture.supplyAsync(()->{
             // 1. Рендер першої сторінки
             try (FileInputStream inputStream = new FileInputStream(bookFile)) {
-                return savePreview(inputStream,bookFile.getName(), bookFile.getAbsolutePath(), height,wight);
+                return savePreview(inputStream,height,wight);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                String message = "Error " + '"' + bookFile.getName() + '"' + " book preview saving";
+                Log.e(TAG, message, e);
+                return null;
             }
         });
     }
 
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(File bookFile) throws IOException {
-
+    public CompletableFuture<BookDto> getInfoAsync(File bookFile){
         return  CompletableFuture.supplyAsync(()->{
             try (FileInputStream stream = new FileInputStream(bookFile)) {
                return getInfo(stream,bookFile.getName());
             }
             catch (Exception e) {
-                 throw new RuntimeException(e);
+                String message = "Error reading " + '"' + bookFile.getName() + '"' + " book file";
+                Log.e(TAG, message, e);
+                return null;
             }
         });
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(String bookPath) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(String bookPath)  {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -86,7 +96,8 @@ public class PdfProcessor implements IBookProcessor {
                     return  getInfo((FileInputStream) stream,FileHelper.getFileName(bookPath));
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error reading " + '"' + FileHelper.getFileName(bookPath) + '"' + " book file";
+                    Log.e(TAG, message, e);
                     return null;
                 }
             });
@@ -97,20 +108,21 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public  CompletableFuture<Bitmap> getPreviewAsync(File bookFile,int pageIndex, int height, int width) throws IOException {
+    public  CompletableFuture<Bitmap> getPreviewAsync(File bookFile,int pageIndex, int height, int width) {
         return CompletableFuture.supplyAsync(()->{
             try(FileInputStream stream  = new FileInputStream(bookFile)){
                 return createPreview(stream, pageIndex, height, width);
             }
             catch (IOException e) {
-                throw new RuntimeException(e);
+                String message = "Error create preview " + '"' + bookFile.getName() + '"' + " book file";
+                Log.e(TAG, message, e);
+                return null;
             }
-
         });
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) throws IOException {
+    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -118,7 +130,8 @@ public class PdfProcessor implements IBookProcessor {
                     return createPreview((FileInputStream) stream, pageIndex, height,wight);
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error create preview " + '"' + FileHelper.getFileName(bookPath) + '"' + " book file";
+                    Log.e(TAG, message, e);
                     return null;
                 }
             });
@@ -129,7 +142,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync( Uri bookUri) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync( Uri bookUri)  {
         File file = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(file);
     }
@@ -158,18 +171,13 @@ public class PdfProcessor implements IBookProcessor {
         return result;
     }
 
-    private String savePreview(InputStream inputStream,String bookName,String bookPath,int height,int wight) throws IOException {
+    private String savePreview(InputStream inputStream,int height,int wight) throws IOException {
         Bitmap bitmap = createPreview((FileInputStream) inputStream, 0, height, wight);
         // 2. Збереження прев’ю
         File previewDir = new File(context.getFilesDir(), "previews");
         if (!previewDir.exists()) previewDir.mkdirs();
 
-
-        if (bookName.toLowerCase().endsWith(".pdf")) {
-            bookName = bookName.substring(0, bookName.length() - 4);
-        }
-
-        File previewFile = new File(previewDir, bookName + "_preview.png");
+        File previewFile = new File(previewDir, UUID.randomUUID() + ".png");
 
         try (FileOutputStream out = new FileOutputStream(previewFile)) {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);

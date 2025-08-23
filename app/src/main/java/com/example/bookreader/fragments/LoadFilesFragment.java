@@ -34,19 +34,16 @@ import com.example.bookreader.customclassses.EmptyItem;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.TagRepository;
-import com.example.bookreader.fragments.settings.booksettings.EditBookFragment;
+import com.example.bookreader.fragments.settings.book.EditBookFragment;
 import com.example.bookreader.presenters.BookInfoPresenter;
 import com.example.bookreader.presenters.EmptyItemPresenter;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.BookProcessor;
-import com.example.bookreader.utility.eventlistener.GlobalEventType;
+
 
 import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -104,13 +101,11 @@ public class LoadFilesFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
     }
 
     private void setButtons(View view){
@@ -230,27 +225,22 @@ public class LoadFilesFragment extends Fragment {
         float pointPerPercent = 100F/filePaths.size();
         return filePaths.stream()
                 .map(filePath -> {
-                    try {
-                         return new BookProcessor(requireContext(), filePath).getInfoAsync().thenApply(bookInfo -> {
-                            if (bookInfo == null) {
-                                showToast("Error open file " + filePath);
-                            }
-                            else{
-                                runOnUiThread(() -> {
-                                    if(pointPerPercent < 20){
-                                        subTitle.setText(bookInfo.title);
-                                    }
-                                    if (pointPerPercent < 4) {
-                                        setProgressString( pointPerPercent, count);
-                                    }
-                                });
-                            }
-                            return bookInfo;
-                         });
-                    } catch (IOException e) {
-                        showToast("Error load file " + filePath);
-                        return null;
-                    }
+                    return new BookProcessor(requireContext(), filePath).getInfoAsync().thenApply(bookInfo -> {
+                       if (bookInfo == null) {
+                           showToast("Error open file " + FileHelper.getFileName(filePath));
+                       }
+                       else{
+                           runOnUiThread(() -> {
+                               if(pointPerPercent < 20){
+                                   subTitle.setText(bookInfo.title);
+                               }
+                               if (pointPerPercent < 4) {
+                                   setProgressString( pointPerPercent, count);
+                               }
+                           });
+                       }
+                       return bookInfo;
+                    });
                 }).filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
@@ -302,6 +292,7 @@ public class LoadFilesFragment extends Fragment {
                     addBooksInfoToBookInfoList(bookRepository,infos);
                 })
                 .exceptionally(ex -> {
+                    Log.e("FILEERRORLOG", Objects.requireNonNull(ex.getMessage()));
                     checkAndHideProgress();
                     return null;
                 });
@@ -353,33 +344,29 @@ public class LoadFilesFragment extends Fragment {
         @SuppressLint("SetTextI18n") List<CompletableFuture<Long>> booksFutures = booksInfos.stream()
                 .map(bookInfo -> {
                     BookProcessor bookProcessor = new BookProcessor(requireContext(),bookInfo.filePath);
-                            try {
-                                return  bookProcessor.savePreviewAsync().thenApply(path -> {
-                                    bookInfo.previewPath = path;
-                                    runOnUiThread(()->{
-                                        if(pointPerPercent < 20){
-                                            subTitle.setText(bookInfo.title);
-                                        }
-                                        if(pointPerPercent < 4){
-                                            setProgressString( pointPerPercent, count);
-                                        }
-                                    });
-                                    try{
-                                        Long bookId =  bookRepository.insert(bookInfo.getBook());
-                                        bookInfo.tagsIds.forEach(tagId->{
-                                            tagRepository.addTagToBook(tagId,bookId);
-                                        });
-                                        return bookId;
+                            return  bookProcessor.savePreviewAsync().thenApply(path -> {
+                                bookInfo.previewPath = path;
+                                runOnUiThread(()->{
+                                    if(pointPerPercent < 20){
+                                        subTitle.setText(bookInfo.title);
                                     }
-                                    catch (Exception e){
-                                        FileHelper.deleteFile(path);
-                                        return null;
+                                    if(pointPerPercent < 4){
+                                        setProgressString( pointPerPercent, count);
                                     }
                                 });
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                       }
+                                try{
+                                    Long bookId =  bookRepository.insert(bookInfo.getBook());
+                                    bookInfo.tagsIds.forEach(tagId->{
+                                        tagRepository.addTagToBook(tagId,bookId);
+                                    });
+                                    return bookId;
+                                }
+                                catch (Exception e){
+                                    FileHelper.deleteFile(path);
+                                    return null;
+                                }
+                            });
+                        }
                 ).filter(Objects::nonNull)
                 .collect(Collectors.toList());
 

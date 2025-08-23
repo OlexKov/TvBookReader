@@ -1,5 +1,7 @@
 package com.example.bookreader.utility.bookutils;
 
+import static com.example.bookreader.utility.ToastHelper.createToast;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -47,16 +49,17 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight)  {
        if(BooksArchiveReader.isArchivePath(bookPath)){
            return  CompletableFuture.supplyAsync(() -> {
                try {
                    InputStream stream = reader.openFile(bookPath);
                    FictionBook fb = new FictionBook(stream);
-                   return  savePreview(fb,FileHelper.getFileName(bookPath),bookPath,height,wight);
+                   return  savePreview(fb,height,wight);
                }
                catch (Exception e) {
-                   Log.e(TAG, "Error reading book info", e);
+                   String message = "Error " + '"' + FileHelper.getFileName(bookPath) + '"' + " book preview saving";
+                   Log.e(TAG, message, e);
                    return null;
                }
            });
@@ -71,11 +74,12 @@ public class Fb2Processor implements IBookProcessor {
         return  CompletableFuture.supplyAsync(() -> {
             try {
                 FictionBook fb = new FictionBook(bookFile);
-                return  savePreview(fb,bookFile.getName(),bookFile.getAbsolutePath() ,height, wight);
+                return  savePreview(fb,height, wight);
             }
             catch (Exception e) {
-                Log.e(TAG, "Error reading book info", e);
-                throw new RuntimeException(e);
+                String message = "Error " + '"' + bookFile.getName() + '"' + " book preview saving";
+                Log.e(TAG, message, e);
+                return null;
             }
         });
     }
@@ -89,16 +93,15 @@ public class Fb2Processor implements IBookProcessor {
 
             }
             catch (Exception e) {
-                Log.e(TAG, "Error reading book info", e);
-                throw new RuntimeException(e);
+                String message = "Error reading" + '"' + bookFile.getName() + '"' + " book file";
+                Log.e(TAG, message, e);
+                return null;
             }
-
         });
-
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(String bookPath) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(String bookPath)  {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -107,7 +110,8 @@ public class Fb2Processor implements IBookProcessor {
                     return  getBookInfo(fb,FileHelper.getFileName(bookPath));
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error reading" + '"' + FileHelper.getFileName(bookPath) + '"' + " book file";
+                    createToast(context,message);
                     return null;
                 }
             });
@@ -118,7 +122,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) throws java.io.IOException {
+    public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) {
         File file = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(file);
     }
@@ -130,14 +134,15 @@ public class Fb2Processor implements IBookProcessor {
                 FictionBook fb = new FictionBook(bookFile);
                 return extractCoverPreview(fb, width, height);
             } catch (Exception e) {
-                Log.e(TAG, "Error in getPreviewAsync", e);
+                String message = "Error create preview " + '"' + bookFile.getName() + '"' + " book file";
+                Log.e(TAG, message, e);
                 return null;
             }
         });
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) throws IOException {
+    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -146,7 +151,8 @@ public class Fb2Processor implements IBookProcessor {
                     return extractCoverPreview(fb, wight, height);
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error create preview " + '"' + FileHelper.getFileName(bookPath) + '"' + " book file";
+                    Log.e(TAG, message, e);
                     return null;
                 }
             });
@@ -204,7 +210,7 @@ public class Fb2Processor implements IBookProcessor {
         return null;
     }
 
-    private String savePreview(FictionBook fb, String bookName, String bookPath, int height, int wight){
+    private String savePreview(FictionBook fb, int height, int wight){
         Bitmap cover = extractCoverPreview(fb, wight, height);
         if (cover == null) {
             Log.d(TAG, "Cover image not found");

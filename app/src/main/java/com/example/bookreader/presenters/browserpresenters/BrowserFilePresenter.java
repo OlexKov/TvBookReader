@@ -73,7 +73,7 @@ public class BrowserFilePresenter extends Presenter {
                                     }
                                 });
                             });
-                        } catch (IOException | NullPointerException e) {
+                        } catch (NullPointerException e) {
                             throw new RuntimeException(e);
                         }
                     }

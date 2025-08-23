@@ -1,5 +1,7 @@
 package com.example.bookreader.utility.bookutils;
 
+import static com.example.bookreader.utility.ToastHelper.createToast;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import nl.siegmann.epublib.domain.Author;
@@ -42,15 +45,16 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
                     InputStream stream = reader.openFile(bookPath);
-                    return  savePreview(stream,FileHelper.getFileName(bookPath),bookPath,300,400);
+                    return  savePreview(stream,300,400);
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error " + '"' + FileHelper.getFileName(bookPath) + '"' + " book preview saving";
+                    Log.e(TAG, message, e);
                     return null;
                 }
             });
@@ -61,22 +65,20 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight) throws IOException {
+    public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight)  {
         return  CompletableFuture.supplyAsync(() -> {
             try(InputStream stream = new FileInputStream(bookFile)) {
-               return savePreview(stream,bookFile.getName(),bookFile.getAbsolutePath(),300,400);
+               return savePreview(stream,300,400);
             } catch (Exception e) {
-                Log.e("EpubProcessor", "Error generating preview", e);
-                throw new RuntimeException(e);
+                String message = "Error " + '"' + bookFile.getName() + '"' + " book preview saving";
+                Log.e(TAG, message, e);
+                return null;
             }
-        }).exceptionally(throwable -> {
-            throwable.printStackTrace();
-            return null;
         });
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(File bookFile) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(File bookFile)  {
        return   CompletableFuture.supplyAsync(() -> {
             try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY)) {
                 InputStream stream = new FileInputStream(fd.getFileDescriptor());
@@ -85,14 +87,15 @@ public class EpubProcessor implements IBookProcessor {
                 result.filePath = bookFile.getAbsolutePath();
                 return result;
             } catch (Exception e) {
-                Log.e("EpubProcessor", "Error reading book info", e);
-                throw new RuntimeException(e);
+                String message = "Error reading" + '"' + bookFile.getName() + '"' + " book file";
+                Log.e(TAG, message, e);
+                return null;
             }
         });
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(String bookPath) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(String bookPath)  {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -100,7 +103,8 @@ public class EpubProcessor implements IBookProcessor {
                     return  getInfo(stream, FileHelper.getFileName(bookPath));
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error reading" + '"' + FileHelper.getFileName(bookPath) + '"' + " book file";
+                    Log.e(TAG, message, e);
                     return null;
                 }
             });
@@ -111,7 +115,7 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) throws IOException {
+    public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) {
         File bookFile = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(bookFile);
     }
@@ -122,14 +126,15 @@ public class EpubProcessor implements IBookProcessor {
             try(InputStream stream = new FileInputStream(bookFile)) {
                  return extractCoverPreview(stream, width, height);
             } catch (Exception e) {
-                Log.e("EpubProcessor", "Error in getPreviewAsync", e);
+                String message = "Error create preview " + '"' + bookFile.getName() + '"' + " book file";
+                Log.e(TAG, message, e);
                 return null;
             }
         });
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) throws IOException {
+    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try {
@@ -137,7 +142,8 @@ public class EpubProcessor implements IBookProcessor {
                     return extractCoverPreview(stream, wight, height);
                 }
                 catch (Exception e) {
-                    Log.e(TAG, "Error reading book info", e);
+                    String message = "Error create preview " + '"' + FileHelper.getFileName(bookPath) + '"' + " book file";
+                    Log.e(TAG, message, e);
                     return null;
                 }
             });
@@ -183,7 +189,7 @@ public class EpubProcessor implements IBookProcessor {
         return null;
     }
 
-    private String savePreview(InputStream stream,String bookName,String bookPath,int wight, int height) throws IOException {
+    private String savePreview(InputStream stream,int wight, int height) throws IOException {
         Bitmap cover = extractCoverPreview(stream, wight, height);
         if (cover == null) {
             Log.d("EpubProcessor", "Cover not found");
@@ -194,11 +200,7 @@ public class EpubProcessor implements IBookProcessor {
         File previewDir = new File(context.getFilesDir(), "previews");
         if (!previewDir.exists()) previewDir.mkdirs();
 
-        if ( bookName.toLowerCase().endsWith(".epub")) {
-            bookName = bookName.substring(0, bookName.length() - 5);
-        }
-
-        File previewFile = new File(previewDir,  bookName + "_preview.png");
+        File previewFile = new File(previewDir,  UUID.randomUUID() + ".png");
         try (FileOutputStream out = new FileOutputStream(previewFile)) {
             cover.compress(Bitmap.CompressFormat.PNG, 100, out);
             out.flush();

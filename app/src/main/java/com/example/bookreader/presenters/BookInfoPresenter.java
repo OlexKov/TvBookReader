@@ -85,18 +85,14 @@ public class BookInfoPresenter extends Presenter {
         TextView category = root.findViewById(R.id.book_preview_category);
         TextView descExist = root.findViewById(R.id.book_preview_description_exist);
         BookProcessor bookProcessor = new BookProcessor(context,info.filePath);
-        try {
-            bookProcessor.getPreviewAsync(0,400,280).thenAccept(bitmap ->{
-                if(bitmap != null){
-                    root.post(()-> preview.setImageBitmap(bitmap));
-                }
-                else{
-                    root.post(()-> preview.setImageResource(R.drawable.books_logo));
-                }
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        bookProcessor.getPreviewAsync(0,400,280).thenAccept(bitmap ->{
+            if(bitmap != null){
+                root.post(()-> preview.setImageBitmap(bitmap));
+            }
+            else{
+                root.post(()-> preview.setImageResource(R.drawable.books_logo));
+            }
+        });
 
         setText(context,title,info.title);
         setText(context,author,info.author);
