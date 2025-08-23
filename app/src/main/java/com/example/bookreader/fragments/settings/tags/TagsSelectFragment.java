@@ -1,31 +1,23 @@
-package com.example.bookreader.fragments.settings.booksettings;
+package com.example.bookreader.fragments.settings.tags;
 
 import static com.example.bookreader.constants.Constants.ACTION_ID_CLEAR_TAGS;
-import static com.example.bookreader.constants.Constants.ACTION_ID_DIVIDER;
 import static com.example.bookreader.constants.Constants.ACTION_ID_NEW_TAG;
 import static com.example.bookreader.constants.Constants.ACTION_ID_NO_ACTION;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
-import androidx.leanback.widget.GuidedActionsStylist;
 
 import com.example.bookreader.R;
-import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.data.database.entity.Tag;
 import com.example.bookreader.data.database.repository.TagRepository;
-import com.example.bookreader.extentions.BookGuidedStepFragment;
+import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class TagsSelectFragment extends BookGuidedStepFragment {
     private final List<Long> tagsIds;

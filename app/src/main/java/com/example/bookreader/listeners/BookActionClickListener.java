@@ -16,7 +16,7 @@ import com.example.bookreader.constants.BookInfoActionType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.fragments.DeleteBookFragment;
-import com.example.bookreader.fragments.settings.booksettings.EditBookFragment;
+import com.example.bookreader.fragments.settings.book.EditBookFragment;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
 

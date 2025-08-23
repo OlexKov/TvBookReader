@@ -1,4 +1,4 @@
-package com.example.bookreader.fragments.settings.booksettings;
+package com.example.bookreader.fragments.settings.book;
 
 import static com.example.bookreader.constants.Constants.ACTION_ID_AUTHOR;
 import static com.example.bookreader.constants.Constants.ACTION_ID_CANCEL;
@@ -30,7 +30,9 @@ import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.data.database.repository.BookRepository;
 import com.example.bookreader.data.database.repository.CategoryRepository;
 import com.example.bookreader.data.database.repository.TagRepository;
-import com.example.bookreader.extentions.BookGuidedStepFragment;
+import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
+import com.example.bookreader.fragments.settings.category.CategorySelectFragment;
+import com.example.bookreader.fragments.settings.tags.TagsSelectFragment;
 import com.example.bookreader.utility.eventlistener.GlobalEventListener;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
@@ -242,11 +244,10 @@ public class EditBookFragment extends BookGuidedStepFragment {
     private String getCategoryDescription(){
         String categoryText = "";
         if(category != null){
-            categoryText += category.name + " -> ";
-        }
-
-        if(subCategory != null){
-            categoryText += subCategory.name;
+            categoryText += category.name;
+            if(subCategory != null){
+                categoryText +=  " -> " + subCategory.name;
+            }
         }
         return !categoryText.isBlank() ? categoryText : "Не встановлено";
     }

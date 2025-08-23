@@ -1,11 +1,10 @@
-package com.example.bookreader.fragments.settings.categorysetting;
+package com.example.bookreader.fragments.settings.category;
 
 import static com.example.bookreader.constants.Constants.ACTION_ID_ICON;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.util.TypedValue;
-import android.view.Gravity;
 
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.GuidedAction;

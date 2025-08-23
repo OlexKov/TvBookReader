@@ -170,9 +170,8 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
 
     private final Consumer<BookDto> tagsUpdateHandler = this::tagsUpdated;
 
-    private BookDto setBook(Long bookId){
+    private void setBook(Long bookId){
         book = bookRepository.getByIdAsync(bookId).join();
-        return book;
     }
 
     private void prepareBackgroundManager() {

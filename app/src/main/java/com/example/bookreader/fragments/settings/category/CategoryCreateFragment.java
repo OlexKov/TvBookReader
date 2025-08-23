@@ -1,4 +1,4 @@
-package com.example.bookreader.fragments.settings.categorysetting;
+package com.example.bookreader.fragments.settings.category;
 
 import static com.example.bookreader.constants.Constants.ACTION_ID_CANCEL;
 import static com.example.bookreader.constants.Constants.ACTION_ID_ICON;
@@ -22,17 +22,15 @@ import com.example.bookreader.R;
 import com.example.bookreader.constants.ResourcesIcons;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.CategoryRepository;
-import com.example.bookreader.extentions.BookGuidedStepFragment;
+import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
 
 import java.util.List;
 import java.util.Objects;
-
 
 public class CategoryCreateFragment extends BookGuidedStepFragment {
     private final CategoryDto category;
     private final CategoryDto oldCategory;
     private final CategoryRepository categoryRepository = new CategoryRepository();
-
 
     public CategoryCreateFragment(@Nullable CategoryDto category){
         this.category = category == null ? new CategoryDto() : category;
@@ -117,7 +115,7 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
         switch ((int) action.getId()) {
             case ACTION_ID_SAVE:
                 if(oldCategory == null){
-                    categoryRepository.getByNameAsync(getDescription(ACTION_ID_PARENT_CATEGORY)).thenAccept(cat->{
+                    categoryRepository.getByNameAsync(getDescription(ACTION_ID_TITLE)).thenAccept(cat->{
                         if(cat == null){
                             categoryRepository.insertAsync(category.getCategory(),(id->{
                                 if(category.parentId == null){
@@ -147,7 +145,7 @@ public class CategoryCreateFragment extends BookGuidedStepFragment {
                         }
                         else{
                             requireActivity().runOnUiThread(()->{
-                                Toast.makeText(getContext(), "Така сатегорія вже існує", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), "Категорія " + '"' + cat.name + '"'+" вже існує", Toast.LENGTH_SHORT).show();
                             });
                         }
                     });

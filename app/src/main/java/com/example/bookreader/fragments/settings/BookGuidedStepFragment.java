@@ -1,4 +1,4 @@
-package com.example.bookreader.extentions;
+package com.example.bookreader.fragments.settings;
 
 import static com.example.bookreader.constants.Constants.ACTION_ID_CANCEL;
 import static com.example.bookreader.constants.Constants.ACTION_ID_CLEAR_TAGS;

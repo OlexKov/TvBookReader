@@ -1,4 +1,4 @@
-package com.example.bookreader.fragments.settings.booksettings;
+package com.example.bookreader.fragments.settings.category;
 
 import static com.example.bookreader.constants.Constants.ACTION_ID_ADD_CATEGORY;
 import static com.example.bookreader.constants.Constants.ACTION_ID_CANCEL;
@@ -19,8 +19,7 @@ import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BookCategories;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.CategoryRepository;
-import com.example.bookreader.extentions.BookGuidedStepFragment;
-import com.example.bookreader.fragments.settings.categorysetting.CategoryCreateFragment;
+import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
 
 import java.util.List;
 import java.util.Objects;
