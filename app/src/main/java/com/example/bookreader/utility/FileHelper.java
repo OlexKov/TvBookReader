@@ -174,11 +174,20 @@ public class FileHelper {
     }
 
     public static boolean deleteFile(String path) {
+        if (path == null) return false;
         File file = new File(path);
-        if (file.exists()) {
-            return file.delete();
+        if (!file.exists()) return false;
+
+        try {
+            boolean deleted = file.delete();
+            if (!deleted) {
+                System.out.println("Failed to delete file: " + path);
+            }
+            return deleted;
+        } catch (SecurityException e) {
+            System.out.println("No permission to delete file: " + path);
+            return false;
         }
-        return false;
     }
 
     public static void listFilesRecursive(File file, List<String> files) {

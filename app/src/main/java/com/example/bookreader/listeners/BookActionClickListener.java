@@ -53,7 +53,6 @@ public class BookActionClickListener implements OnActionClickedListener {
                         ((FragmentActivity) context).getSupportFragmentManager(),
                         new DeleteBookFragment(book) // передаємо книгу
                 );
-                //Toast.makeText(context, "видалити...", Toast.LENGTH_SHORT).show();
                 break;
             case BOOK_TOGGLE_FAVORITE:
                 favoriteToggled = !favoriteToggled;

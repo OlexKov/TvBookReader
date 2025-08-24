@@ -1,5 +1,6 @@
 package com.example.bookreader.utility.bookutils;
 
+import static com.example.bookreader.constants.Constants.PREVIEWS_DIR;
 import static com.example.bookreader.utility.ToastHelper.createToast;
 
 import android.content.Context;
@@ -13,6 +14,7 @@ import android.util.Log;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
+import com.example.bookreader.utility.ImageHelper;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 
@@ -196,18 +198,7 @@ public class EpubProcessor implements IBookProcessor {
             return null;
         }
 
-        // Збереження прев’ю
-        File previewDir = new File(context.getFilesDir(), "previews");
-        if (!previewDir.exists()) previewDir.mkdirs();
-
-        File previewFile = new File(previewDir,  UUID.randomUUID() + ".png");
-        try (FileOutputStream out = new FileOutputStream(previewFile)) {
-            cover.compress(Bitmap.CompressFormat.PNG, 100, out);
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return previewFile.getAbsolutePath();
+        return ImageHelper.saveImage(context,PREVIEWS_DIR,cover,100,Bitmap.CompressFormat.PNG);
     }
 
     private BookDto getInfo(InputStream stream,String bookName) throws Exception {
@@ -245,17 +236,4 @@ public class EpubProcessor implements IBookProcessor {
         }
         return result;
     }
-
-    private boolean hasEpubStructure(File file) {
-        try (ZipFile zip = new ZipFile(file)) {
-            return zip.getEntry("mimetype") != null && zip.getEntry("META-INF/container.xml") != null;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    private boolean hasEpubStructure(String filePath) {
-        return hasEpubStructure(new File(filePath));
-    }
-
 }

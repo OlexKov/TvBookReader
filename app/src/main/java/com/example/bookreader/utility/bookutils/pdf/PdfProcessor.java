@@ -1,4 +1,5 @@
 package com.example.bookreader.utility.bookutils.pdf;
+import static com.example.bookreader.constants.Constants.PREVIEWS_DIR;
 import static com.example.bookreader.utility.ToastHelper.createToast;
 
 import android.content.Context;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
+import com.example.bookreader.utility.ImageHelper;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.shockwave.pdfium.PdfDocument;
@@ -173,19 +175,7 @@ public class PdfProcessor implements IBookProcessor {
 
     private String savePreview(InputStream inputStream,int height,int wight) throws IOException {
         Bitmap bitmap = createPreview((FileInputStream) inputStream, 0, height, wight);
-        // 2. Збереження прев’ю
-        File previewDir = new File(context.getFilesDir(), "previews");
-        if (!previewDir.exists()) previewDir.mkdirs();
-
-        File previewFile = new File(previewDir, UUID.randomUUID() + ".png");
-
-        try (FileOutputStream out = new FileOutputStream(previewFile)) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-            out.flush();
-        }catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return previewFile.getAbsolutePath();
+        return ImageHelper.saveImage(context,PREVIEWS_DIR,bitmap,100,Bitmap.CompressFormat.PNG);
     }
 
     private BookDto getInfo(FileInputStream stream, String bookName) throws IOException {

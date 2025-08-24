@@ -56,7 +56,6 @@ public class DeleteBookFragment  extends GuidedStepSupportFragment {
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
         FragmentManager supportFragmentManager = requireActivity().getSupportFragmentManager();
-
         if (action.getId() == 1) {
             new BookRepository().deleteBookByIdAsyncCF(book.id).thenAccept( deletedRowsCount->{
                 if (deletedRowsCount != 0) {

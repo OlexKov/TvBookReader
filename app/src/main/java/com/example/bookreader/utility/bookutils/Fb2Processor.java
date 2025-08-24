@@ -1,5 +1,6 @@
 package com.example.bookreader.utility.bookutils;
 
+import static com.example.bookreader.constants.Constants.PREVIEWS_DIR;
 import static com.example.bookreader.utility.ToastHelper.createToast;
 
 import android.content.Context;
@@ -216,7 +217,7 @@ public class Fb2Processor implements IBookProcessor {
             Log.d(TAG, "Cover image not found");
             return null;
         }
-        return ImageHelper.saveImage(context,cover,100, Bitmap.CompressFormat.PNG);
+        return ImageHelper.saveImage(context,PREVIEWS_DIR,cover,100, Bitmap.CompressFormat.PNG);
     }
 
     private BookDto getBookInfo(FictionBook fb,String bookName){

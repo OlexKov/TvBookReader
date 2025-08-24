@@ -34,12 +34,12 @@ import jp.wasabeef.glide.transformations.BlurTransformation;
 
 public class ImageHelper {
 
-    public static CompletableFuture<String> saveImageAsync(Context context, Bitmap image , int quality , Bitmap.CompressFormat format){
-        return CompletableFuture.supplyAsync(()-> saveImage(context,image,quality,format));
+    public static CompletableFuture<String> saveImageAsync(Context context,String dirName, Bitmap image , int quality , Bitmap.CompressFormat format){
+        return CompletableFuture.supplyAsync(()-> saveImage(context,dirName,image,quality,format));
     }
 
-    public static String saveImage(Context context, Bitmap image , int quality , Bitmap.CompressFormat format){
-        File previewDir = new File(context.getFilesDir(), PREVIEWS_DIR);
+    public static String saveImage(Context context,String dirName, Bitmap image , int quality , Bitmap.CompressFormat format){
+        File previewDir = new File(context.getFilesDir(), dirName);
         if (!previewDir.exists()) previewDir.mkdirs();
         File previewFile = new File(previewDir, UUID.randomUUID().toString() + ".png");
         try (FileOutputStream out = new FileOutputStream(previewFile)) {
