@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.zip.ZipFile;
 
 import nl.siegmann.epublib.domain.Author;
 import nl.siegmann.epublib.domain.Date;
@@ -78,8 +79,8 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<BookDto> getInfoAsync(File bookFile)  {
-       return   CompletableFuture.supplyAsync(() -> {
+    public CompletableFuture<BookDto> getInfoAsync(File bookFile) {
+        return CompletableFuture.supplyAsync(() -> {
             try (ParcelFileDescriptor fd = ParcelFileDescriptor.open(bookFile, ParcelFileDescriptor.MODE_READ_ONLY)) {
                 InputStream stream = new FileInputStream(fd.getFileDescriptor());
                 BookDto result = getInfo(stream, bookFile.getName());
@@ -98,8 +99,7 @@ public class EpubProcessor implements IBookProcessor {
     public CompletableFuture<BookDto> getInfoAsync(String bookPath)  {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try(InputStream stream = reader.openFile(bookPath)) {
                     return  getInfo(stream, FileHelper.getFileName(bookPath));
                 }
                 catch (Exception e) {
@@ -153,7 +153,7 @@ public class EpubProcessor implements IBookProcessor {
         }
     }
 
-    private Bitmap extractCoverPreview(InputStream stream, int width, int height) {
+    private Bitmap extractCoverPreview(InputStream stream, int width, int height) throws IOException {
         try {
             EpubReader epubReader = new EpubReader();
             Book book = epubReader.readEpub(stream);
@@ -189,7 +189,7 @@ public class EpubProcessor implements IBookProcessor {
         return null;
     }
 
-    private String savePreview(InputStream stream,int wight, int height) throws IOException {
+    private String savePreview(InputStream stream,int wight, int height) throws Exception {
         Bitmap cover = extractCoverPreview(stream, wight, height);
         if (cover == null) {
             Log.d("EpubProcessor", "Cover not found");
@@ -210,11 +210,13 @@ public class EpubProcessor implements IBookProcessor {
         return previewFile.getAbsolutePath();
     }
 
-    private BookDto getInfo(InputStream stream,String bookName) throws IOException {
-        BookDto result = new BookDto();
+    private BookDto getInfo(InputStream stream,String bookName) throws Exception {
         EpubReader epubReader = new EpubReader();
         Book book = epubReader.readEpub(stream);
-
+        if (book.getSpine() == null || book.getSpine().getSpineReferences().isEmpty()) {
+            throw new Exception("Error epub format");
+        }
+        BookDto result = new BookDto();
         result.title = book.getTitle();
 
         result.author = Optional.of(book)
@@ -239,8 +241,21 @@ public class EpubProcessor implements IBookProcessor {
                 .orElse(context.getString(R.string.unknown));
 
         if (result.title == null || result.title.trim().isEmpty()) {
-            result.title = bookName.substring(0,bookName.length() - 4);
+            result.title = bookName.substring(0,bookName.length() - 5);
         }
         return result;
     }
+
+    private boolean hasEpubStructure(File file) {
+        try (ZipFile zip = new ZipFile(file)) {
+            return zip.getEntry("mimetype") != null && zip.getEntry("META-INF/container.xml") != null;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private boolean hasEpubStructure(String filePath) {
+        return hasEpubStructure(new File(filePath));
+    }
+
 }

@@ -227,7 +227,7 @@ public class LoadFilesFragment extends Fragment {
                 .map(filePath -> {
                     return new BookProcessor(requireContext(), filePath).getInfoAsync().thenApply(bookInfo -> {
                        if (bookInfo == null) {
-                           showToast("Error open file " + FileHelper.getFileName(filePath));
+                           showToast("Error open file " + '"' + FileHelper.getFileName(filePath) + '"');
                        }
                        else{
                            runOnUiThread(() -> {
