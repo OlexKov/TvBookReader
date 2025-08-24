@@ -19,7 +19,7 @@ import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
 
 import java.util.List;
 
-public class TagsSelectFragment extends BookGuidedStepFragment {
+public class TagsSelectFragment extends TagsGuidedStepFragment {
     private final List<Long> tagsIds;
     private List<GuidedAction> tagsActions;
     private final TagRepository tagRepository = new TagRepository();

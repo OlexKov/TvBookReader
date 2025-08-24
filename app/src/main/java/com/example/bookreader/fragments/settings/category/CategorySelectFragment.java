@@ -19,12 +19,11 @@ import com.example.bookreader.R;
 import com.example.bookreader.customclassses.BookCategories;
 import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.data.database.repository.CategoryRepository;
-import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
 
 import java.util.List;
 import java.util.Objects;
 
-public class CategorySelectFragment extends BookGuidedStepFragment {
+public class CategorySelectFragment extends CategoryGuideStepFragment {
     private final BookCategories oldBookCategories;
     private final BookCategories bookCategories;
     private final CategoryRepository categoryRepository = new CategoryRepository();
