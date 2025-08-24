@@ -9,10 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
-
-@NoArgsConstructor                // Потрібен Room для створення через рефлексію
-@AllArgsConstructor              // Повний конструктор, якщо треба вручну створювати
-@Builder                         // Додає патерн Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity(
         tableName = "categories",
         foreignKeys = @ForeignKey(
@@ -24,11 +23,9 @@ import lombok.NoArgsConstructor;
         indices = {@Index("parentId")}
 )
 public class Category {
-
     @PrimaryKey(autoGenerate = true)
     public long id;
     public String name;
-    public Long parentId = null; // NULL для основних категорій
+    public Long parentId = null;
     public Integer iconId = null;
-
 }

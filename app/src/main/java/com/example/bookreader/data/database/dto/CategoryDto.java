@@ -1,9 +1,7 @@
 package com.example.bookreader.data.database.dto;
 
 import com.example.bookreader.data.database.entity.Category;
-
 import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor

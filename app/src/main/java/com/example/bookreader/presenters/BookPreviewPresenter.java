@@ -14,7 +14,6 @@ import androidx.leanback.widget.Presenter;
 import com.bumptech.glide.Glide;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.utility.AnimHelper;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;

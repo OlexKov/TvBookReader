@@ -25,8 +25,6 @@ import com.example.bookreader.utility.bookutils.BookProcessor;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
 import java.util.stream.Collectors;
 
 public class BookInfoPresenter extends Presenter {

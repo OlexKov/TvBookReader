@@ -1,20 +1,8 @@
 package com.example.bookreader.utility;
 
-import static com.example.bookreader.constants.Constants.PREVIEWS_DIR;
-
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.RenderEffect;
-import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptIntrinsicBlur;
-
 import androidx.annotation.NonNull;
 import androidx.core.util.Consumer;
 
@@ -28,7 +16,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
 

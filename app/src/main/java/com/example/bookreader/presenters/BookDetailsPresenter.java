@@ -1,25 +1,13 @@
 package com.example.bookreader.presenters;
 
-import static android.graphics.text.LineBreakConfig.LINE_BREAK_STYLE_STRICT;
-import static android.graphics.text.LineBreakConfig.LINE_BREAK_STYLE_UNSPECIFIED;
-import static android.graphics.text.LineBreakConfig.LINE_BREAK_WORD_STYLE_PHRASE;
-
-import android.graphics.text.LineBreakConfig;
-import android.os.Build;
-import android.text.Layout;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter;
 
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.data.database.entity.Book;
 import com.example.bookreader.utility.FileHelper;
 
 public class BookDetailsPresenter extends AbstractDetailsDescriptionPresenter {

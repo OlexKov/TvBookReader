@@ -41,8 +41,4 @@ public class FileBrowserActivity extends FragmentActivity {
         super.finish();
         overridePendingTransition(0, R.anim.slide_out_bottom);
     }
-
-    public void onCloseClicked(View view) {
-        finish(); // закриває активність
-    }
 }

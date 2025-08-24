@@ -5,13 +5,10 @@ import static com.example.bookreader.constants.Constants.ACTION_ID_DIVIDER;
 import static com.example.bookreader.constants.Constants.ACTION_ID_NEW_TAG;
 
 import android.content.Context;
-
 import androidx.leanback.widget.GuidedAction;
-
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;

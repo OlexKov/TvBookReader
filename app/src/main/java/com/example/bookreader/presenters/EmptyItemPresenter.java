@@ -6,7 +6,6 @@ import android.view.ViewGroup;
 import androidx.leanback.widget.Presenter;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.example.bookreader.R;
 import com.example.bookreader.customclassses.EmptyItem;
 import com.example.bookreader.utility.AnimHelper;
 

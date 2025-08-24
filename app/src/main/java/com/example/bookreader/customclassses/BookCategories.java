@@ -1,9 +1,7 @@
 package com.example.bookreader.customclassses;
 
 import com.example.bookreader.data.database.dto.CategoryDto;
-
 import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor

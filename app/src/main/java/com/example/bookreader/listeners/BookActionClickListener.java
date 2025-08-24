@@ -45,13 +45,13 @@ public class BookActionClickListener implements OnActionClickedListener {
             case BOOK_EDIT:
                 GuidedStepSupportFragment.add(
                         ((FragmentActivity) context).getSupportFragmentManager(),
-                        new EditBookFragment(book) // передаємо книгу
+                        new EditBookFragment(book)
                 );
                 break;
             case BOOK_DELETE:
                 GuidedStepSupportFragment.add(
                         ((FragmentActivity) context).getSupportFragmentManager(),
-                        new DeleteBookFragment(book) // передаємо книгу
+                        new DeleteBookFragment(book)
                 );
                 break;
             case BOOK_TOGGLE_FAVORITE:

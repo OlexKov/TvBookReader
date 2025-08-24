@@ -2,7 +2,6 @@ package com.example.bookreader.presenters;
 
 import android.annotation.SuppressLint;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +9,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.DetailsOverviewRow;
-import androidx.leanback.widget.DetailsOverviewRowPresenter;
 import androidx.leanback.widget.FullWidthDetailsOverviewRowPresenter;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowPresenter;

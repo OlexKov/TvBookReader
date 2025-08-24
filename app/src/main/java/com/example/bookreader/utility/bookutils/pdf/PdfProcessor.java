@@ -1,17 +1,12 @@
 package com.example.bookreader.utility.bookutils.pdf;
 import static com.example.bookreader.constants.Constants.PREVIEWS_DIR;
-import static com.example.bookreader.utility.ToastHelper.createToast;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
-import android.widget.Toast;
-
 
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
@@ -24,10 +19,8 @@ import com.shockwave.pdfium.PdfiumCore;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 

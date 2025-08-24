@@ -1,9 +1,7 @@
 package com.example.bookreader.listeners;
-import android.animation.ObjectAnimator;
-import android.graphics.drawable.Drawable;
+
 import android.view.KeyEvent;
 import android.view.View;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

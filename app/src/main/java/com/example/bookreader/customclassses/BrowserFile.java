@@ -1,12 +1,6 @@
 package com.example.bookreader.customclassses;
 
-import androidx.annotation.NonNull;
-
-import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.presenters.browserpresenters.BrowserFilePresenter;
-
 import java.io.File;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

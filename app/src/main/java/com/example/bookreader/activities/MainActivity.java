@@ -99,7 +99,6 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-
     private void checkStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Android 11+ (MANAGE_EXTERNAL_STORAGE)

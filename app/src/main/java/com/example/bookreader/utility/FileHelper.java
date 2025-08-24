@@ -14,8 +14,6 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
-import net.java.truevfs.access.TFile;
-
 import java.io.File;
 import java.util.List;
 

@@ -1,18 +1,12 @@
 package com.example.bookreader.data.database.dto;
 
-import androidx.leanback.widget.DiffCallback;
 import androidx.room.Ignore;
-
-import com.example.bookreader.R;
 import com.example.bookreader.data.database.entity.Book;
-import com.example.bookreader.utility.FileHelper;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class BookDto implements Serializable {
     public long id;

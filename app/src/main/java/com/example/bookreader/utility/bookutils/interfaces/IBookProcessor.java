@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import com.example.bookreader.data.database.dto.BookDto;
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 public interface IBookProcessor {

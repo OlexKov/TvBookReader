@@ -13,8 +13,6 @@ public final class Constants {
     public static int INIT_ADAPTER_SIZE = UPLOAD_SIZE * 3;
     public static int UPLOAD_THRESHOLD = UPLOAD_SIZE;
 
-    public static final String PREVIEWS_DIR = "previews";
-
     //settings actions ids
 
     public static final int ACTION_ID_TITLE = 111111111;
@@ -32,4 +30,6 @@ public final class Constants {
     public static final int ACTION_ID_NEW_TAG = 11111123;
     public static final int ACTION_ID_CLEAR_TAGS = 11111124;
     public static final long ACTION_ID_NO_ACTION = -1;
+
+    public static final String PREVIEWS_DIR = "previews";
 }

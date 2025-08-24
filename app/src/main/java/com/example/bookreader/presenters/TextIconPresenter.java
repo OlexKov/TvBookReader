@@ -9,13 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.leanback.widget.Presenter;
-
-
 import com.example.bookreader.R;
 import com.example.bookreader.customclassses.TextIcon;
-
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;

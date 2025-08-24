@@ -17,10 +17,9 @@ import lombok.NoArgsConstructor;
         onDelete = ForeignKey.SET_NULL
 ))
 
-
-@NoArgsConstructor                // Потрібен Room для створення через рефлексію
-@AllArgsConstructor              // Повний конструктор, якщо треба вручну створювати
-@Builder                         // Додає патерн Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Book {
     @PrimaryKey(autoGenerate = true)
     public long id;

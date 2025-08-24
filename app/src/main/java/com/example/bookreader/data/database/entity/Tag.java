@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @Entity(tableName = "tags",
         indices = {@Index(value = "name", unique = true)})
 
-@NoArgsConstructor                // Потрібен Room для створення через рефлексію
-@AllArgsConstructor              // Повний конструктор, якщо треба вручну створювати
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 
 public class Tag {

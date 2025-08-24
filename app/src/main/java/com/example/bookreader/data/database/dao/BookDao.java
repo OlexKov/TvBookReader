@@ -9,7 +9,6 @@ import androidx.room.Update;
 import androidx.sqlite.db.SupportSQLiteQuery;
 
 import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.data.database.dto.TagDto;
 import com.example.bookreader.data.database.entity.Book;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public interface BookDao {
     @Update
     void update(Book book);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) // або інша стратегія
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> insertAll(List<Book> books);
 
     @Query("DELETE FROM books WHERE id = :bookId")
@@ -57,7 +56,6 @@ public interface BookDao {
     List<BookDto> getFavoriteBooks(int page,int size);
 
     /// --------------Book tags query -----------------------------
-
 
     @Query("""
             SELECT bks.* FROM books AS bks
@@ -96,7 +94,6 @@ public interface BookDao {
                       WHERE bt.bookId = b.id AND bt.tagId NOT IN (:tagIds));
     """)
     Long getBooksByTagsListCount(List<Long> tagIds, int tagCount);
-
 
     @Query("SELECT COUNT(*) FROM books WHERE isFavorite = 1 ")
     Long getFavoriteBooksCount();
@@ -148,8 +145,6 @@ public interface BookDao {
                "WHERE parentId = :categoryId) "+
             "ORDER BY creationDate DESC LIMIT :limit OFFSET :offset")
     List<BookDto> getAllByCategoryIdRange(long categoryId, int offset, int limit);
-
-
 
     //-------------------------------------------------------------------------
 

@@ -14,7 +14,6 @@ import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.ImageHelper;
-import com.example.bookreader.utility.bookutils.fb2parser.Section;
 import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import com.example.bookreader.utility.bookutils.fb2parser.Annotation;
@@ -27,11 +26,7 @@ import com.example.bookreader.utility.bookutils.fb2parser.Person;
 import com.example.bookreader.utility.bookutils.fb2parser.PublishInfo;
 import com.example.bookreader.utility.bookutils.fb2parser.TitleInfo;
 
-import org.w3c.dom.Document;
-
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;

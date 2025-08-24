@@ -1,14 +1,10 @@
 package com.example.bookreader;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.leanback.widget.ListRow;
 import androidx.room.Room;
 
@@ -18,7 +14,6 @@ import com.example.bookreader.data.database.dao.TagDao;
 import com.example.bookreader.data.database.entity.Tag;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.data.database.dto.BookDto;
-import com.example.bookreader.data.database.dto.CategoryDto;
 import com.example.bookreader.utility.eventlistener.GlobalEventListener;
 import com.example.bookreader.data.database.BookDb;
 import com.example.bookreader.data.database.dao.BookDao;
@@ -28,12 +23,7 @@ import com.example.bookreader.data.database.entity.Category;
 //import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,11 +34,9 @@ import lombok.Setter;
 public class BookReaderApp  extends Application {
     private  SharedPreferences prefs;
 
- // Глобальний доступ до інстансу MyApp
     @Getter
     private static BookReaderApp instance;
 
-    // Глобальний доступ до бази даних
     @Getter
     private BookDb appDatabase;
 

@@ -18,7 +18,6 @@ import com.example.bookreader.utility.bookutils.BookProcessor;
 import com.example.bookreader.utility.FileHelper;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import java.io.IOException;
 
 
 public class BrowserFilePresenter extends Presenter {
