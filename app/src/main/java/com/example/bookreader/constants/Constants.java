@@ -31,5 +31,9 @@ public final class Constants {
     public static final int ACTION_ID_CLEAR_TAGS = 11111124;
     public static final long ACTION_ID_NO_ACTION = -1;
 
+
+    public static final int BOOK_THUMB_WIDTH = 270;
+    public static final int BOOK_THUMB_HEIGHT = 400;
+
     public static final String PREVIEWS_DIR = "previews";
 }

@@ -95,11 +95,11 @@ public class BookPreviewPresenter extends Presenter {
         cardView.setMainImageScaleType(ImageView.ScaleType.FIT_XY);
         cardView.setMainImageDimensions(size.width, size.height);
 
-        ViewGroup.MarginLayoutParams layoutParams =
-                new ViewGroup.MarginLayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                );
+//        ViewGroup.MarginLayoutParams layoutParams =
+//                new ViewGroup.MarginLayoutParams(
+//                        ViewGroup.LayoutParams.WRAP_CONTENT,
+//                        ViewGroup.LayoutParams.WRAP_CONTENT
+//                );
        // layoutParams.setMargins(0, 0, AnimHelper.convertToPx(context,3), 0);
       //  cardView.setLayoutParams(layoutParams);
         return cardView;

@@ -1,8 +1,11 @@
 package com.example.bookreader.fragments;
 
+import static com.example.bookreader.constants.Constants.BOOK_THUMB_HEIGHT;
+import static com.example.bookreader.constants.Constants.BOOK_THUMB_WIDTH;
 import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,15 +48,14 @@ import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
-    private static final int DETAIL_THUMB_WIDTH = 270;
-    private static final int DETAIL_THUMB_HEIGHT = 400;
-
-
     private static final String TAG = "MediaItemDetailsFragment";
     private final SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
     private  BookDto book;
@@ -218,28 +220,40 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                 : getString(R.string.add_to_favorite)
         ));
         detailsOverview.setActionsAdapter(actionAdapter);
+        detailsOverview.setImageScaleUpAllowed(true);
     }
 
     private void setOverviewImage(DetailsOverviewRow detailsOverview,ArrayObjectAdapter rowsAdapter){
-        int width = AnimHelper.convertToPx(requireContext(), DETAIL_THUMB_WIDTH);
-        int height = AnimHelper.convertToPx(requireContext(), DETAIL_THUMB_HEIGHT);
-        String source = book.previewPath != null && !book.previewPath.isEmpty()?book.previewPath : "https://picsum.photos/600/800";
-        Glide.with(this)
-                .asBitmap()
-                .load(source)
-                .centerCrop()
-                .into(new CustomTarget<Bitmap>(width,height) {
-                    @Override
-                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                        detailsOverview.setImageBitmap(getContext(), resource);
-                        rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size());
-                    }
+        int width = AnimHelper.convertToPx(requireContext(), BOOK_THUMB_WIDTH);
+        int height = AnimHelper.convertToPx(requireContext(), BOOK_THUMB_HEIGHT);
+       // String source = book.previewPath != null && !book.previewPath.isEmpty() ? book.previewPath : "https://picsum.photos/270/400";
+        if(book.previewPath != null){
+            try (FileInputStream fis = new FileInputStream(new File(book.previewPath))) {
+                Bitmap resized = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(fis), width, height, true);
+                detailsOverview.setImageBitmap(getContext(),resized);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
-                        // Плейсхолдер або очищення
-                    }
-                });
+
+//        Glide.with(this)
+//                .asBitmap()
+//                .load(source)
+//               // .centerCrop()
+//                .override( width,height)
+//                .into(new CustomTarget<Bitmap>() {
+//                    @Override
+//                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+//                        detailsOverview.setImageBitmap(getContext(), resource);
+//                        rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size());
+//                    }
+//
+//                    @Override
+//                    public void onLoadCleared(@Nullable Drawable placeholder) {
+//                        // Плейсхолдер або очищення
+//                    }
+//                });
     }
 
     private ArrayObjectAdapter AttachBookDetailsPresenter(BookActionClickListener clickListener){
