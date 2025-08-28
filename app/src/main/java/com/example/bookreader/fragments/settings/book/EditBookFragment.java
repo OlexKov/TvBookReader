@@ -8,8 +8,13 @@ import static com.example.bookreader.constants.Constants.ACTION_ID_SAVE;
 import static com.example.bookreader.constants.Constants.ACTION_ID_TAGS;
 import static com.example.bookreader.constants.Constants.ACTION_ID_TITLE;
 import static com.example.bookreader.constants.Constants.ACTION_ID_YEAR;
+import static com.example.bookreader.constants.Constants.BOOK_THUMB_HEIGHT;
+import static com.example.bookreader.constants.Constants.BOOK_THUMB_WIDTH;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
@@ -33,6 +38,7 @@ import com.example.bookreader.data.database.repository.TagRepository;
 import com.example.bookreader.fragments.settings.BookGuidedStepFragment;
 import com.example.bookreader.fragments.settings.category.CategorySelectFragment;
 import com.example.bookreader.fragments.settings.tags.TagsSelectFragment;
+import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventListener;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
@@ -109,11 +115,15 @@ public class EditBookFragment extends BookGuidedStepFragment {
     @NonNull
     @Override
     public GuidanceStylist.Guidance onCreateGuidance(Bundle savedInstanceState) {
+        Context context = getContext();
+        Bitmap bitmap = BitmapFactory.decodeFile(book.previewPath);
+        Bitmap scaled = Bitmap.createScaledBitmap(bitmap, AnimHelper.convertToPx(context,BOOK_THUMB_WIDTH), AnimHelper.convertToPx(context,BOOK_THUMB_HEIGHT), true); // розмір підібрати під свій UI
+        Drawable drawable = new BitmapDrawable(context.getResources(), scaled);
         return new GuidanceStylist.Guidance(
                 "Редагування книги",
                 "Змінюйте інформацію",
                 book.title,
-                Drawable.createFromPath(book.previewPath)
+                drawable
         );
     }
 

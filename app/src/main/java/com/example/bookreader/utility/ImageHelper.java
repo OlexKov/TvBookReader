@@ -48,11 +48,11 @@ public class ImageHelper {
         });
     }
 
-    public static void getBlurBitmap(Context context, String path, Consumer<Bitmap> handler){
+    public static void getBlurBitmap(Context context,int radius,int sampling, String path, Consumer<Bitmap> handler){
         Glide.with(context)
                 .asBitmap()
                 .load(path)
-                .transform(new BlurTransformation(3, 3))
+                .transform(new BlurTransformation(radius, sampling))
                 .into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {

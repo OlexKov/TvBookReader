@@ -1,7 +1,5 @@
 package com.example.bookreader.fragments;
 
-import static com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade;
-import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -10,9 +8,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 
@@ -20,7 +15,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -35,6 +29,7 @@ import com.example.bookreader.R;
 import com.example.bookreader.activities.FileBrowserActivity;
 import com.example.bookreader.activities.NewFilesActivity;
 import com.example.bookreader.constants.Constants;
+import com.example.bookreader.customclassses.BackgroundController;
 import com.example.bookreader.customclassses.MainCategoryInfo;
 import com.example.bookreader.customclassses.NewCategoryList;
 import com.example.bookreader.customclassses.RowItemData;
@@ -65,13 +60,14 @@ import java.util.stream.Collectors;
 
 
 public class MainFragment extends BrowseSupportFragment {
-    private BackgroundManager mBackgroundManager;
+    private final int BACKGROUND_CHANGE_DELAY = 2000;
+    private final int BACKGROUND_BLUR_RADIUS = 3;
+    private final int BACKGROUND_BLUR_SAMPLING = 3;
+    private BackgroundController backgroundController;
     private ArrayObjectAdapter rowsAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
     private ActivityResultLauncher<Intent> fileBrowserLauncher;
     private ActivityResultLauncher<Intent> newFileActivityLauncher;
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private Runnable pendingBackgroundUpdate = null;
     private BrowserMode currentBrowserMode;
     private RowItemData selectedRowItem;
     private final BookRepository bookRepository = new BookRepository();
@@ -94,7 +90,11 @@ public class MainFragment extends BrowseSupportFragment {
     public void onResume(){
         super.onResume();
         if(selectedRowItem != null){
-            getBlurBitmap(requireContext(),selectedRowItem.getBook().previewPath,mBackgroundManager::setBitmap);
+            backgroundController.setBlurBackgroundDelayed(
+                    selectedRowItem.getBook().previewPath,
+                    BACKGROUND_BLUR_RADIUS,
+                    BACKGROUND_BLUR_SAMPLING,
+                    BACKGROUND_CHANGE_DELAY);
         }
     }
 
@@ -115,13 +115,9 @@ public class MainFragment extends BrowseSupportFragment {
     }
 
     private void prepareBackgroundManager() {
-
-        mBackgroundManager = BackgroundManager.getInstance(requireActivity());
-        mBackgroundManager.attach(requireActivity().getWindow());
+        backgroundController = new BackgroundController(requireActivity());
         Drawable mDefaultBackground = ContextCompat.getDrawable(requireContext(), R.drawable.default_background);
-        DisplayMetrics mMetrics = new DisplayMetrics();
-        requireActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
-        mBackgroundManager.setDrawable(mDefaultBackground);
+        backgroundController.setDrawableBackground(mDefaultBackground);
     }
 
     private void setupEventListeners(){
@@ -150,7 +146,6 @@ public class MainFragment extends BrowseSupportFragment {
                 List<String> paths = new ArrayList<>();
                 FileHelper.listFilesRecursive(booksDir,paths);
                 intent.putStringArrayListExtra("data", new ArrayList<>(paths));
-
                 newFileActivityLauncher.launch(intent);
                 requireActivity().overridePendingTransition(R.anim.slide_in_top, 0);
             });
@@ -226,15 +221,11 @@ public class MainFragment extends BrowseSupportFragment {
 
     private void itemSelectedChangeHandler(RowItemData rowItemData){
         selectedRowItem = rowItemData;
-        if (pendingBackgroundUpdate != null) {
-            handler.removeCallbacks(pendingBackgroundUpdate);
-        }
-        pendingBackgroundUpdate = () -> {
-            getBlurBitmap(requireContext(),rowItemData.getBook().previewPath,mBackgroundManager::setBitmap);
-            pendingBackgroundUpdate = null;
-        };
-
-        handler.postDelayed(pendingBackgroundUpdate, 2000);
+        backgroundController.setBlurBackgroundDelayed(
+                rowItemData.getBook().previewPath,
+                BACKGROUND_BLUR_RADIUS,
+                BACKGROUND_BLUR_SAMPLING,
+                BACKGROUND_CHANGE_DELAY);
     };
 
     private void categoryDeleteHandler(Long categoryToDeleteId){

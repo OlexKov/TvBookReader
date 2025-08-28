@@ -6,17 +6,12 @@ import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.DisplayMetrics;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
 import androidx.fragment.app.FragmentManager;
-import androidx.leanback.app.BackgroundManager;
 import androidx.leanback.app.DetailsSupportFragment;
 import androidx.leanback.widget.Action;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -27,14 +22,12 @@ import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.SparseArrayObjectAdapter;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.constants.BookInfoActionType;
 
 import com.example.bookreader.constants.Constants;
+import com.example.bookreader.customclassses.BackgroundController;
 import com.example.bookreader.customclassses.RowItemData;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
@@ -48,21 +41,20 @@ import com.example.bookreader.presenters.CustomBookDetailsPresenter;
 import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BookDetailsFragment  extends DetailsSupportFragment {
     private static final String TAG = "MediaItemDetailsFragment";
+    private final int BACKGROUND_BLUR_RADIUS = 3;
+    private final int BACKGROUND_BLUR_SAMPLING = 3;
     private final SparseArrayObjectAdapter actionAdapter = new SparseArrayObjectAdapter();
     private  BookDto book;
     private BookActionClickListener clickListener;
     private DetailsOverviewRow detailsOverviewRow;
     private ArrayObjectAdapter rowsAdapter;
-    private BackgroundManager mBackgroundManager;
+    private BackgroundController backgroundController;
     private CustomBookDetailsPresenter rowPresenter;
     private ArrayObjectAdapter similarBooksAdapter;
     private final BookReaderApp app = BookReaderApp.getInstance();
@@ -132,7 +124,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                 });
             }
             else{
-                getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
+                backgroundController.setBlurBackground(book.previewPath,3,3);
             }
         }
         else{
@@ -156,7 +148,7 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
                         }
                     }
                     if(!Objects.equals(updatedBook.previewPath, book.previewPath)){
-                        getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
+                        backgroundController.setBlurBackground(book.previewPath,3,3);
                     }
                 });
             }
@@ -177,13 +169,11 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     }
 
     private void prepareBackgroundManager() {
-        mBackgroundManager = BackgroundManager.getInstance(requireActivity());
-        if (!mBackgroundManager.isAttached()) {
-            mBackgroundManager.attach(requireActivity().getWindow());
-        }
-        DisplayMetrics mMetrics = new DisplayMetrics();
-        requireActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
-        getBlurBitmap(requireContext(),book.previewPath,mBackgroundManager::setBitmap);
+        backgroundController = new BackgroundController(requireActivity());
+        backgroundController.setBlurBackground(
+                book.previewPath,
+                BACKGROUND_BLUR_RADIUS,
+                BACKGROUND_BLUR_SAMPLING);
     }
 
     private void tagsUpdated(BookDto book){
@@ -226,14 +216,11 @@ public class BookDetailsFragment  extends DetailsSupportFragment {
     private void setOverviewImage(DetailsOverviewRow detailsOverview,ArrayObjectAdapter rowsAdapter){
         int width = AnimHelper.convertToPx(requireContext(), BOOK_THUMB_WIDTH);
         int height = AnimHelper.convertToPx(requireContext(), BOOK_THUMB_HEIGHT);
-       // String source = book.previewPath != null && !book.previewPath.isEmpty() ? book.previewPath : "https://picsum.photos/270/400";
         if(book.previewPath != null){
-            try (FileInputStream fis = new FileInputStream(new File(book.previewPath))) {
-                Bitmap resized = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(fis), width, height, true);
-                detailsOverview.setImageBitmap(getContext(),resized);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                Bitmap bitmap = BitmapFactory.decodeFile(book.previewPath);
+                Bitmap scaled = Bitmap.createScaledBitmap(bitmap, width, height,true);
+                detailsOverview.setImageBitmap(getContext(),scaled);
+                rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size());
         }
 
 
