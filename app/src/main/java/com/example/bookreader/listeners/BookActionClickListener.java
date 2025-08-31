@@ -1,6 +1,8 @@
 package com.example.bookreader.listeners;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.widget.Toast;
 
 import androidx.core.util.Consumer;
@@ -12,6 +14,8 @@ import androidx.leanback.widget.SparseArrayObjectAdapter;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
+import com.example.bookreader.activities.BookReaderActivity;
+import com.example.bookreader.activities.FileBrowserActivity;
 import com.example.bookreader.constants.BookInfoActionType;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.repository.BookRepository;
@@ -39,7 +43,12 @@ public class BookActionClickListener implements OnActionClickedListener {
         if(type == null) return;
         switch (type) {
             case BOOK_READ:
-                Toast.makeText(context, "читати...", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(context, BookReaderActivity.class);
+                intent.putExtra("book_to_read",book);
+                if (context instanceof Activity activity) {
+                    activity.startActivity(intent);
+                    activity.overridePendingTransition(R.anim.slide_in_bottom, 0);
+                }
                 break;
 
             case BOOK_EDIT:

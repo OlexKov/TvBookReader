@@ -43,7 +43,6 @@ import com.example.bookreader.utility.bookutils.BookProcessor;
 
 
 import org.jetbrains.annotations.Nullable;
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -53,7 +52,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class LoadFilesFragment extends Fragment {
-    private final BookReaderApp app = BookReaderApp.getInstance();
     private VerticalGridView newFilesList;
     private TextView title;
     private TextView subTitle;

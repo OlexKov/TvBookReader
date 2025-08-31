@@ -51,6 +51,10 @@
             android:exported="true"
             android:theme="@style/Theme.BookReader"/>
 
+        <activity android:name=".activities.BookReaderActivity"
+            android:exported="true"
+            android:theme="@style/Theme.BookReader"/>
+
         <activity android:name=".activities.SettingActivity"
             android:exported="true"
             android:theme="@style/Theme.BookReader"/>

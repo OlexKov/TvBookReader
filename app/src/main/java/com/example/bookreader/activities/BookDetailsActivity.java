@@ -21,7 +21,7 @@ public class BookDetailsActivity extends FragmentActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.book_details);
+        setContentView(R.layout.book_details_activity);
         if (savedInstanceState == null) {
             Object id = getIntent().getSerializableExtra("BOOK_ID");
             if(id instanceof Long bookId){
