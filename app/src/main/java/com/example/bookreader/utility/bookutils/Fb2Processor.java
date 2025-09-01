@@ -11,6 +11,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.example.bookreader.R;
+import com.example.bookreader.customclassses.PagePreview;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.ImageHelper;
@@ -114,12 +115,12 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<List<Bitmap>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
+    public CompletableFuture<List<PagePreview>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
         return null;
     }
 
     @Override
-    public CompletableFuture<List<Bitmap>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
+    public CompletableFuture<List<PagePreview>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
         return null;
     }
 
@@ -130,7 +131,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(File bookFile, int pageIndex, int height, int width) {
+    public CompletableFuture<PagePreview> getPreviewAsync(File bookFile, int pageIndex, int height, int width) {
         return CompletableFuture.supplyAsync(() -> {
             try(FictionBook fb = new FictionBook(bookFile))  {
                 return extractCoverPreview(fb, width, height);
@@ -143,7 +144,7 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
+    public CompletableFuture<PagePreview> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try(InputStream stream = reader.openFile(bookPath)) {
@@ -162,7 +163,7 @@ public class Fb2Processor implements IBookProcessor {
         }
     }
 
-    private Bitmap extractCoverPreview(FictionBook fb, int width, int height) {
+    private PagePreview extractCoverPreview(FictionBook fb, int width, int height) {
         try {
             ArrayList<Image> coverImages = fb.getDescription().getTitleInfo().getCoverPage();
             if (coverImages == null || coverImages.isEmpty()) {
@@ -203,7 +204,7 @@ public class Fb2Processor implements IBookProcessor {
             Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length, scaledOptions);
             if (bitmap == null) return null;
 
-            return Bitmap.createScaledBitmap(bitmap, width, height, true);
+            return new PagePreview(Bitmap.createScaledBitmap(bitmap, width, height, true),0);
         } catch (Exception e) {
             Log.e(TAG, "Failed to extract cover preview", e);
         }
@@ -211,12 +212,12 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     private String savePreview(FictionBook fb, int height, int wight){
-        Bitmap cover = extractCoverPreview(fb, wight, height);
+        PagePreview cover = extractCoverPreview(fb, wight, height);
         if (cover == null) {
             Log.d(TAG, "Cover image not found");
             return null;
         }
-        return ImageHelper.saveImage(context,PREVIEWS_DIR,cover,100, Bitmap.CompressFormat.PNG);
+        return ImageHelper.saveImage(context,PREVIEWS_DIR,cover.preview,100, Bitmap.CompressFormat.PNG);
     }
 
     private BookDto getBookInfo(FictionBook fb,String bookName){

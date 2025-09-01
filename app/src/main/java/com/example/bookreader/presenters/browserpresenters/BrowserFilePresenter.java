@@ -63,10 +63,10 @@ public class BrowserFilePresenter extends Presenter {
                     }
                     else{
                         try {
-                            new BookProcessor(context,file.getFile()).getPreviewAsync(0,96,70 ).thenAccept((bitmap)->{
+                            new BookProcessor(context,file.getFile()).getPreviewAsync(0,96,70 ).thenAccept((page)->{
                                 rootView.post(() -> {
-                                    if (bitmap != null) {
-                                        iconView.setImageBitmap(bitmap);
+                                    if (page != null) {
+                                        iconView.setImageBitmap(page.preview);
                                     } else {
                                         iconView.setImageResource(R.drawable.e_book);
                                     }

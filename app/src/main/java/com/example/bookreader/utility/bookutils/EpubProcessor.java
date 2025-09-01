@@ -12,6 +12,7 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.example.bookreader.R;
+import com.example.bookreader.customclassses.PagePreview;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.ImageHelper;
@@ -115,12 +116,12 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<List<Bitmap>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
+    public CompletableFuture<List<PagePreview>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
         return null;
     }
 
     @Override
-    public CompletableFuture<List<Bitmap>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
+    public CompletableFuture<List<PagePreview>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
         return null;
     }
 
@@ -131,7 +132,7 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(File bookFile, int pageIndex, int height, int width) {
+    public CompletableFuture<PagePreview> getPreviewAsync(File bookFile, int pageIndex, int height, int width) {
         return CompletableFuture.supplyAsync(() -> {
             try(InputStream stream = new FileInputStream(bookFile)) {
                  return extractCoverPreview(stream, width, height);
@@ -144,7 +145,7 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
+    public CompletableFuture<PagePreview> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try(InputStream stream = reader.openFile(bookPath)) {
@@ -162,7 +163,7 @@ public class EpubProcessor implements IBookProcessor {
         }
     }
 
-    private Bitmap extractCoverPreview(InputStream stream, int width, int height) throws IOException {
+    private PagePreview extractCoverPreview(InputStream stream, int width, int height) throws IOException {
         try {
             EpubReader epubReader = new EpubReader();
             Book book = epubReader.readEpub(stream);
@@ -191,7 +192,7 @@ public class EpubProcessor implements IBookProcessor {
             Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length, scaledOptions);
             if (bitmap == null) return null;
 
-            return Bitmap.createScaledBitmap(bitmap, width, height, true);
+            return new PagePreview(Bitmap.createScaledBitmap(bitmap, width, height, true), 0);
         } catch (Exception e) {
             Log.e("EpubProcessor", "Failed to extract cover preview", e);
         }
@@ -199,13 +200,13 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     private String savePreview(InputStream stream,int wight, int height) throws Exception {
-        Bitmap cover = extractCoverPreview(stream, wight, height);
+        PagePreview cover = extractCoverPreview(stream, wight, height);
         if (cover == null) {
             Log.d("EpubProcessor", "Cover not found");
             return null;
         }
 
-        return ImageHelper.saveImage(context,PREVIEWS_DIR,cover,100,Bitmap.CompressFormat.PNG);
+        return ImageHelper.saveImage(context,PREVIEWS_DIR,cover.preview,100,Bitmap.CompressFormat.PNG);
     }
 
     private BookDto getInfo(InputStream stream,String bookName) throws Exception {

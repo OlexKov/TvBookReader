@@ -9,6 +9,7 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.example.bookreader.R;
+import com.example.bookreader.customclassses.PagePreview;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.ImageHelper;
@@ -103,7 +104,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<List<Bitmap>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
+    public CompletableFuture<List<PagePreview>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
         return CompletableFuture.supplyAsync(()->{
             try(FileInputStream stream  = new FileInputStream(bookFile)){
                 return createPreviews(stream, pages, height, wight);
@@ -117,7 +118,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<List<Bitmap>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
+    public CompletableFuture<List<PagePreview>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try(InputStream stream = reader.openFile(bookPath)){
@@ -136,7 +137,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public  CompletableFuture<Bitmap> getPreviewAsync(File bookFile,int pageIndex, int height, int width) {
+    public  CompletableFuture<PagePreview> getPreviewAsync(File bookFile,int pageIndex, int height, int width) {
         return CompletableFuture.supplyAsync(()->{
             try(FileInputStream stream  = new FileInputStream(bookFile)){
                 return createPreview(stream, pageIndex, height, width);
@@ -150,7 +151,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     @Override
-    public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
+    public CompletableFuture<PagePreview> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
                 try(InputStream stream = reader.openFile(bookPath)) {
@@ -174,7 +175,7 @@ public class PdfProcessor implements IBookProcessor {
         return getInfoAsync(file);
     }
 
-    private Bitmap createPreview(FileInputStream inputStream, int pageIndex, int height, int width) throws IOException {
+    private PagePreview createPreview(FileInputStream inputStream, int pageIndex, int height, int width) throws IOException {
         PdfiumCore pdfiumCore = new PdfiumCore(context);
         PdfDocument document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(inputStream.getFD()));
         pdfiumCore.openPage(document, pageIndex);
@@ -184,13 +185,13 @@ public class PdfProcessor implements IBookProcessor {
         if (document != null) {
             pdfiumCore.closeDocument(document);
         }
-        return temp;
+        return new PagePreview(temp,pageIndex);
     }
 
-    private List<Bitmap> createPreviews(FileInputStream inputStream, List<Integer> pages, int height, int width) throws IOException {
+    private List<PagePreview> createPreviews(FileInputStream inputStream, List<Integer> pages, int height, int width) throws IOException {
         PdfiumCore pdfiumCore = new PdfiumCore(context);
         PdfDocument document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(inputStream.getFD()));
-        List<Bitmap> previews = new ArrayList<>();
+        List<PagePreview> previews = new ArrayList<>();
 
         try {
             document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(inputStream.getFD()));
@@ -199,7 +200,7 @@ public class PdfProcessor implements IBookProcessor {
                 Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                 bmp.eraseColor(Color.WHITE);
                 pdfiumCore.renderPageBitmap(document, bmp, page, 0, 0, width, height);
-                previews.add(bmp);
+                previews.add(new PagePreview(bmp,page));
             }
         } finally {
             if (document != null) {
@@ -210,7 +211,7 @@ public class PdfProcessor implements IBookProcessor {
     }
 
     private String savePreview(InputStream inputStream,int height,int wight) throws IOException {
-        Bitmap bitmap = createPreview((FileInputStream) inputStream, 0, height, wight);
+        Bitmap bitmap = createPreview((FileInputStream) inputStream, 0, height, wight).preview;
         return ImageHelper.saveImage(context,PREVIEWS_DIR,bitmap,100,Bitmap.CompressFormat.PNG);
     }
 

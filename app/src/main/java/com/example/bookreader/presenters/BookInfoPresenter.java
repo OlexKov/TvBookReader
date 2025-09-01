@@ -83,9 +83,9 @@ public class BookInfoPresenter extends Presenter {
         TextView category = root.findViewById(R.id.book_preview_category);
         TextView descExist = root.findViewById(R.id.book_preview_description_exist);
         BookProcessor bookProcessor = new BookProcessor(context,info.filePath);
-        bookProcessor.getPreviewAsync(0,400,280).thenAccept(bitmap ->{
-            if(bitmap != null){
-                root.post(()-> preview.setImageBitmap(bitmap));
+        bookProcessor.getPreviewAsync(0,400,280).thenAccept(page ->{
+            if(page != null){
+                root.post(()-> preview.setImageBitmap(page.preview));
             }
             else{
                 root.post(()-> preview.setImageResource(R.drawable.books_logo));

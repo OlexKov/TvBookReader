@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.bookreader.customclassses.PagePreview;
 import com.example.bookreader.utility.AnimHelper;
 
 import java.util.List;
@@ -20,14 +21,20 @@ import lombok.Setter;
 public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageViewHolder> {
 
     @Setter
-    private  List<Bitmap> pages;
+    private  List<PagePreview> pages;
     private float currentScale = 1f;
     float screenWidth ;
     float screenHeight ;
 
-    public BookPageAdapter(List<Bitmap> pages,float scale) {
+    public BookPageAdapter(List<PagePreview> pages,float scale) {
         this.pages = pages;
         currentScale = scale;
+        setHasStableIds(true);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return pages.get(position).pageIndex; // або pageIndex
     }
 
     static class PageViewHolder extends RecyclerView.ViewHolder {
@@ -54,7 +61,7 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
 
     @Override
     public void onBindViewHolder(@NonNull PageViewHolder holder, int position) {
-        holder.imageView.setImageBitmap(pages.get(position));
+        holder.imageView.setImageBitmap(pages.get(position).preview);
         holder.imageView.setLayoutParams(new ViewGroup.LayoutParams(
                 (int)(screenWidth ),
                 (int)(screenHeight * currentScale)

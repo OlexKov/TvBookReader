@@ -1,8 +1,7 @@
 package com.example.bookreader.utility.bookutils;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-
+import com.example.bookreader.customclassses.PagePreview;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.utility.ArchiveHelper.BooksArchiveReader;
 import com.example.bookreader.utility.FileHelper;
@@ -45,11 +44,11 @@ public class BookProcessor {
         });
     }
 
-    public CompletableFuture<Bitmap> getPreviewAsync( int pageIndex, int height, int wight) {
+    public CompletableFuture<PagePreview> getPreviewAsync(int pageIndex, int height, int wight) {
         return bookProcessor.getPreviewAsync(bookPath, pageIndex, height, wight);
     }
 
-    public CompletableFuture<List<Bitmap>> getPreviewsAsync(List<Integer> pages, int height, int wight) {
+    public CompletableFuture<List<PagePreview>> getPreviewsAsync(List<Integer> pages, int height, int wight) {
         return bookProcessor.getPreviewsAsync(bookPath, pages, height, wight);
     }
 
