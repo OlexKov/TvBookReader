@@ -50,8 +50,7 @@ public class EpubProcessor implements IBookProcessor {
     public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try(InputStream stream = reader.openFile(bookPath)) {
                     return  savePreview(stream,300,400);
                 }
                 catch (Exception e) {
@@ -116,6 +115,16 @@ public class EpubProcessor implements IBookProcessor {
     }
 
     @Override
+    public CompletableFuture<List<Bitmap>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<Bitmap>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
+        return null;
+    }
+
+    @Override
     public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) {
         File bookFile = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(bookFile);
@@ -138,8 +147,7 @@ public class EpubProcessor implements IBookProcessor {
     public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try(InputStream stream = reader.openFile(bookPath)) {
                     return extractCoverPreview(stream, wight, height);
                 }
                 catch (Exception e) {

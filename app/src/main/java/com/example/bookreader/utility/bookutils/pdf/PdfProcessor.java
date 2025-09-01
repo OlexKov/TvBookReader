@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -37,8 +39,7 @@ public class PdfProcessor implements IBookProcessor {
     public CompletableFuture<String> savePreviewAsync(String bookPath, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try(InputStream stream = reader.openFile(bookPath)){
                     return savePreview(stream, height,wight);
                 }
                 catch (Exception e) {
@@ -86,8 +87,7 @@ public class PdfProcessor implements IBookProcessor {
     public CompletableFuture<BookDto> getInfoAsync(String bookPath)  {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try (InputStream stream = reader.openFile(bookPath)){
                     return  getInfo((FileInputStream) stream,FileHelper.getFileName(bookPath));
                 }
                 catch (Exception e) {
@@ -99,6 +99,39 @@ public class PdfProcessor implements IBookProcessor {
         }
         else{
             return getInfoAsync(new File(bookPath));
+        }
+    }
+
+    @Override
+    public CompletableFuture<List<Bitmap>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
+        return CompletableFuture.supplyAsync(()->{
+            try(FileInputStream stream  = new FileInputStream(bookFile)){
+                return createPreviews(stream, pages, height, wight);
+            }
+            catch (IOException e) {
+                String message = "Error create preview " + '"' + bookFile.getName() + '"' + " book file";
+                Log.e(TAG, message, e);
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<List<Bitmap>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
+        if(BooksArchiveReader.isArchivePath(bookPath)){
+            return  CompletableFuture.supplyAsync(() -> {
+                try(InputStream stream = reader.openFile(bookPath)){
+                    return createPreviews((FileInputStream)stream,pages, height,wight);
+                }
+                catch (Exception e) {
+                    String message = "Error " + '"' + FileHelper.getFileName(bookPath) + '"' + " book preview saving";
+                    Log.e(TAG, message, e);
+                    return null;
+                }
+            });
+        }
+        else{
+            return getPreviewsAsync (new File(bookPath),pages, height, wight);
         }
     }
 
@@ -120,8 +153,7 @@ public class PdfProcessor implements IBookProcessor {
     public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try(InputStream stream = reader.openFile(bookPath)) {
                     return createPreview((FileInputStream) stream, pageIndex, height,wight);
                 }
                 catch (Exception e) {
@@ -146,24 +178,35 @@ public class PdfProcessor implements IBookProcessor {
         PdfiumCore pdfiumCore = new PdfiumCore(context);
         PdfDocument document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(inputStream.getFD()));
         pdfiumCore.openPage(document, pageIndex);
-
-        int pageWidth = pdfiumCore.getPageWidthPoint(document, pageIndex);
-        int pageHeight = pdfiumCore.getPageHeightPoint(document, pageIndex);
-
-        // Створюємо зображення точного розміру без збереження пропорцій
-        Bitmap temp = Bitmap.createBitmap(pageWidth, pageHeight, Bitmap.Config.ARGB_8888);
+        Bitmap temp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         temp.eraseColor(Color.WHITE);
-
-        pdfiumCore.renderPageBitmap(document, temp, pageIndex, 0, 0, pageWidth, pageHeight);
-
-        // Масштабуємо до потрібного розміру без збереження пропорцій
-        Bitmap result = Bitmap.createScaledBitmap(temp, width, height, true);
-
-        temp.recycle(); // звільняємо пам’ять
+        pdfiumCore.renderPageBitmap(document, temp, pageIndex, 0, 0, width, height);
         if (document != null) {
             pdfiumCore.closeDocument(document);
         }
-        return result;
+        return temp;
+    }
+
+    private List<Bitmap> createPreviews(FileInputStream inputStream, List<Integer> pages, int height, int width) throws IOException {
+        PdfiumCore pdfiumCore = new PdfiumCore(context);
+        PdfDocument document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(inputStream.getFD()));
+        List<Bitmap> previews = new ArrayList<>();
+
+        try {
+            document = pdfiumCore.newDocument(ParcelFileDescriptor.dup(inputStream.getFD()));
+            for (int page : pages) {
+                pdfiumCore.openPage(document, page);
+                Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                bmp.eraseColor(Color.WHITE);
+                pdfiumCore.renderPageBitmap(document, bmp, page, 0, 0, width, height);
+                previews.add(bmp);
+            }
+        } finally {
+            if (document != null) {
+                pdfiumCore.closeDocument(document);
+            }
+        }
+        return previews;
     }
 
     private String savePreview(InputStream inputStream,int height,int wight) throws IOException {

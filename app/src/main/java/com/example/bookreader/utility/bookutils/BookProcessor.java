@@ -11,6 +11,7 @@ import com.example.bookreader.utility.bookutils.interfaces.IBookProcessor;
 import com.example.bookreader.utility.bookutils.pdf.PdfProcessor;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class BookProcessor {
@@ -46,6 +47,10 @@ public class BookProcessor {
 
     public CompletableFuture<Bitmap> getPreviewAsync( int pageIndex, int height, int wight) {
         return bookProcessor.getPreviewAsync(bookPath, pageIndex, height, wight);
+    }
+
+    public CompletableFuture<List<Bitmap>> getPreviewsAsync(List<Integer> pages, int height, int wight) {
+        return bookProcessor.getPreviewsAsync(bookPath, pages, height, wight);
     }
 
     private IBookProcessor getBookProcessor(Context context,String ext){

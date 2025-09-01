@@ -29,6 +29,7 @@ import com.example.bookreader.utility.bookutils.fb2parser.TitleInfo;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import java.util.Optional;
@@ -48,8 +49,7 @@ public class Fb2Processor implements IBookProcessor {
     public CompletableFuture<String> savePreviewAsync(String bookPath,int height, int wight)  {
        if(BooksArchiveReader.isArchivePath(bookPath)){
            return  CompletableFuture.supplyAsync(() -> {
-               try {
-                   InputStream stream = reader.openFile(bookPath);
+               try (InputStream stream = reader.openFile(bookPath)){
                    FictionBook fb = new FictionBook(stream);
                    return  savePreview(fb,height,wight);
                }
@@ -68,8 +68,7 @@ public class Fb2Processor implements IBookProcessor {
     @Override
     public CompletableFuture<String> savePreviewAsync(File bookFile,int height, int wight) {
         return  CompletableFuture.supplyAsync(() -> {
-            try {
-                FictionBook fb = new FictionBook(bookFile);
+            try(FictionBook fb = new FictionBook(bookFile)) {
                 return  savePreview(fb,height, wight);
             }
             catch (Exception e) {
@@ -83,10 +82,8 @@ public class Fb2Processor implements IBookProcessor {
     @Override
     public CompletableFuture<BookDto> getInfoAsync(File bookFile) {
         return CompletableFuture.supplyAsync(() -> {
-            try  {
-                FictionBook fb = new FictionBook(bookFile);
+            try(FictionBook fb = new FictionBook(bookFile)){
                 return getBookInfo(fb,bookFile.getName());
-
             }
             catch (Exception e) {
                 String message = "Error reading" + '"' + bookFile.getName() + '"' + " book file";
@@ -100,8 +97,7 @@ public class Fb2Processor implements IBookProcessor {
     public CompletableFuture<BookDto> getInfoAsync(String bookPath)  {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try(InputStream stream = reader.openFile(bookPath)) {
                     FictionBook fb = new FictionBook(stream);
                     return  getBookInfo(fb,FileHelper.getFileName(bookPath));
                 }
@@ -118,6 +114,16 @@ public class Fb2Processor implements IBookProcessor {
     }
 
     @Override
+    public CompletableFuture<List<Bitmap>> getPreviewsAsync(File bookFile, List<Integer> pages, int height, int wight) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<List<Bitmap>> getPreviewsAsync(String bookPath, List<Integer> pages, int height, int wight) {
+        return null;
+    }
+
+    @Override
     public CompletableFuture<BookDto> getInfoAsync(Uri bookUri) {
         File file = new File(FileHelper.getPath(context, bookUri));
         return getInfoAsync(file);
@@ -126,8 +132,7 @@ public class Fb2Processor implements IBookProcessor {
     @Override
     public CompletableFuture<Bitmap> getPreviewAsync(File bookFile, int pageIndex, int height, int width) {
         return CompletableFuture.supplyAsync(() -> {
-            try  {
-                FictionBook fb = new FictionBook(bookFile);
+            try(FictionBook fb = new FictionBook(bookFile))  {
                 return extractCoverPreview(fb, width, height);
             } catch (Exception e) {
                 String message = "Error create preview " + '"' + bookFile.getName() + '"' + " book file";
@@ -141,8 +146,7 @@ public class Fb2Processor implements IBookProcessor {
     public CompletableFuture<Bitmap> getPreviewAsync(String bookPath, int pageIndex, int height, int wight) {
         if(BooksArchiveReader.isArchivePath(bookPath)){
             return  CompletableFuture.supplyAsync(() -> {
-                try {
-                    InputStream stream = reader.openFile(bookPath);
+                try(InputStream stream = reader.openFile(bookPath)) {
                     FictionBook fb = new FictionBook(stream);
                     return extractCoverPreview(fb, wight, height);
                 }

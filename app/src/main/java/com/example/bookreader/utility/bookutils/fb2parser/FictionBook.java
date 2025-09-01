@@ -15,8 +15,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.util.*;
 
-public class FictionBook {
-
+public class FictionBook implements AutoCloseable {
+    private InputStream inputStream;
     protected Xmlns[] xmlns;
     protected Description description;
     protected List<Body> bodies = new ArrayList<>();
@@ -27,6 +27,7 @@ public class FictionBook {
     public FictionBook() {}
 
     public FictionBook(InputStream inputStream) throws ParserConfigurationException, IOException, SAXException, OutOfMemoryError{
+        this.inputStream = inputStream;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
 
@@ -125,6 +126,11 @@ public class FictionBook {
 
     public @Nullable Annotation getAnnotation() {
         return description.getTitleInfo().getAnnotation();
+    }
+
+    @Override
+    public void close() throws Exception {
+        inputStream.close();
     }
 }
 

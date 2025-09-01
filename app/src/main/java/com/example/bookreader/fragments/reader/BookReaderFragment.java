@@ -21,7 +21,6 @@ import com.example.bookreader.utility.bookutils.BookProcessor;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -63,14 +62,7 @@ public class BookReaderFragment  extends Fragment {
         recyclerView.setHasFixedSize(true);
         recyclerView.setNestedScrollingEnabled(false);
 
-        // Заглушка – список сторінок
-       loadBookPages().thenAccept(pages->{
-
-           getActivity().runOnUiThread(()->{
-               adapter = new BookPageAdapter(pages,currentScale);
-               recyclerView.setAdapter(adapter);
-           });
-       });
+        updateScale();
 
         // Вимикаємо фокусування на дочірніх елементах
         recyclerView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
@@ -119,7 +111,6 @@ public class BookReaderFragment  extends Fragment {
                 layoutManager.scrollToPositionWithOffset(firstVisible, offset);
             });
         });
-
     }
 
     private CompletableFuture<List<Bitmap>> loadBookPages() {
@@ -127,23 +118,8 @@ public class BookReaderFragment  extends Fragment {
         int currentWidth = (int)(currentHeight * aspectRatio);
         Log.d("PARAMS_LOG","currentHeight - "+String.valueOf(currentHeight));
         Log.d("PARAMS_LOG","currentWidth - "+String.valueOf(currentWidth));
-
-        CompletableFuture<Bitmap> page1 = bookProcessor.getPreviewAsync(0, currentHeight, currentWidth);
-        CompletableFuture<Bitmap> page2 = bookProcessor.getPreviewAsync(1, currentHeight, currentWidth);
-        CompletableFuture<Bitmap> page3 = bookProcessor.getPreviewAsync(2, currentHeight, currentWidth);
-        CompletableFuture<Bitmap> page4 = bookProcessor.getPreviewAsync(3, currentHeight, currentWidth);
-        CompletableFuture<Bitmap> page5 = bookProcessor.getPreviewAsync(4, currentHeight, currentWidth);
-        CompletableFuture<Bitmap> page6 = bookProcessor.getPreviewAsync(5, currentHeight, currentWidth);
-
-        return CompletableFuture.allOf(page1, page2, page3, page4, page5, page6)
-                .thenApply(v -> Arrays.asList(
-                        page1.join(),
-                        page2.join(),
-                        page3.join(),
-                        page4.join(),
-                        page5.join(),
-                        page6.join()
-                ));
+        List<Integer> pages = List.of(0,1,2,3,4,5);
+        return bookProcessor.getPreviewsAsync(pages, currentHeight, currentWidth);
     }
 
 }
