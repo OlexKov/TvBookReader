@@ -1,7 +1,7 @@
 package com.example.bookreader.fragments.reader;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
+import com.example.bookreader.utility.ProcessRuner;
 import com.example.bookreader.utility.bookutils.BookProcessor;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class BookReaderFragment  extends Fragment {
+    private final ProcessRuner processRuner = new ProcessRuner();
     private final BookDto book;
     private RecyclerView recyclerView;
     private BookPageAdapter adapter;
@@ -33,8 +35,12 @@ public class BookReaderFragment  extends Fragment {
     private LinearLayoutManager layoutManager ;
     private int screenWidth ;
     private int screenHeight ;
-    private final float aspectRatio = 2f / 3f;
+    private final float PAGE_ASPECT_RATIO = 2f / 3f;
+    private final float PAGE_QUALITY = 0.25f;
     private float maxScale ;
+    private  List<Bitmap> pages;
+    private boolean isPagesUpdating;
+    private int firstVisiblePage = 0;
 
 
     public BookReaderFragment(@NotNull BookDto book){
@@ -54,15 +60,23 @@ public class BookReaderFragment  extends Fragment {
         this.bookProcessor = new BookProcessor(getContext(),book.filePath);
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         screenHeight = getResources().getDisplayMetrics().heightPixels;
-        maxScale =  screenWidth / aspectRatio / screenHeight;
+        maxScale =  screenWidth / PAGE_ASPECT_RATIO / screenHeight;
 
         recyclerView = view.findViewById(R.id.pageRecyclerView);
         layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setNestedScrollingEnabled(false);
+        recyclerView.setItemAnimator(null);
 
-        updateScale();
+        loadBookPages().thenAccept(pages->{
+            this.pages = pages;
+            adapter = new BookPageAdapter(pages,currentScale);
+            getActivity().runOnUiThread(()->{
+                recyclerView.setAdapter(adapter);
+            });
+        });
+
 
         // Вимикаємо фокусування на дочірніх елементах
         recyclerView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
@@ -79,14 +93,14 @@ public class BookReaderFragment  extends Fragment {
                         return true;
 
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        float scale = Math.min(currentScale + 0.1f,maxScale);
+                        float scale = Math.min(currentScale + 0.2f,maxScale);
                         if(currentScale != scale){
                             currentScale = scale;
                             updateScale();
                         }
                         return true;
                     case KeyEvent.KEYCODE_DPAD_LEFT:
-                        float sce = Math.max(currentScale - 0.1f,1);
+                        float sce = Math.max(currentScale - 0.2f,1);
                         if(currentScale != sce){
                             currentScale = sce;
                             updateScale();
@@ -97,29 +111,55 @@ public class BookReaderFragment  extends Fragment {
             return false;
         });
 
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                // перша видима сторінка
+                int firstVisible = layoutManager.findFirstVisibleItemPosition();
+                if(firstVisiblePage != firstVisible){
+                    boolean scrollDown = firstVisible > firstVisiblePage;
+                    firstVisiblePage = firstVisible;
+                    if(scrollDown){
+                        pages.remove(pages.size()-1);
+                    }
+                    else{
+                        pages.remove(0);
+                    }
+
+
+                }
+            }
+        });
+
 
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void updateScale(){
-        int firstVisible = layoutManager.findFirstVisibleItemPosition();
-        View firstChild = recyclerView.getChildAt(0);
-        int offset = (firstChild != null) ? firstChild.getTop() : 0;
-        loadBookPages().thenAccept(pages->{
-            adapter = new BookPageAdapter(pages,currentScale);
-            getActivity().runOnUiThread(()->{
-                recyclerView.setAdapter(adapter);
-                layoutManager.scrollToPositionWithOffset(firstVisible, offset);
-            });
-        });
+        adapter.setScale(currentScale);
+        processRuner.runDelayed(1000, this::updatePages);
     }
 
     private CompletableFuture<List<Bitmap>> loadBookPages() {
-        int currentHeight = (int)(screenHeight * currentScale);
-        int currentWidth = (int)(currentHeight * aspectRatio);
-        Log.d("PARAMS_LOG","currentHeight - "+String.valueOf(currentHeight));
-        Log.d("PARAMS_LOG","currentWidth - "+String.valueOf(currentWidth));
+        int currentHeight = (int)(screenHeight * currentScale * PAGE_QUALITY);
+        int currentWidth = (int)(currentHeight * PAGE_ASPECT_RATIO);
         List<Integer> pages = List.of(0,1,2,3,4,5);
         return bookProcessor.getPreviewsAsync(pages, currentHeight, currentWidth);
+    }
+
+    private void updatePages(){
+        if(!isPagesUpdating){
+            isPagesUpdating = true;
+            int firstVisible = layoutManager.findFirstVisibleItemPosition();
+            int lastVisible = layoutManager.findLastVisibleItemPosition();
+            loadBookPages().thenAccept(pages->{
+                this.pages = pages;
+                adapter.setPages(pages);
+                adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
+                isPagesUpdating = false;
+            });
+        }
     }
 
 }

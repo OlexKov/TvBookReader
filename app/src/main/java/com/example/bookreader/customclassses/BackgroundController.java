@@ -5,16 +5,15 @@ import static com.example.bookreader.utility.ImageHelper.getBlurBitmap;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.DisplayMetrics;
 
 import androidx.annotation.NonNull;
 import androidx.leanback.app.BackgroundManager;
 
+import com.example.bookreader.utility.ProcessRuner;
+
 public class BackgroundController {
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private Runnable pendingBackgroundUpdate = null;
+    private final ProcessRuner processRuner = new ProcessRuner();
     private final BackgroundManager mBackgroundManager;
     private final Activity activity;
 
@@ -41,26 +40,15 @@ public class BackgroundController {
     }
 
     public void setBitmapBackgroundDelayed(Bitmap background,int delay){
-        runDelayed(delay,()->setBitmapBackground(background));
+       processRuner.runDelayed(delay,()->setBitmapBackground(background));
     }
 
     public void setDrawableBackgroundDelayed(Drawable backgroundDrawable,int delay){
-        runDelayed(delay,()->setDrawableBackground(backgroundDrawable));
+        processRuner.runDelayed(delay,()->setDrawableBackground(backgroundDrawable));
     }
 
     public void setBlurBackgroundDelayed(String imagePath,int radius,int sampling,int delay){
-        runDelayed(delay,()->setBlurBackground(imagePath,radius,sampling));
-    }
-
-    private void runDelayed(int delay,Runnable post){
-        if (pendingBackgroundUpdate != null) {
-            handler.removeCallbacks(pendingBackgroundUpdate);
-        }
-        pendingBackgroundUpdate = () -> {
-            post.run();
-            pendingBackgroundUpdate = null;
-        };
-        handler.postDelayed(pendingBackgroundUpdate, delay);
+        processRuner.runDelayed(delay,()->setBlurBackground(imagePath,radius,sampling));
     }
 
 }

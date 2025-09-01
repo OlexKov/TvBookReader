@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -14,9 +15,12 @@ import com.example.bookreader.utility.AnimHelper;
 
 import java.util.List;
 
+import lombok.Setter;
+
 public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageViewHolder> {
 
-    private final List<Bitmap> pages;
+    @Setter
+    private  List<Bitmap> pages;
     private float currentScale = 1f;
     float screenWidth ;
     float screenHeight ;
@@ -28,7 +32,6 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
 
     static class PageViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
-
         public PageViewHolder(ImageView itemView) {
             super(itemView);
             imageView = itemView;
@@ -43,26 +46,31 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
         ((Activity) parent.getContext()).getWindowManager().getDefaultDisplay().getMetrics(metrics);
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
-        imageView.setLayoutParams(new ViewGroup.LayoutParams(
-                (int)(screenWidth * currentScale),
-                (int)(screenHeight * currentScale)
-        ));
-        int deltaX = (int) ((screenWidth - (int)(screenWidth * currentScale)) / 2);
-        imageView.setTranslationX(deltaX);
+        imageView.setAdjustViewBounds(true);
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         imageView.setPadding(0,0,0, AnimHelper.convertToPx(parent.getContext(),5));
-
-
         return new PageViewHolder(imageView);
     }
 
     @Override
     public void onBindViewHolder(@NonNull PageViewHolder holder, int position) {
         holder.imageView.setImageBitmap(pages.get(position));
+        holder.imageView.setLayoutParams(new ViewGroup.LayoutParams(
+                (int)(screenWidth ),
+                (int)(screenHeight * currentScale)
+        ));
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void setScale(float scale){
+        currentScale = scale;
+        notifyDataSetChanged();
     }
 
     @Override
     public int getItemCount() {
         return pages.size();
     }
+
+
 }
