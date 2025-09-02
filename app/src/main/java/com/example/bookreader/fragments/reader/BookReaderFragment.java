@@ -1,5 +1,8 @@
 package com.example.bookreader.fragments.reader;
 
+import static com.example.bookreader.constants.Constants.READER_MAX_ADAPTER_PAGES;
+import static com.example.bookreader.constants.Constants.READER_PAGE_ASPECT_RATIO;
+
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,12 +41,10 @@ public class BookReaderFragment  extends Fragment {
     private LinearLayoutManager layoutManager ;
     private int screenWidth ;
     private int screenHeight ;
-    private final float PAGE_ASPECT_RATIO = 2f / 3f;
     private float maxScale ;
     private  List<PagePreview> pages;
     private boolean isPagesUpdating;
     private int firstVisiblePage = 0;
-    private final int MAX_ADAPTER_PAGES = 5; //min 5
     private int firstPageIndex;
     private int lastPageIndex ;
     private int currentPreviewHeight;
@@ -76,7 +77,7 @@ public class BookReaderFragment  extends Fragment {
         this.bookProcessor = new BookProcessor(getContext(),book.filePath);
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         screenHeight = getResources().getDisplayMetrics().heightPixels;
-        maxScale =  screenWidth / PAGE_ASPECT_RATIO / screenHeight;
+        maxScale =  screenWidth / READER_PAGE_ASPECT_RATIO / screenHeight;
         recyclerView = view.findViewById(R.id.pageRecyclerView);
         layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
@@ -146,7 +147,7 @@ public class BookReaderFragment  extends Fragment {
                     boolean scrollDown = firstVisible > firstVisiblePage;
                     firstVisiblePage = firstVisible;
                     if(scrollDown){
-                        if((firstVisiblePage + 1) == (MAX_ADAPTER_PAGES - 2) && book.pageCount > lastPageIndex){
+                        if((firstVisiblePage + 1) == (READER_MAX_ADAPTER_PAGES - 1) && book.pageCount-1 > lastPageIndex){
                             firstPageIndex++;
                             lastPageIndex++;
                             bookProcessor.getPreviewAsync(lastPageIndex,currentPreviewHeight,currentPreviewWidth).thenAccept(page->{
@@ -175,17 +176,19 @@ public class BookReaderFragment  extends Fragment {
     }
 
     private void initPagesRange(){
-        int halfBufferSize = MAX_ADAPTER_PAGES / 2;
+        int halfBufferSize = READER_MAX_ADAPTER_PAGES / 2;
+        int lastBookPageIndex = book.pageCount-1;
         if(bookSettings.lastReadPageIndex < halfBufferSize){
             firstPageIndex = 0;
         }
-        else if(bookSettings.lastReadPageIndex + halfBufferSize > book.pageCount){
-            firstPageIndex = book.pageCount - MAX_ADAPTER_PAGES - 1;
+        else if(bookSettings.lastReadPageIndex + halfBufferSize >= lastBookPageIndex){
+            firstPageIndex = lastBookPageIndex - (READER_MAX_ADAPTER_PAGES - 1);
         }
         else{
             firstPageIndex = bookSettings.lastReadPageIndex - halfBufferSize;
         }
-        lastPageIndex = Math.min(firstPageIndex + MAX_ADAPTER_PAGES - 1,book.pageCount - 1);
+        lastPageIndex = Math.min(firstPageIndex + READER_MAX_ADAPTER_PAGES - 1,lastBookPageIndex);
+
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -196,9 +199,8 @@ public class BookReaderFragment  extends Fragment {
     }
 
     private CompletableFuture<List<PagePreview>> updateBookPages() {
-        lastPageIndex = firstPageIndex + MAX_ADAPTER_PAGES - 1;
         List<Integer> pages = java.util.stream.IntStream
-                .range(firstPageIndex, lastPageIndex)
+                .range(firstPageIndex, lastPageIndex + 1)
                 .boxed()
                 .collect(Collectors.toList());
         return bookProcessor.getPreviewsAsync(pages, currentPreviewHeight, currentPreviewWidth);
@@ -225,7 +227,7 @@ public class BookReaderFragment  extends Fragment {
 
     private void updatePreviewSize(){
         currentPreviewHeight = (int)(screenHeight * bookSettings.scale * bookSettings.quality);
-        currentPreviewWidth = (int)(currentPreviewHeight * PAGE_ASPECT_RATIO);
+        currentPreviewWidth = (int)(currentPreviewHeight * READER_PAGE_ASPECT_RATIO);
     }
 
 }

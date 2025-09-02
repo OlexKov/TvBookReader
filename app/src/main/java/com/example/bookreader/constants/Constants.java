@@ -36,4 +36,7 @@ public final class Constants {
     public static final int BOOK_THUMB_HEIGHT = 400;
 
     public static final String PREVIEWS_DIR = "previews";
+
+    public static final float READER_PAGE_ASPECT_RATIO = 2f / 3f;
+    public static final int READER_MAX_ADAPTER_PAGES = 5; //min 4
 }
