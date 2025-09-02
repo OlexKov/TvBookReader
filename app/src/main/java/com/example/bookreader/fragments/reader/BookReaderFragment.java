@@ -83,7 +83,6 @@ public class BookReaderFragment  extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         this.bookProcessor = new BookProcessor(getContext(),book.filePath);
         progressBar = view.findViewById(R.id.scrollBar);
-       // progressBar.setEnabled(true);
         progressBar.setMax(book.pageCount);
         initParams();
         setRecyclerView(view);
@@ -137,9 +136,7 @@ public class BookReaderFragment  extends Fragment {
         lastPageIndex++;
         bookProcessor.getPreviewAsync(lastPageIndex, currentPreviewHeight, currentPreviewWidth)
                 .thenAccept(page -> {
-                        if(bookSettings.invert){
-                            page.preview = ImageHelper.invertBitmap(page.preview);
-                        }
+                        page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
                         requireActivity().runOnUiThread(() -> {
                             pages.remove(0);
                             pages.add(page);
@@ -156,9 +153,7 @@ public class BookReaderFragment  extends Fragment {
         lastPageIndex--;
         bookProcessor.getPreviewAsync(firstPageIndex, currentPreviewHeight, currentPreviewWidth)
                 .thenAccept(page ->{
-                    if(bookSettings.invert){
-                        page.preview = ImageHelper.invertBitmap(page.preview);
-                    }
+                    page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
                     requireActivity().runOnUiThread(() -> {
                         pages.remove(pages.size() - 1);
                         pages.add(0, page);
@@ -210,9 +205,7 @@ public class BookReaderFragment  extends Fragment {
     private void setAndInitAdapter(){
         loadBookPages().thenAccept(pages->{
             this.pages = pages;
-            if(bookSettings.invert){
-                invertPages();
-            }
+            processPages();
             adapter = new BookPageAdapter(this.pages,bookSettings.scale);
             requireActivity().runOnUiThread(()->{
                 recyclerView.setAdapter(adapter);
@@ -277,9 +270,7 @@ public class BookReaderFragment  extends Fragment {
             int offset = (firstChild != null) ? firstChild.getTop() : 0;
             loadBookPages().thenAccept(pages->{
                 this.pages = pages;
-                if(bookSettings.invert){
-                    invertPages();
-                }
+                processPages();
                 adapter.setPages(this.pages);
                 getActivity().runOnUiThread(()->{
                     adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
@@ -295,9 +286,9 @@ public class BookReaderFragment  extends Fragment {
         currentPreviewWidth = (int)(currentPreviewHeight * READER_PAGE_ASPECT_RATIO);
     }
 
-    public void invertPages() {
+    public void processPages() {
         this.pages.parallelStream().forEach(page->{
-            page.preview = ImageHelper.invertBitmap(page.preview);
+            page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
         });
     }
 }

@@ -41,4 +41,13 @@ public final class Constants {
     public static final int READER_MAX_ADAPTER_PAGES = 5; //min 4
     public static final int READER_SCROLL_Y = 200;
     public static final float READER_SCALE_STEP = 0.2f;
+    public static final float READER_PAGE_QUALITY_LOW = 0.25f;
+    public static final float READER_PAGE_QUALITY_MEDIUM = 0.5f;
+    public static final float READER_PAGE_QUALITY_HIGH = 0.75f;
+    public static final float READER_PAGE_MIN_BRIGHTNESS = -100f;
+    public static final float READER_PAGE_MAX_BRIGHTNESS = 100f;
+    public static final float READER_PAGE_DEFAULT_BRIGHTNESS = 0f;
+    public static final float READER_PAGE_MIN_CONTRAST = 0.0f;
+    public static final float READER_PAGE_MAX_CONTRAST = 2.0f;
+    public static final float READER_PAGE_DEFAULT_CONTRAST = 1.0f;
 }

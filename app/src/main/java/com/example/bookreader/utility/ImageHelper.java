@@ -1,5 +1,12 @@
 package com.example.bookreader.utility;
 
+import static com.example.bookreader.constants.Constants.READER_PAGE_DEFAULT_BRIGHTNESS;
+import static com.example.bookreader.constants.Constants.READER_PAGE_DEFAULT_CONTRAST;
+import static com.example.bookreader.constants.Constants.READER_PAGE_MAX_BRIGHTNESS;
+import static com.example.bookreader.constants.Constants.READER_PAGE_MAX_CONTRAST;
+import static com.example.bookreader.constants.Constants.READER_PAGE_MIN_BRIGHTNESS;
+import static com.example.bookreader.constants.Constants.READER_PAGE_MIN_CONTRAST;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -69,22 +76,62 @@ public class ImageHelper {
                 });
     }
 
-    public static Bitmap invertBitmap(@NonNull Bitmap original) {
-        Bitmap inverted = Bitmap.createBitmap(original.getWidth(), original.getHeight(), original.getConfig());
+    public static Bitmap processBitmap(
+            @NonNull Bitmap original,
+            boolean invert,
+            float contrast,   // 1.0f = без змін
+            float brightness  // 0 = без змін, >0 = світліше, <0 = темніше
+    ) {
+        if(!invert && contrast == READER_PAGE_DEFAULT_CONTRAST && brightness == READER_PAGE_DEFAULT_BRIGHTNESS) return original;
+        brightness = Math.max(READER_PAGE_MIN_BRIGHTNESS, Math.min(READER_PAGE_MAX_BRIGHTNESS, brightness));
+        contrast = Math.max(READER_PAGE_MIN_CONTRAST, Math.min(READER_PAGE_MAX_CONTRAST, contrast));
+        Bitmap result = Bitmap.createBitmap(original.getWidth(), original.getHeight(), original.getConfig());
 
-        ColorMatrix colorMatrix = new ColorMatrix(new float[]{
-                -1.0f, 0, 0, 0, 255, // R
-                0, -1.0f, 0, 0, 255, // G
-                0, 0, -1.0f, 0, 255, // B
-                0, 0, 0, 1.0f, 0     // Alpha
+        // Початкова матриця (identity)
+        ColorMatrix finalMatrix = new ColorMatrix();
+
+
+
+        // 🔹 Контрастність
+        // contrast = 1.0 → без змін;  >1.0 → сильніше; 0.5 → слабше
+        float scale = contrast;
+        float translate = (-0.5f * scale + 0.5f) * 255f;
+        ColorMatrix contrastMatrix = new ColorMatrix(new float[]{
+                scale, 0, 0, 0, translate,
+                0, scale, 0, 0, translate,
+                0, 0, scale, 0, translate,
+                0, 0, 0, 1, 0
         });
+        finalMatrix.postConcat(contrastMatrix);
 
+        // 🔹 Яскравість
+        if (brightness != 0f) {
+            ColorMatrix brightnessMatrix = new ColorMatrix(new float[]{
+                    1, 0, 0, 0, brightness,
+                    0, 1, 0, 0, brightness,
+                    0, 0, 1, 0, brightness,
+                    0, 0, 0, 1, 0
+            });
+            finalMatrix.postConcat(brightnessMatrix);
+        }
+
+        // 🔹 Інверсія
+        if (invert) {
+            ColorMatrix invertMatrix = new ColorMatrix(new float[]{
+                    -1.0f, 0, 0, 0, 255,
+                    0, -1.0f, 0, 0, 255,
+                    0, 0, -1.0f, 0, 255,
+                    0, 0, 0, 1.0f, 0
+            });
+            finalMatrix.postConcat(invertMatrix);
+        }
+
+        // Малюємо з фільтром
         Paint paint = new Paint();
-        paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
-
-        Canvas canvas = new Canvas(inverted);
+        paint.setColorFilter(new ColorMatrixColorFilter(finalMatrix));
+        Canvas canvas = new Canvas(result);
         canvas.drawBitmap(original, 0, 0, paint);
 
-        return inverted;
+        return result;
     }
 }
