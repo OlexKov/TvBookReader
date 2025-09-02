@@ -17,8 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.widget.ProgressBar;
-
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,6 +26,7 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.BookSettingsDto;
 import com.example.bookreader.data.database.repository.BookSettingsRepository;
 import com.example.bookreader.extentions.BookScrollBar;
+import com.example.bookreader.utility.ImageHelper;
 import com.example.bookreader.utility.ProcessRuner;
 import com.example.bookreader.utility.bookutils.BookProcessor;
 
@@ -137,13 +136,18 @@ public class BookReaderFragment  extends Fragment {
         firstPageIndex++;
         lastPageIndex++;
         bookProcessor.getPreviewAsync(lastPageIndex, currentPreviewHeight, currentPreviewWidth)
-                .thenAccept(page -> requireActivity().runOnUiThread(() -> {
-                    pages.remove(0);
-                    pages.add(page);
-                    adapter.notifyItemRemoved(0);
-                    adapter.notifyItemInserted(pages.size() - 1);
-                    isPageLoading = false;
-                }));
+                .thenAccept(page -> {
+                        if(bookSettings.invert){
+                            page.preview = ImageHelper.invertBitmap(page.preview);
+                        }
+                        requireActivity().runOnUiThread(() -> {
+                            pages.remove(0);
+                            pages.add(page);
+                            adapter.notifyItemRemoved(0);
+                            adapter.notifyItemInserted(pages.size() - 1);
+                            isPageLoading = false;
+                });
+        });
     }
 
     private void loadPrevPage() {
@@ -151,13 +155,18 @@ public class BookReaderFragment  extends Fragment {
         firstPageIndex--;
         lastPageIndex--;
         bookProcessor.getPreviewAsync(firstPageIndex, currentPreviewHeight, currentPreviewWidth)
-                .thenAccept(page -> requireActivity().runOnUiThread(() -> {
-                    pages.remove(pages.size() - 1);
-                    pages.add(0, page);
-                    adapter.notifyItemRemoved(pages.size() - 1);
-                    adapter.notifyItemInserted(0);
-                    isPageLoading = false;
-                }));
+                .thenAccept(page ->{
+                    if(bookSettings.invert){
+                        page.preview = ImageHelper.invertBitmap(page.preview);
+                    }
+                    requireActivity().runOnUiThread(() -> {
+                        pages.remove(pages.size() - 1);
+                        pages.add(0, page);
+                        adapter.notifyItemRemoved(pages.size() - 1);
+                        adapter.notifyItemInserted(0);
+                        isPageLoading = false;
+                    });
+        });
     }
 
     private void updateBookPosition(int firstVisible) {
@@ -199,8 +208,11 @@ public class BookReaderFragment  extends Fragment {
     }
 
     private void setAndInitAdapter(){
-        updateBookPages().thenAccept(pages->{
+        loadBookPages().thenAccept(pages->{
             this.pages = pages;
+            if(bookSettings.invert){
+                invertPages();
+            }
             adapter = new BookPageAdapter(this.pages,bookSettings.scale);
             requireActivity().runOnUiThread(()->{
                 recyclerView.setAdapter(adapter);
@@ -248,7 +260,7 @@ public class BookReaderFragment  extends Fragment {
         processRuner.runDelayed(1000, this::updatePages);
     }
 
-    private CompletableFuture<List<PagePreview>> updateBookPages() {
+    private CompletableFuture<List<PagePreview>> loadBookPages() {
         List<Integer> pages = java.util.stream.IntStream
                 .range(firstPageIndex, lastPageIndex + 1)
                 .boxed()
@@ -263,8 +275,11 @@ public class BookReaderFragment  extends Fragment {
             int lastVisible = layoutManager.findLastVisibleItemPosition();
             View firstChild = recyclerView.getChildAt(0);
             int offset = (firstChild != null) ? firstChild.getTop() : 0;
-            updateBookPages().thenAccept(pages->{
+            loadBookPages().thenAccept(pages->{
                 this.pages = pages;
+                if(bookSettings.invert){
+                    invertPages();
+                }
                 adapter.setPages(this.pages);
                 getActivity().runOnUiThread(()->{
                     adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
@@ -278,5 +293,11 @@ public class BookReaderFragment  extends Fragment {
     private void updatePreviewSize(){
         currentPreviewHeight = (int)(screenHeight * bookSettings.scale * bookSettings.quality);
         currentPreviewWidth = (int)(currentPreviewHeight * READER_PAGE_ASPECT_RATIO);
+    }
+
+    public void invertPages() {
+        this.pages.parallelStream().forEach(page->{
+            page.preview = ImageHelper.invertBitmap(page.preview);
+        });
     }
 }

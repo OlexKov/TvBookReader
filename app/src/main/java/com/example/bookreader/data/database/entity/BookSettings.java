@@ -26,4 +26,5 @@ public class BookSettings {
     public float quality = 0.25f;
     public int lastReadPageIndex = 0;
     public int pageOffset = 0;
+    public boolean invert = true;
 }

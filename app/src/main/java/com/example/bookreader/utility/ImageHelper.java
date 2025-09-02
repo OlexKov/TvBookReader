@@ -2,6 +2,10 @@ package com.example.bookreader.utility;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import androidx.core.util.Consumer;
@@ -14,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -64,4 +69,22 @@ public class ImageHelper {
                 });
     }
 
+    public static Bitmap invertBitmap(@NonNull Bitmap original) {
+        Bitmap inverted = Bitmap.createBitmap(original.getWidth(), original.getHeight(), original.getConfig());
+
+        ColorMatrix colorMatrix = new ColorMatrix(new float[]{
+                -1.0f, 0, 0, 0, 255, // R
+                0, -1.0f, 0, 0, 255, // G
+                0, 0, -1.0f, 0, 255, // B
+                0, 0, 0, 1.0f, 0     // Alpha
+        });
+
+        Paint paint = new Paint();
+        paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+
+        Canvas canvas = new Canvas(inverted);
+        canvas.drawBitmap(original, 0, 0, paint);
+
+        return inverted;
+    }
 }
