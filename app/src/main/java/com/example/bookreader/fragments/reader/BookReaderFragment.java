@@ -7,7 +7,7 @@ import static com.example.bookreader.constants.Constants.READER_SCROLL_Y;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.util.Log;
+
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +16,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import android.widget.ProgressBar;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,6 +27,7 @@ import com.example.bookreader.customclassses.PagePreview;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.BookSettingsDto;
 import com.example.bookreader.data.database.repository.BookSettingsRepository;
+import com.example.bookreader.extentions.BookScrollBar;
 import com.example.bookreader.utility.ProcessRuner;
 import com.example.bookreader.utility.bookutils.BookProcessor;
 
@@ -37,6 +41,7 @@ public class BookReaderFragment  extends Fragment {
     private final BookSettingsRepository bookSettingsRepository = new BookSettingsRepository();
     private final ProcessRuner processRuner = new ProcessRuner();
     private final BookDto book;
+    private BookScrollBar progressBar;
     private RecyclerView recyclerView;
     private BookPageAdapter adapter;
     private BookProcessor bookProcessor;
@@ -78,6 +83,9 @@ public class BookReaderFragment  extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         this.bookProcessor = new BookProcessor(getContext(),book.filePath);
+        progressBar = view.findViewById(R.id.scrollBar);
+       // progressBar.setEnabled(true);
+        progressBar.setMax(book.pageCount);
         initParams();
         setRecyclerView(view);
         updatePreviewSize();
@@ -94,6 +102,7 @@ public class BookReaderFragment  extends Fragment {
 
     private void setScrollListener(){
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @SuppressLint("RestrictedApi")
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
@@ -101,6 +110,7 @@ public class BookReaderFragment  extends Fragment {
                 updateBookPosition(firstVisible);
                 boolean scrollDown = firstVisible > firstVisiblePage;
                 firstVisiblePage = firstVisible;
+                progressBar.setProgress(bookSettings.lastReadPageIndex);
                 if (scrollDown && shouldLoadNext()) {
                     loadNextPage();
                 } else if (!scrollDown && shouldLoadPrev()) {
@@ -149,7 +159,6 @@ public class BookReaderFragment  extends Fragment {
                     isPageLoading = false;
                 }));
     }
-
 
     private void updateBookPosition(int firstVisible) {
         View firstChild = recyclerView.getChildAt(0);
