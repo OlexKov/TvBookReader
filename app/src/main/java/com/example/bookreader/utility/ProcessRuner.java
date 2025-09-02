@@ -7,7 +7,7 @@ public class ProcessRuner {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable pendingBackgroundUpdate = null;
 
-    public void runDelayed(int delay,Runnable post){
+    public void runDelayed(int delay, Runnable post) {
         if (pendingBackgroundUpdate != null) {
             handler.removeCallbacks(pendingBackgroundUpdate);
         }
@@ -17,5 +17,4 @@ public class ProcessRuner {
         };
         handler.postDelayed(pendingBackgroundUpdate, delay);
     }
-
 }

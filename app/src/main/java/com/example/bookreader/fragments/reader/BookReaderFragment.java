@@ -45,7 +45,8 @@ public class BookReaderFragment  extends Fragment {
     private int screenHeight ;
     private float maxScale ;
     private  List<PagePreview> pages;
-    private boolean isPagesUpdating;
+    private boolean isPagesUpdating = false;
+    private boolean isPageLoading = false;
     private int firstVisiblePage = 0;
     private int firstPageIndex;
     private int lastPageIndex ;
@@ -97,39 +98,63 @@ public class BookReaderFragment  extends Fragment {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 int firstVisible = layoutManager.findFirstVisibleItemPosition();
-                View firstChild = recyclerView.getChildAt(0);
-                bookSettings.pageOffset = (firstChild != null) ? firstChild.getTop() : 0;
-                bookSettings.lastReadPageIndex = pages.get(firstVisible).pageIndex;
-                if(firstVisiblePage != firstVisible){
-                    boolean scrollDown = firstVisible > firstVisiblePage;
-                    firstVisiblePage = firstVisible;
-                    if(scrollDown){
-                        if((firstVisiblePage + 1) == (READER_MAX_ADAPTER_PAGES - 1) && book.pageCount-1 > lastPageIndex){
-                            firstPageIndex++;
-                            lastPageIndex++;
-                            bookProcessor.getPreviewAsync(lastPageIndex,currentPreviewHeight,currentPreviewWidth).thenAccept(page->{
-                                pages.remove(0);
-                                pages.add(page);
-                                adapter.notifyItemRemoved(0);
-                                adapter.notifyItemInserted(pages.size() - 1);
-                            });
-                        }
-                    }
-                    else{
-                        if(firstVisiblePage - 1 < 0 && firstPageIndex != 0){
-                            lastPageIndex--;
-                            firstPageIndex--;
-                            bookProcessor.getPreviewAsync(firstPageIndex,currentPreviewHeight,currentPreviewWidth).thenAccept(page->{
-                                pages.remove(pages.size()-1);
-                                pages.add(0,page);
-                                adapter.notifyItemRemoved(pages.size()-1);
-                                adapter.notifyItemInserted(0);
-                            });
-                        }
-                    }
+                updateBookPosition(firstVisible);
+                boolean scrollDown = firstVisible > firstVisiblePage;
+                firstVisiblePage = firstVisible;
+                if (scrollDown && shouldLoadNext()) {
+                    loadNextPage();
+                } else if (!scrollDown && shouldLoadPrev()) {
+                    loadPrevPage();
                 }
             }
         });
+    }
+
+    private boolean shouldLoadNext() {
+        return !isPageLoading
+                && (firstVisiblePage + 1 == READER_MAX_ADAPTER_PAGES - 1)
+                && (book.pageCount - 1 > lastPageIndex);
+    }
+
+    private boolean shouldLoadPrev() {
+        return !isPageLoading
+                && firstVisiblePage - 1 < 0
+                && firstPageIndex != 0;
+    }
+
+    private void loadNextPage() {
+        isPageLoading = true;
+        firstPageIndex++;
+        lastPageIndex++;
+        bookProcessor.getPreviewAsync(lastPageIndex, currentPreviewHeight, currentPreviewWidth)
+                .thenAccept(page -> requireActivity().runOnUiThread(() -> {
+                    pages.remove(0);
+                    pages.add(page);
+                    adapter.notifyItemRemoved(0);
+                    adapter.notifyItemInserted(pages.size() - 1);
+                    isPageLoading = false;
+                }));
+    }
+
+    private void loadPrevPage() {
+        isPageLoading = true;
+        firstPageIndex--;
+        lastPageIndex--;
+        bookProcessor.getPreviewAsync(firstPageIndex, currentPreviewHeight, currentPreviewWidth)
+                .thenAccept(page -> requireActivity().runOnUiThread(() -> {
+                    pages.remove(pages.size() - 1);
+                    pages.add(0, page);
+                    adapter.notifyItemRemoved(pages.size() - 1);
+                    adapter.notifyItemInserted(0);
+                    isPageLoading = false;
+                }));
+    }
+
+
+    private void updateBookPosition(int firstVisible) {
+        View firstChild = recyclerView.getChildAt(0);
+        bookSettings.pageOffset = (firstChild != null) ? firstChild.getTop() : 0;
+        bookSettings.lastReadPageIndex = pages.get(firstVisible).pageIndex;
     }
 
     private void setKeyListener(){
@@ -168,7 +193,7 @@ public class BookReaderFragment  extends Fragment {
         updateBookPages().thenAccept(pages->{
             this.pages = pages;
             adapter = new BookPageAdapter(this.pages,bookSettings.scale);
-            getActivity().runOnUiThread(()->{
+            requireActivity().runOnUiThread(()->{
                 recyclerView.setAdapter(adapter);
                 if(bookSettings.lastReadPageIndex != 0 || bookSettings.pageOffset != 0){
                     int index = java.util.stream.IntStream.range(0, pages.size())
@@ -245,5 +270,4 @@ public class BookReaderFragment  extends Fragment {
         currentPreviewHeight = (int)(screenHeight * bookSettings.scale * bookSettings.quality);
         currentPreviewWidth = (int)(currentPreviewHeight * READER_PAGE_ASPECT_RATIO);
     }
-
 }
