@@ -39,4 +39,6 @@ public final class Constants {
 
     public static final float READER_PAGE_ASPECT_RATIO = 2f / 3f;
     public static final int READER_MAX_ADAPTER_PAGES = 5; //min 4
+    public static final int READER_SCROLL_Y = 200;
+    public static final float READER_SCALE_STEP = 0.2f;
 }

@@ -2,6 +2,8 @@ package com.example.bookreader.fragments.reader;
 
 import static com.example.bookreader.constants.Constants.READER_MAX_ADAPTER_PAGES;
 import static com.example.bookreader.constants.Constants.READER_PAGE_ASPECT_RATIO;
+import static com.example.bookreader.constants.Constants.READER_SCALE_STEP;
+import static com.example.bookreader.constants.Constants.READER_SCROLL_Y;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -75,66 +77,21 @@ public class BookReaderFragment  extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         this.bookProcessor = new BookProcessor(getContext(),book.filePath);
+        initParams();
+        setRecyclerView(view);
+        updatePreviewSize();
+        setAndInitAdapter();
+        setKeyListener();
+        setScrollListener();
+    }
+
+    private void initParams(){
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         screenHeight = getResources().getDisplayMetrics().heightPixels;
         maxScale =  screenWidth / READER_PAGE_ASPECT_RATIO / screenHeight;
-        recyclerView = view.findViewById(R.id.pageRecyclerView);
-        layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setNestedScrollingEnabled(false);
-        recyclerView.setItemAnimator(null);
-        updatePreviewSize();
+    }
 
-        updateBookPages().thenAccept(pages->{
-            this.pages = pages;
-            adapter = new BookPageAdapter(this.pages,bookSettings.scale);
-            getActivity().runOnUiThread(()->{
-                recyclerView.setAdapter(adapter);
-                if(bookSettings.lastReadPageIndex != 0 || bookSettings.pageOffset != 0){
-                    int index = java.util.stream.IntStream.range(0, pages.size())
-                            .filter(i -> pages.get(i).pageIndex == bookSettings.lastReadPageIndex)
-                            .findFirst()
-                            .orElse(-1);
-                    layoutManager.scrollToPositionWithOffset(index,bookSettings.pageOffset);
-                }
-            });
-        });
-
-
-        // Вимикаємо фокусування на дочірніх елементах
-        recyclerView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-
-        // Обробка кнопок UP/DOWN з пульта
-        recyclerView.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                switch (keyCode) {
-                    case KeyEvent.KEYCODE_DPAD_DOWN:
-                        recyclerView.smoothScrollBy(0, 200); // вниз
-                        return true;
-                    case KeyEvent.KEYCODE_DPAD_UP:
-                        recyclerView.smoothScrollBy(0, -200); // вверх
-                        return true;
-
-                    case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        float scale = Math.min(bookSettings.scale + 0.2f,maxScale);
-                        if(bookSettings.scale != scale){
-                            bookSettings.scale = scale;
-                            updateScale();
-                        }
-                        return true;
-                    case KeyEvent.KEYCODE_DPAD_LEFT:
-                        float sce = Math.max(bookSettings.scale - 0.2f,1);
-                        if(bookSettings.scale != sce){
-                            bookSettings.scale = sce;
-                            updateScale();
-                        }
-                        return true;
-                }
-            }
-            return false;
-        });
-
+    private void setScrollListener(){
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -173,6 +130,65 @@ public class BookReaderFragment  extends Fragment {
                 }
             }
         });
+    }
+
+    private void setKeyListener(){
+        // Обробка кнопок UP/DOWN з пульта
+        recyclerView.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_DPAD_DOWN:
+                        recyclerView.smoothScrollBy(0, READER_SCROLL_Y);
+                        return true;
+                    case KeyEvent.KEYCODE_DPAD_UP:
+                        recyclerView.smoothScrollBy(0, -READER_SCROLL_Y);
+                        return true;
+
+                    case KeyEvent.KEYCODE_DPAD_RIGHT:
+                        float scale = Math.min(bookSettings.scale + READER_SCALE_STEP,maxScale);
+                        if(bookSettings.scale != scale){
+                            bookSettings.scale = scale;
+                            updateScale();
+                        }
+                        return true;
+                    case KeyEvent.KEYCODE_DPAD_LEFT:
+                        float sce = Math.max(bookSettings.scale - READER_SCALE_STEP,1);
+                        if(bookSettings.scale != sce){
+                            bookSettings.scale = sce;
+                            updateScale();
+                        }
+                        return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    private void setAndInitAdapter(){
+        updateBookPages().thenAccept(pages->{
+            this.pages = pages;
+            adapter = new BookPageAdapter(this.pages,bookSettings.scale);
+            getActivity().runOnUiThread(()->{
+                recyclerView.setAdapter(adapter);
+                if(bookSettings.lastReadPageIndex != 0 || bookSettings.pageOffset != 0){
+                    int index = java.util.stream.IntStream.range(0, pages.size())
+                            .filter(i -> pages.get(i).pageIndex == bookSettings.lastReadPageIndex)
+                            .findFirst()
+                            .orElse(-1);
+                    layoutManager.scrollToPositionWithOffset(index,bookSettings.pageOffset);
+                }
+            });
+        });
+    }
+
+    private void setRecyclerView(View view){
+        recyclerView = view.findViewById(R.id.pageRecyclerView);
+        layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setNestedScrollingEnabled(false);
+        recyclerView.setItemAnimator(null);
+        recyclerView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
     }
 
     private void initPagesRange(){
