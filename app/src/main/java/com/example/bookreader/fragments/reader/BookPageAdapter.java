@@ -53,6 +53,7 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
         ((Activity) parent.getContext()).getWindowManager().getDefaultDisplay().getMetrics(metrics);
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
+        updateLayoutParams(imageView);
         imageView.setAdjustViewBounds(true);
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         imageView.setPadding(0,0,0, AnimHelper.convertToPx(parent.getContext(),5));
@@ -62,10 +63,7 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
     @Override
     public void onBindViewHolder(@NonNull PageViewHolder holder, int position) {
         holder.imageView.setImageBitmap(pages.get(position).preview);
-        holder.imageView.setLayoutParams(new ViewGroup.LayoutParams(
-                (int)(screenWidth ),
-                (int)(screenHeight * currentScale)
-        ));
+        updateLayoutParams(holder.imageView);
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -79,5 +77,10 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
         return pages.size();
     }
 
-
+    private void updateLayoutParams(ImageView imageView){
+        imageView.setLayoutParams(new ViewGroup.LayoutParams(
+                (int)(screenWidth ),
+                (int)(screenHeight * currentScale)
+        ));
+    }
 }

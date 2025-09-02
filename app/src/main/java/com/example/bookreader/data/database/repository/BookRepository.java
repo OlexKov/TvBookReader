@@ -9,6 +9,8 @@ import androidx.core.util.Consumer;
 
 import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.constants.Constants;
+import com.example.bookreader.data.database.dao.BookSettingsDao;
+import com.example.bookreader.data.database.entity.BookSettings;
 import com.example.bookreader.data.database.paganation.PaginationResultData;
 import com.example.bookreader.data.database.dao.BookDao;
 import com.example.bookreader.data.database.dto.BookDto;
@@ -21,19 +23,22 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class BookRepository {
     private final BookDao bookDao;
+    private final BookSettingsDao bookSettingsDao;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     final int MAX_SQL_VARS = 999;
 
     public BookRepository() {
         this.bookDao = BookReaderApp.getInstance().getAppDatabase().bookDao();
+        this.bookSettingsDao = BookReaderApp.getInstance().getAppDatabase().bookSettingsDao();
     }
 
     public void insertAsync(Book book, Consumer<Long> callback) {
         executorService.execute(() -> {
-            long id = bookDao.insert(book);
+            long id = insert(book);
             new Handler(Looper.getMainLooper()).post(() -> {
                 callback.accept(id);
             });
@@ -41,22 +46,33 @@ public class BookRepository {
     }
 
     public long insert(Book book) {
-       return bookDao.insert(book);
+        long id = bookDao.insert(book);
+        BookSettings settings = new BookSettings();
+        settings.bookId = id;
+        bookSettingsDao.insert(settings);
+        return id;
+    }
+
+    public CompletableFuture<List<Long>> insertAllAsync(List<Book> books) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Long> result = new ArrayList<>();
+            List<List<Book>> partitions = partitionList(books,MAX_SQL_VARS);
+            for (List<Book> bookList:partitions){
+                List<Long> bookIds = bookDao.insertAll(bookList);
+                result.addAll(bookIds);
+                List<BookSettings> booksSettings = bookIds.stream().map(bookId->{
+                    BookSettings settings = new BookSettings();
+                    settings.bookId = bookId;
+                    return settings;
+                }).collect(Collectors.toList());
+                bookSettingsDao.insertAll(booksSettings);
+            }
+            return result;
+        });
     }
 
     public CompletableFuture<List<String>> getAllPathsAsync(){
         return CompletableFuture.supplyAsync(bookDao::getAllPaths);
-    }
-
-    public CompletableFuture<List<Long>> insertAllAsync(List<Book> books) {
-       return CompletableFuture.supplyAsync(() -> {
-           List<Long> result = new ArrayList<>();
-           List<List<Book>> partitions = partitionList(books,MAX_SQL_VARS);
-           for (List<Book> bookList:partitions){
-               result.addAll(bookDao.insertAll(bookList));
-           }
-           return result;
-        });
     }
 
     public CompletableFuture<List<Integer>> getBooksByHashesAsync(List<Integer> hashes){
