@@ -266,15 +266,12 @@ public class BookReaderFragment  extends Fragment {
             isPagesUpdating = true;
             int firstVisible = layoutManager.findFirstVisibleItemPosition();
             int lastVisible = layoutManager.findLastVisibleItemPosition();
-            View firstChild = recyclerView.getChildAt(0);
-            int offset = (firstChild != null) ? firstChild.getTop() : 0;
             loadBookPages().thenAccept(pages->{
                 this.pages = pages;
                 processPages();
                 adapter.setPages(this.pages);
                 getActivity().runOnUiThread(()->{
                     adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
-                    layoutManager.scrollToPositionWithOffset(firstVisible, offset);
                 });
                 isPagesUpdating = false;
             });
