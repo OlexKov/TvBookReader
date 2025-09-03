@@ -8,7 +8,6 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import lombok.Getter;
-import lombok.Setter;
 
 public class BookScrollBar extends View {
     private Paint backgroundPaint;
@@ -33,8 +32,7 @@ public class BookScrollBar extends View {
 
     private void init() {
         backgroundPaint = new Paint();
-        backgroundPaint.setColor(Color.LTGRAY);
-
+        backgroundPaint.setColor(Color.argb(128, 211, 211, 211));
         thumbPaint = new Paint();
         thumbPaint.setColor(Color.DKGRAY);
     }

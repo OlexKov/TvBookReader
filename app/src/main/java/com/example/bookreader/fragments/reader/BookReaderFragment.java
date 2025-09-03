@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 public class BookReaderFragment  extends Fragment {
@@ -50,13 +51,14 @@ public class BookReaderFragment  extends Fragment {
     private float maxScale ;
     private  List<PagePreview> pages;
     private boolean isPagesUpdating = false;
-    private boolean isPageLoading = false;
+    private volatile boolean isPageLoading = false;
     private int firstVisiblePage = 0;
     private int firstPageIndex;
     private int lastPageIndex ;
     private int currentPreviewHeight;
     private int currentPreviewWidth;
     private final BookSettingsDto bookSettings;
+    private final Semaphore pageLoadingSemaphore = new Semaphore(1);
 
 
     public BookReaderFragment(@NotNull BookDto book){
@@ -131,37 +133,45 @@ public class BookReaderFragment  extends Fragment {
     }
 
     private void loadNextPage() {
+        try {
+            pageLoadingSemaphore.acquire();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         isPageLoading = true;
         firstPageIndex++;
         lastPageIndex++;
         bookProcessor.getPreviewAsync(lastPageIndex, currentPreviewHeight, currentPreviewWidth)
                 .thenAccept(page -> {
-                        page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
-                        requireActivity().runOnUiThread(() -> {
-                            pages.remove(0);
-                            pages.add(page);
-                            adapter.notifyItemRemoved(0);
-                            adapter.notifyItemInserted(pages.size() - 1);
-                            isPageLoading = false;
+                    page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
+                    pages.remove(0);
+                    pages.add(page);
+                    adapter.notifyItemRemoved(0);
+                    adapter.notifyItemInserted(pages.size() - 1);
+                    isPageLoading = false;
+                    pageLoadingSemaphore.release();
                 });
-        });
     }
 
-    private void loadPrevPage() {
+    private void loadPrevPage()  {
+        try {
+            pageLoadingSemaphore.acquire();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         isPageLoading = true;
         firstPageIndex--;
         lastPageIndex--;
         bookProcessor.getPreviewAsync(firstPageIndex, currentPreviewHeight, currentPreviewWidth)
                 .thenAccept(page ->{
                     page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
-                    requireActivity().runOnUiThread(() -> {
-                        pages.remove(pages.size() - 1);
-                        pages.add(0, page);
-                        adapter.notifyItemRemoved(pages.size() - 1);
-                        adapter.notifyItemInserted(0);
-                        isPageLoading = false;
-                    });
-        });
+                    pages.remove(pages.size() - 1);
+                    pages.add(0, page);
+                    adapter.notifyItemRemoved(pages.size() - 1);
+                    adapter.notifyItemInserted(0);
+                    isPageLoading = false;
+                    pageLoadingSemaphore.release();
+                });
     }
 
     private void updateBookPosition(int firstVisible) {
@@ -264,15 +274,24 @@ public class BookReaderFragment  extends Fragment {
     private void updatePages(){
         if(!isPagesUpdating){
             isPagesUpdating = true;
-            int firstVisible = layoutManager.findFirstVisibleItemPosition();
-            int lastVisible = layoutManager.findLastVisibleItemPosition();
             loadBookPages().thenAccept(pages->{
-                this.pages = pages;
-                processPages();
-                adapter.setPages(this.pages);
-                getActivity().runOnUiThread(()->{
-                    adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
-                });
+                try {
+                    pageLoadingSemaphore.acquire();
+                    pageLoadingSemaphore.release();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                for(int i = 0; i < pages.size(); i++){
+                    var newPage = pages.get(i);
+                    for(int k = 0; k < this.pages.size(); k++){
+                        var oldPage =  this.pages.get(k);
+                        if(newPage.pageIndex == oldPage.pageIndex){
+                            oldPage.preview = ImageHelper.processBitmap(newPage.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
+                            break;
+                        }
+                    }
+                }
+                updateVisiblePages();
                 isPagesUpdating = false;
             });
         }
@@ -281,6 +300,12 @@ public class BookReaderFragment  extends Fragment {
     private void updatePreviewSize(){
         currentPreviewHeight = (int)(screenHeight * bookSettings.scale * bookSettings.quality);
         currentPreviewWidth = (int)(currentPreviewHeight * READER_PAGE_ASPECT_RATIO);
+    }
+
+    private void updateVisiblePages(){
+        int firstVisible = layoutManager.findFirstVisibleItemPosition();
+        int lastVisible = layoutManager.findLastVisibleItemPosition();
+        adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
     }
 
     public void processPages() {
