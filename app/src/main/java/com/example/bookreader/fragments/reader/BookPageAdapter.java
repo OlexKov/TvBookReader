@@ -1,10 +1,16 @@
 package com.example.bookreader.fragments.reader;
 
+import static com.example.bookreader.constants.Constants.READER_PAGE_ASPECT_RATIO;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -23,8 +29,9 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
     @Setter
     private  List<PagePreview> pages;
     private float currentScale = 1f;
-    float screenWidth ;
-    float screenHeight ;
+    private float screenWidth ;
+    private float screenHeight ;
+    private Context context;
 
     public BookPageAdapter(List<PagePreview> pages,float scale) {
         this.pages = pages;
@@ -48,7 +55,8 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
     @NonNull
     @Override
     public PageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ImageView imageView = new ImageView(parent.getContext());
+        context = parent.getContext();
+        ImageView imageView = new ImageView(context);
         DisplayMetrics metrics = new DisplayMetrics();
         ((Activity) parent.getContext()).getWindowManager().getDefaultDisplay().getMetrics(metrics);
         screenWidth = metrics.widthPixels;
@@ -56,7 +64,13 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
         updateLayoutParams(imageView);
         imageView.setAdjustViewBounds(true);
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        imageView.setPadding(0,0,0, AnimHelper.convertToPx(parent.getContext(),5));
+        // Додаємо світну рамку
+        GradientDrawable glowBorder = new GradientDrawable();
+        glowBorder.setShape(GradientDrawable.RECTANGLE);
+        glowBorder.setStroke(1, Color.DKGRAY);
+        glowBorder.setColor(Color.TRANSPARENT);
+        imageView.setForeground(glowBorder);
+
         return new PageViewHolder(imageView);
     }
 
@@ -66,10 +80,9 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
         updateLayoutParams(holder.imageView);
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     public void setScale(float scale){
         currentScale = scale;
-        notifyDataSetChanged();
+        notifyItemRangeChanged(0,pages.size());
     }
 
     @Override
@@ -78,9 +91,15 @@ public class BookPageAdapter extends RecyclerView.Adapter<BookPageAdapter.PageVi
     }
 
     private void updateLayoutParams(ImageView imageView){
-        imageView.setLayoutParams(new ViewGroup.LayoutParams(
-                (int)(screenWidth ),
-                (int)(screenHeight * currentScale)
-        ));
+        float baseWidth = screenHeight * READER_PAGE_ASPECT_RATIO;
+        int finalWidth = (int)(baseWidth * currentScale);
+        int finalHeight = (int)(screenHeight * currentScale);
+        int marginLeft = (int)((screenWidth - finalWidth) / 2);
+        var params = new RecyclerView.LayoutParams(
+                finalWidth,
+                finalHeight
+        );
+        params.setMargins(marginLeft,0,0,AnimHelper.convertToPx(context,5));
+        imageView.setLayoutParams(params);
     }
 }

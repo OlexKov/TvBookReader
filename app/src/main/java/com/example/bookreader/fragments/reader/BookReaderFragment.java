@@ -1,17 +1,21 @@
 package com.example.bookreader.fragments.reader;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static com.example.bookreader.constants.Constants.READER_MAX_ADAPTER_PAGES;
 import static com.example.bookreader.constants.Constants.READER_PAGE_ASPECT_RATIO;
-import static com.example.bookreader.constants.Constants.READER_SCALE_STEP;
-import static com.example.bookreader.constants.Constants.READER_SCROLL_Y;
+import static com.example.bookreader.constants.Constants.READER_SCALE_STEPS;
+import static com.example.bookreader.constants.Constants.READER_SCROLL_STEPS;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,7 +44,11 @@ import java.util.stream.Collectors;
 public class BookReaderFragment  extends Fragment {
     private final BookSettingsRepository bookSettingsRepository = new BookSettingsRepository();
     private final ProcessRuner processRuner = new ProcessRuner();
+    private final ProcessRuner bigSpinnerRuner = new ProcessRuner();
+    private final ProcessRuner smallSpinnerRuner = new ProcessRuner();
     private final BookDto book;
+    private ProgressBar bigSpinner;
+    private ProgressBar smallSpinner;
     private BookScrollBar progressBar;
     private RecyclerView recyclerView;
     private BookPageAdapter adapter;
@@ -48,7 +56,9 @@ public class BookReaderFragment  extends Fragment {
     private LinearLayoutManager layoutManager ;
     private int screenWidth ;
     private int screenHeight ;
+    private int scrollHeight ;
     private float maxScale ;
+    private float scaleStep;
     private  List<PagePreview> pages;
     private boolean isPagesUpdating = false;
     private volatile boolean isPageLoading = false;
@@ -83,8 +93,11 @@ public class BookReaderFragment  extends Fragment {
     public void onViewCreated(@NonNull View view,
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        this.bookProcessor = new BookProcessor(getContext(),book.filePath);
+        view.setBackgroundColor(Color.BLACK);
+        bookProcessor = new BookProcessor(getContext(),book.filePath);
         progressBar = view.findViewById(R.id.scrollBar);
+        bigSpinner = view.findViewById(R.id.bigProgressBar);
+        smallSpinner = view.findViewById(R.id.smallProgressBar);
         progressBar.setMax(book.pageCount);
         initParams();
         setRecyclerView(view);
@@ -98,6 +111,8 @@ public class BookReaderFragment  extends Fragment {
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         screenHeight = getResources().getDisplayMetrics().heightPixels;
         maxScale =  screenWidth / READER_PAGE_ASPECT_RATIO / screenHeight;
+        scaleStep = (maxScale - 1.0f) / READER_SCALE_STEPS;
+        scrollHeight = screenHeight / READER_SCROLL_STEPS;
     }
 
     private void setScrollListener(){
@@ -133,6 +148,7 @@ public class BookReaderFragment  extends Fragment {
     }
 
     private void loadNextPage() {
+        showSmallSpinner();
         try {
             pageLoadingSemaphore.acquire();
         } catch (InterruptedException e) {
@@ -144,16 +160,20 @@ public class BookReaderFragment  extends Fragment {
         bookProcessor.getPreviewAsync(lastPageIndex, currentPreviewHeight, currentPreviewWidth)
                 .thenAccept(page -> {
                     page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
-                    pages.remove(0);
-                    pages.add(page);
-                    adapter.notifyItemRemoved(0);
-                    adapter.notifyItemInserted(pages.size() - 1);
+                    requireActivity().runOnUiThread(()->{
+                        pages.remove(0);
+                        adapter.notifyItemRemoved(0);
+                        pages.add(page);
+                        adapter.notifyItemInserted(pages.size() - 1);
+                    });
                     isPageLoading = false;
                     pageLoadingSemaphore.release();
+                    hideSmallSpinner();
                 });
     }
 
     private void loadPrevPage()  {
+        showSmallSpinner();
         try {
             pageLoadingSemaphore.acquire();
         } catch (InterruptedException e) {
@@ -165,12 +185,16 @@ public class BookReaderFragment  extends Fragment {
         bookProcessor.getPreviewAsync(firstPageIndex, currentPreviewHeight, currentPreviewWidth)
                 .thenAccept(page ->{
                     page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
-                    pages.remove(pages.size() - 1);
-                    pages.add(0, page);
-                    adapter.notifyItemRemoved(pages.size() - 1);
-                    adapter.notifyItemInserted(0);
+                    int removeIndex = pages.size() - 1;
+                    requireActivity().runOnUiThread(()->{
+                        pages.remove(removeIndex);
+                        adapter.notifyItemRemoved(removeIndex);
+                        pages.add(0, page);
+                        adapter.notifyItemInserted(0);
+                    });
                     isPageLoading = false;
                     pageLoadingSemaphore.release();
+                    hideSmallSpinner();
                 });
     }
 
@@ -186,21 +210,21 @@ public class BookReaderFragment  extends Fragment {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_DPAD_DOWN:
-                        recyclerView.smoothScrollBy(0, READER_SCROLL_Y);
+                        recyclerView.smoothScrollBy(0, scrollHeight);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_UP:
-                        recyclerView.smoothScrollBy(0, -READER_SCROLL_Y);
+                        recyclerView.smoothScrollBy(0, -scrollHeight);
                         return true;
 
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        float scale = Math.min(bookSettings.scale + READER_SCALE_STEP,maxScale);
+                        float scale = Math.min(bookSettings.scale + scaleStep,maxScale);
                         if(bookSettings.scale != scale){
                             bookSettings.scale = scale;
                             updateScale();
                         }
                         return true;
                     case KeyEvent.KEYCODE_DPAD_LEFT:
-                        float sce = Math.max(bookSettings.scale - READER_SCALE_STEP,1);
+                        float sce = Math.max(bookSettings.scale - scaleStep,1);
                         if(bookSettings.scale != sce){
                             bookSettings.scale = sce;
                             updateScale();
@@ -213,6 +237,7 @@ public class BookReaderFragment  extends Fragment {
     }
 
     private void setAndInitAdapter(){
+        showBigSpinner();
         loadBookPages().thenAccept(pages->{
             this.pages = pages;
             processPages();
@@ -226,6 +251,7 @@ public class BookReaderFragment  extends Fragment {
                             .orElse(-1);
                     layoutManager.scrollToPositionWithOffset(index,bookSettings.pageOffset);
                 }
+                hideBigSpinner();
             });
         });
     }
@@ -256,7 +282,6 @@ public class BookReaderFragment  extends Fragment {
 
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private void updateScale(){
         updatePreviewSize();
         adapter.setScale(bookSettings.scale);
@@ -272,6 +297,7 @@ public class BookReaderFragment  extends Fragment {
     }
 
     private void updatePages(){
+        showSmallSpinner();
         if(!isPagesUpdating){
             isPagesUpdating = true;
             loadBookPages().thenAccept(pages->{
@@ -293,6 +319,7 @@ public class BookReaderFragment  extends Fragment {
                 }
                 updateVisiblePages();
                 isPagesUpdating = false;
+                hideSmallSpinner();
             });
         }
     }
@@ -305,7 +332,9 @@ public class BookReaderFragment  extends Fragment {
     private void updateVisiblePages(){
         int firstVisible = layoutManager.findFirstVisibleItemPosition();
         int lastVisible = layoutManager.findLastVisibleItemPosition();
-        adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
+        requireActivity().runOnUiThread(()->{
+            adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
+        });
     }
 
     public void processPages() {
@@ -313,4 +342,29 @@ public class BookReaderFragment  extends Fragment {
             page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
         });
     }
+
+    private void showSpinner(ProgressBar bar,ProcessRuner runer,int startDelay){
+        runer.runDelayed(startDelay,()->bar.setVisibility(VISIBLE));
+    }
+
+    private void hideSpinner(ProgressBar bar,ProcessRuner runer,int startDelay){
+        runer.runDelayed(startDelay,()->bar.setVisibility(GONE));
+    }
+
+    private void showBigSpinner(){
+        showSpinner(bigSpinner,bigSpinnerRuner,300);
+    }
+
+    private void hideBigSpinner(){
+        hideSpinner(bigSpinner,bigSpinnerRuner,0);
+    }
+
+    private void showSmallSpinner(){
+        showSpinner(smallSpinner,smallSpinnerRuner,400);
+    }
+
+    private void hideSmallSpinner(){
+        hideSpinner(smallSpinner,smallSpinnerRuner,0);
+    }
+
 }
