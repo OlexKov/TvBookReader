@@ -317,7 +317,11 @@ public class BookReaderFragment  extends Fragment {
                         }
                     }
                 }
-                updateVisiblePages();
+                requireActivity().runOnUiThread(()->{
+                    adapter.notifyItemRangeChanged(0,pages.size());
+                });
+
+                //updateVisiblePages();
                 isPagesUpdating = false;
                 hideSmallSpinner();
             });
@@ -327,14 +331,6 @@ public class BookReaderFragment  extends Fragment {
     private void updatePreviewSize(){
         currentPreviewHeight = (int)(screenHeight * bookSettings.scale * bookSettings.quality);
         currentPreviewWidth = (int)(currentPreviewHeight * READER_PAGE_ASPECT_RATIO);
-    }
-
-    private void updateVisiblePages(){
-        int firstVisible = layoutManager.findFirstVisibleItemPosition();
-        int lastVisible = layoutManager.findLastVisibleItemPosition();
-        requireActivity().runOnUiThread(()->{
-            adapter.notifyItemRangeChanged(firstVisible,lastVisible - firstVisible + 1);
-        });
     }
 
     public void processPages() {
