@@ -8,6 +8,8 @@ import static com.example.bookreader.constants.Constants.READER_SCALE_STEPS;
 import static com.example.bookreader.constants.Constants.READER_SCROLL_STEPS;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -15,10 +17,13 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -30,9 +35,11 @@ import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.data.database.dto.BookSettingsDto;
 import com.example.bookreader.data.database.repository.BookSettingsRepository;
 import com.example.bookreader.extentions.BookScrollBar;
+import com.example.bookreader.utility.AnimHelper;
 import com.example.bookreader.utility.ImageHelper;
 import com.example.bookreader.utility.ProcessRuner;
 import com.example.bookreader.utility.bookutils.BookProcessor;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -69,6 +76,10 @@ public class BookReaderFragment  extends Fragment {
     private int currentPreviewWidth;
     private final BookSettingsDto bookSettings;
     private final Semaphore pageLoadingSemaphore = new Semaphore(1);
+    private BottomSheetBehavior<LinearLayout> behavior;
+    private LinearLayout bottomSheet;
+    private SwitchCompat dayNightModeSwitch;
+
 
 
     public BookReaderFragment(@NotNull BookDto book){
@@ -94,17 +105,68 @@ public class BookReaderFragment  extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         view.setBackgroundColor(Color.BLACK);
+
+        setDayNightSwitcher(view);
+
+
         bookProcessor = new BookProcessor(getContext(),book.filePath);
-        progressBar = view.findViewById(R.id.scrollBar);
-        bigSpinner = view.findViewById(R.id.bigProgressBar);
-        smallSpinner = view.findViewById(R.id.smallProgressBar);
-        progressBar.setMax(book.pageCount);
+        setBackCallback();
+        setSpinnersAndProgressBar(view);
+        setControlsPanel(view);
         initParams();
         setRecyclerView(view);
         updatePreviewSize();
         setAndInitAdapter();
         setKeyListener();
         setScrollListener();
+    }
+
+    private void setDayNightSwitcher(View view){
+        dayNightModeSwitch = view.findViewById(R.id.dayNightModeSwitch);
+        dayNightModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(bookSettings.invert != isChecked){
+                bookSettings.invert = isChecked;
+                invertPages();
+                adapter.notifyItemRangeChanged(0,pages.size());
+            }
+        });
+    }
+
+    private void setSettingsControls() {
+        dayNightModeSwitch.setChecked(bookSettings.invert);
+    }
+
+    private void setBackCallback(){
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        if (behavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                            behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                            recyclerView.setFocusable(true);
+                            recyclerView.requestFocus();
+                        } else {
+                            setEnabled(false);
+                            requireActivity().finish();
+                        }
+                    }
+                });
+    }
+
+    private void setSpinnersAndProgressBar(View view){
+        progressBar = view.findViewById(R.id.scrollBar);
+        bigSpinner = view.findViewById(R.id.bigProgressBar);
+        smallSpinner = view.findViewById(R.id.smallProgressBar);
+        progressBar.setMax(book.pageCount);
+    }
+
+    private void setControlsPanel(View view){
+        bottomSheet = view.findViewById(R.id.bottom_sheet);
+        behavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheet.getLayoutParams().height = AnimHelper.convertToPx(requireContext(),200);
+        bottomSheet.requestLayout();
+        behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        behavior.setPeekHeight(0);
     }
 
     private void initParams(){
@@ -230,6 +292,13 @@ public class BookReaderFragment  extends Fragment {
                             updateScale();
                         }
                         return true;
+
+                    case KeyEvent.KEYCODE_DPAD_CENTER:
+                        setSettingsControls();
+                        behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                        recyclerView.setFocusable(false);
+                        bottomSheet.requestFocus();
+                        return true;
                 }
             }
             return false;
@@ -336,6 +405,12 @@ public class BookReaderFragment  extends Fragment {
     public void processPages() {
         this.pages.parallelStream().forEach(page->{
             page.preview = ImageHelper.processBitmap(page.preview,bookSettings.invert,bookSettings.contrast,bookSettings.brightness);
+        });
+    }
+
+    public void invertPages() {
+        this.pages.parallelStream().forEach(page->{
+            page.preview = ImageHelper.invertBitmap(page.preview);
         });
     }
 

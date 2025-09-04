@@ -134,4 +134,20 @@ public class ImageHelper {
 
         return result;
     }
+
+    public static Bitmap invertBitmap(@NonNull Bitmap original) {
+        Bitmap result = Bitmap.createBitmap(original.getWidth(), original.getHeight(), original.getConfig());
+        ColorMatrix invertMatrix = new ColorMatrix(new float[]{
+                -1.0f, 0, 0, 0, 255,
+                0, -1.0f, 0, 0, 255,
+                0, 0, -1.0f, 0, 255,
+                0, 0, 0, 1.0f, 0
+        });
+        Paint paint = new Paint();
+        paint.setColorFilter(new ColorMatrixColorFilter(invertMatrix));
+        Canvas canvas = new Canvas(result);
+        canvas.drawBitmap(original, 0, 0, paint);
+
+        return result;
+    }
 }

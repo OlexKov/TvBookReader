@@ -1,40 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/book_reader_fragment"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- RecyclerView для сторінок -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/pageRecyclerView"
+    <RelativeLayout
+        android:id="@+id/book_reader_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- RecyclerView для сторінок -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pageRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="0dp"/>
+
+        <com.example.bookreader.extentions.BookScrollBar
+            android:id="@+id/scrollBar"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="2dp"/>
+
+        <ProgressBar
+            android:id="@+id/bigProgressBar"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            android:visibility="gone"/>
+
+        <ProgressBar
+            android:id="@+id/smallProgressBar"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:visibility="gone"
+            android:layout_marginTop="2dp"
+            android:layout_marginStart="2dp"/>
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:padding="0dp"/>
+        android:orientation="vertical"
+        android:background="#cc202020"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        android:padding="10dp">
 
-    <com.example.bookreader.extentions.BookScrollBar
-        android:id="@+id/scrollBar"
-        android:layout_width="60dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="2dp"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-    <ProgressBar
-        android:id="@+id/bigProgressBar"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_centerInParent="true"
-        android:visibility="gone"/>
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:paddingEnd="5dp"
+                android:paddingStart="5dp"
+                android:src="@drawable/day"
+                android:scaleType="fitCenter"
+                 />
 
-    <ProgressBar
-        android:id="@+id/smallProgressBar"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:visibility="gone"
-        android:layout_marginTop="2dp"
-        android:layout_marginStart="2dp"/>
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/dayNightModeSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                app:thumbTint="@android:color/darker_gray"/>
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:paddingEnd="5dp"
+                android:paddingStart="5dp"
+                android:src="@drawable/night"
+                android:scaleType="fitCenter"
+                />
+        </LinearLayout>
 
 
-</RelativeLayout>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+

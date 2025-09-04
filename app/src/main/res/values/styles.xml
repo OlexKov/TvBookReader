@@ -4,12 +4,12 @@
         <item name="android:windowBackground">@color/default_background</item>
     </style>
 
-<!--    <style name="BottomSlideAnimation">-->
-<!--        <item name="android:activityOpenEnterAnimation">@anim/slide_in_bottom</item>-->
-<!--        <item name="android:activityOpenExitAnimation">@anim/slide_out_bottom</item>-->
-<!--        <item name="android:activityCloseEnterAnimation">@anim/slide_in_bottom</item>-->
-<!--        <item name="android:activityCloseExitAnimation">@anim/slide_out_bottom</item>-->
-<!--    </style>-->
+    <style name="BottomSlideAnimation">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_bottom</item>
+        <item name="android:activityOpenExitAnimation">@anim/slide_out_bottom</item>
+        <item name="android:activityCloseEnterAnimation">@anim/slide_in_bottom</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_bottom</item>
+    </style>
 
     <!-- GuidedAction style settings-->
     <style name="App.GuidedActionItemTitle" parent="Widget.Leanback.GuidedActionItemTitleStyle">

@@ -9,6 +9,14 @@
         <item name="browseRowsMarginTop">130dp</item>
     </style>
 
+    <style name="TransparentPopupTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowAnimationStyle">@style/BottomSlideAnimation</item>
+    </style>
+
     <style name="TransparentActivityTheme" parent="Theme.BookReader">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>

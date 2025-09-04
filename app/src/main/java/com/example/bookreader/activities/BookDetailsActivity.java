@@ -11,13 +11,8 @@ import com.example.bookreader.fragments.BookDetailsFragment;
 import com.example.bookreader.utility.LocaleHelper;
 
 
-public class BookDetailsActivity extends FragmentActivity {
-    BookReaderApp app = BookReaderApp.getInstance();
+public class BookDetailsActivity extends BaseAppActivity {
 
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase, app.getLocalLanguage()));
-    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

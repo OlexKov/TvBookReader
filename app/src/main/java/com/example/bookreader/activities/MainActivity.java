@@ -2,7 +2,6 @@ package com.example.bookreader.activities;
 
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -20,29 +19,19 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
-import androidx.fragment.app.FragmentActivity;
-
-import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.utility.eventlistener.GlobalEventType;
 import com.example.bookreader.fragments.MainFragment;
 import com.example.bookreader.R;
-import com.example.bookreader.utility.LocaleHelper;
 
 /*
  * Main Activity class that loads {@link MainFragment}.
  */
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends BaseAppActivity {
     private boolean doubleBackToExitPressedOnce = false;
     private boolean backToMain = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final BookReaderApp app = BookReaderApp.getInstance();
     private final Consumer<Boolean> menuChangeHandler = (menuOpen)-> backToMain = menuOpen;
     private static final int REQUEST_STORAGE_PERMISSIONS = 100;
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase, app.getLocalLanguage()));
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

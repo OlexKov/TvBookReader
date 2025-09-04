@@ -1,23 +1,13 @@
 package com.example.bookreader.activities;
 
-import android.content.Context;
+
 import android.os.Bundle;
-
-import androidx.fragment.app.FragmentActivity;
-
-import com.example.bookreader.BookReaderApp;
 import com.example.bookreader.R;
 import com.example.bookreader.data.database.dto.BookDto;
 import com.example.bookreader.fragments.reader.BookReaderFragment;
-import com.example.bookreader.utility.LocaleHelper;
 
-public class BookReaderActivity extends FragmentActivity {
-    BookReaderApp app = BookReaderApp.getInstance();
 
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase, app.getLocalLanguage()));
-    }
+public class BookReaderActivity extends BaseAppActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

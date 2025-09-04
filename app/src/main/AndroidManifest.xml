@@ -53,7 +53,7 @@
 
         <activity android:name=".activities.BookReaderActivity"
             android:exported="true"
-            android:theme="@style/Theme.BookReader"/>
+            android:theme="@style/Theme.AppCompat"/>
 
         <activity android:name=".activities.SettingActivity"
             android:exported="true"
