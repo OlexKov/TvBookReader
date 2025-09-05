@@ -49,7 +49,7 @@ public class BookScrollBar extends View {
         thumbPaint.setColor(Color.DKGRAY);
 
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        textPaint.setColor(Color.DKGRAY);
+        textPaint.setColor(Color.parseColor("#818181"));
         textPaint.setTextSize(50f);
         textPaint.setAntiAlias(true);
         setAlpha(0f);
@@ -61,22 +61,12 @@ public class BookScrollBar extends View {
         int width = getWidth();
         int height = getHeight();
 
-        // область для бара (праві BAR_WIDTH dp)
         int barLeft = width - AnimHelper.convertToPx(getContext(), BAR_WIDTH_DP);
-
-        // фон бара
         canvas.drawRect(barLeft, 0, width, height, backgroundPaint);
-
-        // нормалізація прогресу до 0..1
         float fraction = (max > 0) ? (progress / max) : 0f;
-
-        // позиція повзунка
         int top = (int) ((height - thumbHeight) * fraction);
-
-        // повзунок
         canvas.drawRect(barLeft, top, width, top + thumbHeight, thumbPaint);
 
-        // текст (зліва від бара, вертикально по центру повзунка)
         String text = String.valueOf((int) progress);
         float textWidth = textPaint.measureText(text);
         float textX = barLeft - AnimHelper.convertToPx(getContext(),5) - textWidth;
